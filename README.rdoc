@@ -1,6 +1,6 @@
 = linkage
 
-Description goes here.
+Linkage is a library for record linkage between two database tables.
 
 == Contributing to linkage
  
