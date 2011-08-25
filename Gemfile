@@ -10,4 +10,6 @@ group :development do
   gem "test-unit", "2.3.2"
   gem "mocha"
   gem "sqlite3"
+  gem "yard"
+  gem "guard-yard"
 end
