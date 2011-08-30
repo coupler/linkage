@@ -4,6 +4,9 @@ module Linkage
     # @return [Array] Schema information about the dataset's primary key
     attr_reader :primary_key
 
+    # @return [Array] Schema information for this dataset
+    attr_reader :schema
+
     # @param [String] uri Sequel-style database URI
     # @param [String] table Database table name
     # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database

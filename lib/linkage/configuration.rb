@@ -1,4 +1,6 @@
 module Linkage
+  # Internal class used to configure linkages. See {Dataset#link_with}
+  # for more information.
   class Configuration
     class ExpectationWrapper
       def initialize(type, field, side, config)
@@ -55,6 +57,8 @@ module Linkage
       end
     end
 
+    include Utils
+
     def initialize(dataset_1, dataset_2)
       @dataset_1 = dataset_1
       @dataset_2 = dataset_2
@@ -75,6 +79,27 @@ module Linkage
     end
 
     def groups_table_schema
+      schema = []
+
+      # add record_id
+      schema << merge_fields(
+        @dataset_1.primary_key[1],
+        @dataset_2.primary_key[1]
+      ).update(:name => :record_id)
+
+      # add group_id
+      schema << {:name => :group_id, :type => Integer, :opts => {}}
+
+      if @expectations.has_key?(:must)
+        @expectations[:must].each do |exp|
+          field_1 = @dataset_1.schema.assoc(exp.field_1)[1]
+          field_2 = @dataset_2.schema.assoc(exp.field_2)[1]
+          info = merge_fields(field_1, field_2)
+          schema << info.update(:name => exp.field_1)
+        end
+      end
+
+      schema
     end
 
     def inspect
