@@ -12,4 +12,5 @@ group :development do
   gem "sqlite3"
   gem "yard"
   gem "guard-yard"
+  gem "rake"
 end

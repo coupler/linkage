@@ -18,7 +18,7 @@ module Linkage
       @primary_key = @schema.find { |f| f[1][:primary_key] }
     end
 
-    # Setup a linkage with another dataset.
+    # Setup a linkage with another dataset
     #
     # @return [Linkage::Configuration]
     def link_with(dataset, &block)
