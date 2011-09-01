@@ -12,6 +12,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     @database.stubs(:schema).returns(@schema)
     @dataset = stub("dataset")
     @database.stubs(:[]).returns(@dataset)
+    @field = stub("field", :dataset= => nil)
+    Linkage::Field.stubs(:new).returns(@field)
   end
 
   test "initialize with uri and table name" do
@@ -27,11 +29,16 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert_equal primary_key_field, ds.primary_key
   end
 
-  test "link_with self" do
+  test "link_with self makes a copy" do
     dataset = Linkage::Dataset.new("foo:/bar", "baz")
+
+    dataset_clone = stub('dataset clone')
+    dataset.expects(:clone).returns(dataset_clone)
+
     conf = stub('configuration')
-    Linkage::Configuration.expects(:new).with(dataset, dataset).returns(conf)
+    Linkage::Configuration.expects(:new).with(dataset, dataset_clone).returns(conf)
     conf.expects(:instance_eval)
+
     result = dataset.link_with(dataset) do
       lhs[:first_name].must == rhs[:first_name]
     end
@@ -50,8 +57,26 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     dataset_1 = Linkage::Dataset.new("foo:/bar", "baz")
 
     ds = stub('new dataset')
-    Linkage::Dataset.expects(:new).with('foo:/bar', 'baz').returns(ds)
+    Linkage::Dataset.expects(:new).with('foo:/bar', :baz).returns(ds)
     dataset_2 = dataset_1.dup
     assert_equal ds, dataset_2
+  end
+
+  test "clone doesn't shallow copy fields" do
+    field_1 = stub('field 1', :dataset= => nil)
+    Linkage::Field.expects(:new).with(*@schema[0]).returns(field_1)
+    field_2 = stub('field 2', :dataset= => nil)
+    Linkage::Field.expects(:new).with(*@schema[1]).returns(field_2)
+    field_3 = stub('field 3', :dataset= => nil)
+    Linkage::Field.expects(:new).with(*@schema[2]).returns(field_3)
+    dataset_1 = Linkage::Dataset.new("foo:/bar", "baz")
+
+    field_1.expects(:clone).returns(mock('field 1 clone', :dataset= => nil))
+    field_2.expects(:clone).returns(mock('field 2 clone', :dataset= => nil))
+    field_3.expects(:clone).returns(mock('field 3 clone', :dataset= => nil))
+    dataset_2 = dataset_1.clone
+    dataset_2.fields.each_with_index do |field, i|
+      assert !field.equal?(dataset_1.fields[i])
+    end
   end
 end

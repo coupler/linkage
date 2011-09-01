@@ -13,6 +13,9 @@ module Linkage
     # @return [Symbol] Database table name
     attr_reader :table
 
+    # @return [Array<Linkage::Field>] List of {Linkage::Field}'s
+    attr_reader :fields
+
     # @param [String] uri Sequel-style database URI
     # @param [String, Symbol] table Database table name
     # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database
@@ -29,6 +32,9 @@ module Linkage
     #
     # @return [Linkage::Configuration]
     def link_with(dataset, &block)
+      if dataset.equal?(self)
+        dataset = clone
+      end
       conf = Configuration.new(self, dataset)
       conf.instance_eval(&block)
       conf
@@ -50,6 +56,16 @@ module Linkage
     # @return [Linkage::Dataset]
     def dup
       self.class.new(uri, table)
+    end
+
+    # Clone the dataset and its associated {Linkage::Field}'s (without hitting
+    # the database).
+    #
+    # @return [Linkage::Dataset]
+    def clone
+      other = super
+      other.instance_variable_set(:@fields, other.fields.collect { |f| nf = f.clone; nf.dataset = other; nf })
+      other
     end
 
     private
