@@ -7,11 +7,18 @@ module Linkage
     # @return [Array] Schema information for this dataset
     attr_reader :schema
 
+    # @return [String] Database URI
+    attr_reader :uri
+
+    # @return [Symbol] Database table name
+    attr_reader :table
+
     # @param [String] uri Sequel-style database URI
-    # @param [String] table Database table name
+    # @param [String, Symbol] table Database table name
     # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database
     def initialize(uri, table)
       @database = Sequel.connect(uri)
+      @uri = uri
       @table = table.to_sym
       @dataset = @database[@table]
       @schema = @database.schema(@table)
@@ -25,6 +32,24 @@ module Linkage
       conf = Configuration.new(self, dataset)
       conf.instance_eval(&block)
       conf
+    end
+
+    # Compare URI and database table name
+    #
+    # @return [Boolean]
+    def ==(other)
+      if !other.is_a?(Dataset)
+        super
+      else
+        uri == other.uri && table == other.table
+      end
+    end
+
+    # Create a copy of this instance of Dataset, using {Dataset#initialize}.
+    #
+    # @return [Linkage::Dataset]
+    def dup
+      self.class.new(uri, table)
     end
 
     private

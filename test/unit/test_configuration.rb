@@ -13,6 +13,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "groups_table_schema" do
+    pend
     config = Linkage::Configuration.new(@ds_1, @ds_2)
     config.add_expectation(:must, :==, :lhs, :last_name, :rhs, :last_name)
     expected = [
