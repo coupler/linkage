@@ -15,7 +15,7 @@ module Linkage
       @table = table.to_sym
       @dataset = @database[@table]
       @schema = @database.schema(@table)
-      @primary_key = @schema.find { |f| f[1][:primary_key] }
+      create_fields
     end
 
     # Setup a linkage with another dataset
@@ -25,6 +25,21 @@ module Linkage
       conf = Configuration.new(self, dataset)
       conf.instance_eval(&block)
       conf
+    end
+
+    private
+
+    def create_fields
+      @fields = []
+      @schema.each do |(name, column_schema)|
+        f = Field.new(name, column_schema)
+        f.dataset = self
+        @fields << f
+
+        if @primary_key.nil? && column_schema[:primary_key]
+          @primary_key = f
+        end
+      end
     end
   end
 end

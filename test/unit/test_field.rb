@@ -1,6 +1,12 @@
 require 'helper'
 
 class UnitTests::TestField < Test::Unit::TestCase
+  def new_field(name, schema, ruby_type, dataset = nil)
+    f = Linkage::Field.new(name, schema, ruby_type)
+    f.dataset = dataset || stub('dataset')
+    f
+  end
+
   test "initialize with schema info" do
     schema = {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil}
     field = Linkage::Field.new(:id, schema)
