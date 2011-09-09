@@ -45,7 +45,7 @@ module Linkage
     #   (lib/sequel/extensions/schema_dumper.rb).
     def ruby_type
       unless @ruby_type
-        @ruby_type =
+        hsh =
           case t = @schema[:db_type].downcase
           when /\A(?:medium|small)?int(?:eger)?(?:\((?:\d+)\))?(?: unsigned)?\z/o
             {:type=>Integer}
@@ -83,7 +83,9 @@ module Linkage
           else
             {:type=>String}
           end
-        @ruby_type.delete_if { |k, v| v.nil? }
+        hsh.delete_if { |k, v| v.nil? }
+        @ruby_type = {:type => hsh.delete(:type)}
+        @ruby_type[:opts] = hsh if !hsh.empty?
       end
       @ruby_type
     end
@@ -94,75 +96,87 @@ module Linkage
     #
     # @param [Linkage::Field] other
     # @return [Linkage::Field]
-    def merge(other)
+    def merge(other, new_name = nil)
       schema_1 = self.ruby_type
       schema_2 = other.ruby_type
       if schema_1 == schema_2
         result = schema_1
       else
-        result = schema_1.dup
+        type_1 = schema_1[:type]
+        opts_1 = schema_1[:opts] || {}
+        type_2 = schema_2[:type]
+        opts_2 = schema_2[:opts] || {}
+        result_type = type_1
+        result_opts = schema_1[:opts] ? schema_1[:opts].dup : {}
 
         # type
-        if schema_1[:type] != schema_2[:type]
-          result[:type] = first_common_type(schema_1[:type], schema_2[:type])
+        if type_1 != type_2
+          result_type = first_common_type(type_1, type_2)
         end
 
         # text
-        if schema_1[:text] != schema_2[:text]
+        if opts_1[:text] != opts_2[:text]
           # This can only be of type String.
-          result[:text] = true
-          result.delete(:size)
+          result_opts[:text] = true
+          result_opts.delete(:size)
         end
 
         # size
-        if !result[:text] && schema_1[:size] != schema_2[:size]
-          types = [schema_1[:type], schema_2[:type]].uniq
+        if !result_opts[:text] && opts_1[:size] != opts_2[:size]
+          types = [type_1, type_2].uniq
           if types.length == 1 && types[0] == BigDecimal
             # Two decimals
-            if schema_1.has_key?(:size) && schema_2.has_key?(:size)
-              s_1 = schema_1[:size]
-              s_2 = schema_2[:size]
-              result[:size] = [ s_1[0] > s_2[0] ? s_1[0] : s_2[0] ]
+            if opts_1.has_key?(:size) && opts_2.has_key?(:size)
+              s_1 = opts_1[:size]
+              s_2 = opts_2[:size]
+              result_opts[:size] = [ s_1[0] > s_2[0] ? s_1[0] : s_2[0] ]
 
               if s_1[1] && s_2[1]
-                result[:size][1] = s_1[1] > s_2[1] ? s_1[1] : s_2[1]
+                result_opts[:size][1] = s_1[1] > s_2[1] ? s_1[1] : s_2[1]
               else
-                result[:size][1] = s_1[1] ? s_1[1] : s_2[1]
+                result_opts[:size][1] = s_1[1] ? s_1[1] : s_2[1]
               end
             else
-              result[:size] = schema_1.has_key?(:size) ? schema_1[:size] : schema_2[:size]
+              result_opts[:size] = opts_1.has_key?(:size) ? opts_1[:size] : opts_2[:size]
             end
           elsif types.include?(String) && types.include?(BigDecimal)
             # Add one to the precision of the BigDecimal (for the dot)
-            if schema_1.has_key?(:size) && schema_2.has_key?(:size)
-              s_1 = schema_1[:size].is_a?(Array) ? schema_1[:size][0] + 1 : schema_1[:size]
-              s_2 = schema_2[:size].is_a?(Array) ? schema_2[:size][0] + 1 : schema_2[:size]
-              result[:size] = s_1 > s_2 ? s_1 : s_2
-            elsif schema_1.has_key?(:size)
-              result[:size] = schema_1[:size].is_a?(Array) ? schema_1[:size][0] + 1 : schema_1[:size]
-            elsif schema_2.has_key?(:size)
-              result[:size] = schema_2[:size].is_a?(Array) ? schema_2[:size][0] + 1 : schema_2[:size]
+            if opts_1.has_key?(:size) && opts_2.has_key?(:size)
+              s_1 = opts_1[:size].is_a?(Array) ? opts_1[:size][0] + 1 : opts_1[:size]
+              s_2 = opts_2[:size].is_a?(Array) ? opts_2[:size][0] + 1 : opts_2[:size]
+              result_opts[:size] = s_1 > s_2 ? s_1 : s_2
+            elsif opts_1.has_key?(:size)
+              result_opts[:size] = opts_1[:size].is_a?(Array) ? opts_1[:size][0] + 1 : opts_1[:size]
+            elsif opts_2.has_key?(:size)
+              result_opts[:size] = opts_2[:size].is_a?(Array) ? opts_2[:size][0] + 1 : opts_2[:size]
             end
           else
             # Treat as two strings
-            if schema_1.has_key?(:size) && schema_2.has_key?(:size)
-              result[:size] = schema_1[:size] > schema_2[:size] ? schema_1[:size] : schema_2[:size]
-            elsif schema_1.has_key?(:size)
-              result[:size] = schema_1[:size]
+            if opts_1.has_key?(:size) && opts_2.has_key?(:size)
+              result_opts[:size] = opts_1[:size] > opts_2[:size] ? opts_1[:size] : opts_2[:size]
+            elsif opts_1.has_key?(:size)
+              result_opts[:size] = opts_1[:size]
             else
-              result[:size] = schema_2[:size]
+              result_opts[:size] = opts_2[:size]
             end
           end
         end
 
         # fixed
-        if schema_1[:fixed] != schema_2[:fixed]
+        if opts_1[:fixed] != opts_2[:fixed]
           # This can only be of type String.
-          result[:fixed] = true
+          result_opts[:fixed] = true
         end
+
+        result = {:type => result_type}
+        result[:opts] = result_opts  unless result_opts.empty?
       end
 
-      name = self.name == other.name ? self.name : :"#{self.name}_#{other.name}"
+      if new_name
+        name = new_name.to_sym
+      else
+        name = self.name == other.name ? self.name : :"#{self.name}_#{other.name}"
+      end
       Field.new(name, nil, result)
     end
 

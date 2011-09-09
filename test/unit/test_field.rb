@@ -94,7 +94,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a boolean field and a decimal field with size" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(10,2)", :type=>:decimal, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"boolean", :type=>:boolean, :ruby_default=>nil})
-    expected_type = {:type => BigDecimal, :size => [10, 2]}
+    expected_type = {:type => BigDecimal, :opts => {:size => [10, 2]}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -102,7 +102,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a boolean field and a string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"boolean", :type=>:boolean, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10}
+    expected_type = {:type => String, :opts => {:size => 10}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -110,7 +110,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a boolean field and a text field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"text", :type=>:text, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"boolean", :type=>:boolean, :ruby_default=>nil})
-    expected_type = {:type => String, :text => true}
+    expected_type = {:type => String, :opts => {:text => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -118,7 +118,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a boolean field and a fixed string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"char(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"boolean", :type=>:boolean, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10, :fixed => true}
+    expected_type = {:type => String, :opts => {:size => 10, :fixed => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -158,7 +158,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge an integer field and a decimal field with size" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(10,2)", :type=>:decimal, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
-    expected_type = {:type => BigDecimal, :size => [10, 2]}
+    expected_type = {:type => BigDecimal, :opts => {:size => [10, 2]}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -166,7 +166,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge an integer field and a string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10}
+    expected_type = {:type => String, :opts => {:size => 10}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -174,7 +174,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge an integer field and a text field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"text", :type=>:text, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
-    expected_type = {:type => String, :text => true}
+    expected_type = {:type => String, :opts => {:text => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -182,7 +182,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge an integer field and a fixed string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"char(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10, :fixed => true}
+    expected_type = {:type => String, :opts => {:size => 10, :fixed => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -206,7 +206,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge an bignum field and a decimal field with size" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(10,2)", :type=>:decimal, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"bigint", :type=>:bigint, :ruby_default=>nil})
-    expected_type = {:type => BigDecimal, :size => [10, 2]}
+    expected_type = {:type => BigDecimal, :opts => {:size => [10, 2]}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -214,7 +214,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge an bignum field and a string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"bigint", :type=>:bigint, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10}
+    expected_type = {:type => String, :opts => {:size => 10}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -222,7 +222,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge an bignum field and a text field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"text", :type=>:text, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"bigint", :type=>:bigint, :ruby_default=>nil})
-    expected_type = {:type => String, :text => true}
+    expected_type = {:type => String, :opts => {:text => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -230,7 +230,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge an bignum field and a fixed string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"char(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"bigint", :type=>:bigint, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10, :fixed => true}
+    expected_type = {:type => String, :opts => {:size => 10, :fixed => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -262,7 +262,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a float field and a decimal field with size" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(10,2)", :type=>:decimal, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"float", :type=>:float, :ruby_default=>nil})
-    expected_type = {:type => BigDecimal, :size => [10, 2]}
+    expected_type = {:type => BigDecimal, :opts => {:size => [10, 2]}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -270,7 +270,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a float field and a string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"float", :type=>:float, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10}
+    expected_type = {:type => String, :opts => {:size => 10}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -278,7 +278,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a float field and a text field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"text", :type=>:text, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"float", :type=>:float, :ruby_default=>nil})
-    expected_type = {:type => String, :text => true}
+    expected_type = {:type => String, :opts => {:text => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -286,7 +286,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a float field and a fixed string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"char(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"float", :type=>:float, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10, :fixed => true}
+    expected_type = {:type => String, :opts => {:size => 10, :fixed => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -302,7 +302,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge two decimal fields, one with size" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(10,2)", :type=>:decimal, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal", :type=>:decimal, :ruby_default=>nil})
-    expected_type = {:type => BigDecimal, :size => [10, 2]}
+    expected_type = {:type => BigDecimal, :opts => {:size => [10, 2]}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -310,7 +310,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge two decimal fields, both with size" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(10,2)", :type=>:decimal, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(12,1)", :type=>:decimal, :ruby_default=>nil})
-    expected_type = {:type => BigDecimal, :size => [12, 2]}
+    expected_type = {:type => BigDecimal, :opts => {:size => [12, 2]}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -318,7 +318,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge two decimal fields, both with size, one without scale" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(10)", :type=>:decimal, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(12,1)", :type=>:decimal, :ruby_default=>nil})
-    expected_type = {:type => BigDecimal, :size => [12, 1]}
+    expected_type = {:type => BigDecimal, :opts => {:size => [12, 1]}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -326,7 +326,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a decimal field and a string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal", :type=>:decimal, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10}
+    expected_type = {:type => String, :opts => {:size => 10}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -334,7 +334,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a decimal field with size and a string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(12,2)", :type=>:decimal, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 13}
+    expected_type = {:type => String, :opts => {:size => 13}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -342,7 +342,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a decimal field and a text field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"text", :type=>:text, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal", :type=>:decimal, :ruby_default=>nil})
-    expected_type = {:type => String, :text => true}
+    expected_type = {:type => String, :opts => {:text => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -350,7 +350,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a decimal field with size and a text field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"text", :type=>:text, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal(12,2)", :type=>:decimal, :ruby_default=>nil})
-    expected_type = {:type => String, :text => true}
+    expected_type = {:type => String, :opts => {:text => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -358,7 +358,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge a decimal field and a fixed string field" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"char(10)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"decimal", :type=>:decimal, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 10, :fixed => true}
+    expected_type = {:type => String, :opts => {:size => 10, :fixed => true}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -366,7 +366,7 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge two string fields" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(20)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(20)", :type=>:string, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 20}
+    expected_type = {:type => String, :opts => {:size => 20}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
   end
@@ -374,8 +374,19 @@ class UnitTests::TestField < Test::Unit::TestCase
   test "merge two string fields with different sizes" do
     field_1 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(15)", :type=>:string, :ruby_default=>nil})
     field_2 = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(20)", :type=>:string, :ruby_default=>nil})
-    expected_type = {:type => String, :size => 20}
+    expected_type = {:type => String, :opts => {:size => 20}}
     assert_equal(expected_type, field_1.merge(field_2).ruby_type)
     assert_equal(expected_type, field_2.merge(field_1).ruby_type)
+  end
+
+  test "merge two fields and specify name" do
+    field_1 = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
+    field_2 = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
+
+    result_field = field_1.merge(field_2, 'foo')
+    assert_equal :foo, result_field.name
+
+    result_field = field_2.merge(field_1, 'foo')
+    assert_equal :foo, result_field.name
   end
 end
