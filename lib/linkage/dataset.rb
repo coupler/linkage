@@ -64,18 +64,24 @@ module Linkage
     # @return [Linkage::Dataset]
     def clone
       other = super
-      other.instance_variable_set(:@fields, other.fields.collect { |f| nf = f.clone; nf.dataset = other; nf })
+      other_fields = other.fields.inject({}) do |hsh, (name, field)| 
+        new_field = field.clone
+        new_field.dataset = other
+        hsh[name] = new_field
+        hsh
+      end
+      other.instance_variable_set(:@fields, other_fields)
       other
     end
 
     private
 
     def create_fields
-      @fields = []
+      @fields = {}
       @schema.each do |(name, column_schema)|
         f = Field.new(name, column_schema)
         f.dataset = self
-        @fields << f
+        @fields[name] = f
 
         if @primary_key.nil? && column_schema[:primary_key]
           @primary_key = f

@@ -75,8 +75,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     field_2.expects(:clone).returns(mock('field 2 clone', :dataset= => nil))
     field_3.expects(:clone).returns(mock('field 3 clone', :dataset= => nil))
     dataset_2 = dataset_1.clone
-    dataset_2.fields.each_with_index do |field, i|
-      assert !field.equal?(dataset_1.fields[i])
+    dataset_2.fields.each_pair do |name, field|
+      assert !field.equal?(dataset_1.fields[name])
     end
   end
 end
