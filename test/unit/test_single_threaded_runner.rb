@@ -8,4 +8,7 @@ class UnitTests::TestSingleThreadedRunner < Test::Unit::TestCase
   test "responds to execute" do
     assert_include Linkage::SingleThreadedRunner.public_instance_methods(false), :execute
   end
+
+  test "execute" do
+  end
 end

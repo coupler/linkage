@@ -3,10 +3,9 @@ module Linkage
   # for more information.
   class Configuration
     class ExpectationWrapper
-      def initialize(type, field, side, config)
+      def initialize(type, field, config)
         @type = type
         @field = field
-        @side = side
         @config = config
       end
 
@@ -18,73 +17,81 @@ module Linkage
       private
 
       def add_expectation(operator)
-        @config.add_expectation(@type, operator, @side, @field, @other.side, @other.field)
+        klass = Expectation.get(@type)
+        @config.add_expectation(klass.new(operator, @field.field, @other.field))
       end
     end
 
     class FieldWrapper
       attr_reader :field, :side
-      def initialize(field, side, config)
+      def initialize(field, config)
         @field = field
-        @side = side
         @config = config
       end
 
       def must
-        ExpectationWrapper.new(:must, @field, @side, @config)
+        ExpectationWrapper.new(:must, self, @config)
       end
     end
 
     class DatasetWrapper
-      def initialize(side, config)
-        @side = side
+      def initialize(dataset, config)
+        @dataset = dataset
         @config = config
       end
 
-      def [](field)
-        FieldWrapper.new(field, @side, @config)
+      def [](field_name)
+        FieldWrapper.new(@dataset.fields[field_name], @config)
       end
     end
 
     include Utils
 
+    # @return [Symbol] :self or :dual
+    attr_reader :linkage_type
+
+    # @return [Array<Linkage::Expectation>]
+    attr_reader :expectations
+
+    # @return [Linkage::Dataset]
+    attr_reader :dataset_1
+
+    # @return [Linkage::Dataset]
+    attr_reader :dataset_2
+
     def initialize(dataset_1, dataset_2)
       @dataset_1 = dataset_1
       @dataset_2 = dataset_2
-      @expectations = Hash.new { |h, k| h[k] = [] }
+      @expectations = []
       @linkage_type = dataset_1 == dataset_2 ? :self : :dual
     end
 
     def lhs
-      @lhs ||= DatasetWrapper.new(:lhs, self)
+      @lhs ||= DatasetWrapper.new(@dataset_1, self)
     end
 
     def rhs
-      @rhs ||= DatasetWrapper.new(:rhs, self)
+      @rhs ||= DatasetWrapper.new(@dataset_2, self)
     end
 
-    def add_expectation(type, operator, side_1, field_1, side_2, field_2)
-      @expectations[type] << Expectation.new(operator, side_1, field_1, side_2, field_2)
+    def add_expectation(expectation)
+      @expectations << expectation
     end
 
     def groups_table_schema
       schema = []
 
       # add record_id
-      schema << merge_fields(
-        @dataset_1.primary_key[1],
-        @dataset_2.primary_key[1]
-      ).update(:name => :record_id)
+      f = @dataset_1.primary_key.merge(@dataset_2.primary_key, :record_id)
+      schema << f.ruby_type.merge(:name => f.name)
 
       # add group_id
       schema << {:name => :group_id, :type => Integer, :opts => {}}
 
-      if @expectations.has_key?(:must)
-        @expectations[:must].each do |exp|
-          field_1 = @dataset_1.schema.assoc(exp.field_1)[1]
-          field_2 = @dataset_2.schema.assoc(exp.field_2)[1]
-          info = merge_fields(field_1, field_2)
-          schema << info.update(:name => exp.field_1)
+      @expectations.each do |exp|
+        if exp.kind == :join
+          new_field = exp.field_1.merge(exp.field_2)
+          schema << new_field.ruby_type.merge(:name => new_field.name)
         end
       end
 

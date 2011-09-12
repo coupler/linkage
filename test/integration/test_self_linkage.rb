@@ -17,7 +17,8 @@ module IntegrationTests
     test "one mandatory field equality on single threaded runner" do
       pend
       # insert the test data
-      @db[:foo].import([:id, :ssn], Array.new(100) { |i| [i, "12345678#{i%10}"] })
+      @db[:foo].import([:id, :ssn],
+        Array.new(100) { |i| [i, "12345678#{i%10}"] })
 
       ds = Linkage::Dataset.new(@tmpuri, "foo")
       conf = ds.link_with(ds) do
@@ -28,6 +29,16 @@ module IntegrationTests
 
       tables = @db.tables
       assert_include tables, :groups
+      assert_equal 100, @db[:groups].count
+
+      expected_group_id = nil
+      @db[:groups].order(:record_id).each do |row|
+        if row[:record_id] % 10 == 0
+          expected_group_id = row[:group_id]
+        else
+          assert_equal expected_group_id, row[:group_id]
+        end
+      end
     end
   end
 end

@@ -12,8 +12,13 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     @database.stubs(:schema).returns(@schema)
     @dataset = stub("dataset")
     @database.stubs(:[]).returns(@dataset)
-    @field = stub("field", :dataset= => nil)
-    Linkage::Field.stubs(:new).returns(@field)
+
+    @id_field = stub("id field", :dataset= => nil, :name => :id)
+    Linkage::Field.stubs(:new).with(:id, kind_of(Hash)).returns(@id_field)
+    @first_name_field = stub("first_name field", :dataset= => nil, :name => :first_name)
+    Linkage::Field.stubs(:new).with(:first_name, kind_of(Hash)).returns(@first_name_field)
+    @last_name_field = stub("last_name field", :dataset= => nil, :name => :last_name)
+    Linkage::Field.stubs(:new).with(:last_name, kind_of(Hash)).returns(@last_name_field)
   end
 
   test "initialize with uri and table name" do
@@ -78,5 +83,37 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     dataset_2.fields.each_pair do |name, field|
       assert !field.equal?(dataset_1.fields[name])
     end
+  end
+
+  test "add_order, then each" do
+    field = stub('field', :name => :last_name)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_order(field)
+    @dataset.expects(:order).with(:last_name).returns(@dataset)
+    row = {:id => 123, :last_name => 'foo'}
+    @dataset.expects(:each).yields(row)
+
+    ran = false
+    ds.each do |yielded_row|
+      ran = true
+      assert_equal({:pk => 123, :values => row}, yielded_row)
+    end
+    assert ran
+  end
+
+  test "add_select, then each" do
+    field = stub('field', :name => :last_name)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_select(field)
+    @dataset.expects(:select).with(:id, :last_name).returns(@dataset)
+    row = {:id => 123, :last_name => 'foo'}
+    @dataset.expects(:each).yields(row)
+
+    ran = false
+    ds.each do |yielded_row|
+      ran = true
+      assert_equal({:pk => 123, :values => row}, yielded_row)
+    end
+    assert ran
   end
 end

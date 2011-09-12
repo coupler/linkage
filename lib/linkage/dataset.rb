@@ -16,6 +16,9 @@ module Linkage
     # @return [Array<Linkage::Field>] List of {Linkage::Field}'s
     attr_reader :fields
 
+    # @return [Sequel::Dataset] raw Sequel dataset
+    attr_reader :dataset
+
     # @param [String] uri Sequel-style database URI
     # @param [String, Symbol] table Database table name
     # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database
@@ -25,6 +28,8 @@ module Linkage
       @table = table.to_sym
       @dataset = @database[@table]
       @schema = @database.schema(@table)
+      @order = []
+      @select = []
       create_fields
     end
 
@@ -72,6 +77,42 @@ module Linkage
       end
       other.instance_variable_set(:@fields, other_fields)
       other
+    end
+
+    # Add a field to use for ordering the dataset.
+    #
+    # @param [Linkage::Field] field
+    def add_order(field)
+      @order << field
+    end
+
+    # Add a field to be selected on the dataset. If you don't add any
+    # selects, all fields will be selected. The primary key is always
+    # selected in either case.
+    #
+    # @param [Linkage::Field] field
+    def add_select(field)
+      @select << field
+    end
+
+    # Yield each row of the dataset in a block.
+    #
+    # @yield [row] A Hash of two elements, :pk and :values, where row[:pk] is
+    #   the row's primary key value, and row[:values] is an array of all
+    #   selected values.
+    def each
+      ds = dataset
+
+      pk = @primary_key.name
+      if !@select.empty?
+        ds = ds.select(pk, *@select.collect(&:name))
+      end
+      if !@order.empty?
+        ds = dataset.order(*@order.collect(&:name))
+      end
+      ds.each do |row|
+        yield({:pk => row[pk], :values => row})
+      end
     end
 
     private
