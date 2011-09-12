@@ -99,7 +99,7 @@ module Linkage
     #
     # @yield [row] A Hash of two elements, :pk and :values, where row[:pk] is
     #   the row's primary key value, and row[:values] is an array of all
-    #   selected values.
+    #   selected values (except the primary key).
     def each
       ds = dataset
 
@@ -111,7 +111,7 @@ module Linkage
         ds = dataset.order(*@order.collect(&:name))
       end
       ds.each do |row|
-        yield({:pk => row[pk], :values => row})
+        yield({:pk => row.delete(pk), :values => row})
       end
     end
 

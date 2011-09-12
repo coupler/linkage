@@ -96,7 +96,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     ran = false
     ds.each do |yielded_row|
       ran = true
-      assert_equal({:pk => 123, :values => row}, yielded_row)
+      assert_equal({:pk => 123, :values => {:last_name => 'foo'}}, yielded_row)
     end
     assert ran
   end
@@ -112,7 +112,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     ran = false
     ds.each do |yielded_row|
       ran = true
-      assert_equal({:pk => 123, :values => row}, yielded_row)
+      assert_equal({:pk => 123, :values => {:last_name => 'foo'}}, yielded_row)
     end
     assert ran
   end
