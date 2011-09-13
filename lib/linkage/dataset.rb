@@ -16,18 +16,15 @@ module Linkage
     # @return [Array<Linkage::Field>] List of {Linkage::Field}'s
     attr_reader :fields
 
-    # @return [Sequel::Dataset] raw Sequel dataset
-    attr_reader :dataset
-
     # @param [String] uri Sequel-style database URI
     # @param [String, Symbol] table Database table name
     # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database
     def initialize(uri, table)
-      @database = Sequel.connect(uri)
       @uri = uri
       @table = table.to_sym
-      @dataset = @database[@table]
-      @schema = @database.schema(@table)
+      schema = nil
+      database { |db| schema = db.schema(@table) }
+      @schema = schema
       @order = []
       @select = []
       create_fields
@@ -101,21 +98,27 @@ module Linkage
     #   the row's primary key value, and row[:values] is an array of all
     #   selected values (except the primary key).
     def each
-      ds = dataset
+      database do |db|
+        ds = db[@table]
 
-      pk = @primary_key.name
-      if !@select.empty?
-        ds = ds.select(pk, *@select.collect(&:name))
-      end
-      if !@order.empty?
-        ds = dataset.order(*@order.collect(&:name))
-      end
-      ds.each do |row|
-        yield({:pk => row.delete(pk), :values => row})
+        pk = @primary_key.name
+        if !@select.empty?
+          ds = ds.select(pk, *@select.collect(&:name))
+        end
+        if !@order.empty?
+          ds = ds.order(*@order.collect(&:name))
+        end
+        ds.each do |row|
+          yield({:pk => row.delete(pk), :values => row})
+        end
       end
     end
 
     private
+
+    def database(&block)
+      Sequel.connect(uri, &block)
+    end
 
     def create_fields
       @fields = {}

@@ -19,15 +19,17 @@ module Linkage
 
     protected
 
-    def database
-      @database ||= Sequel.connect(@uri)
+    def database(&block)
+      Sequel.connect(@uri, &block)
     end
 
     def create_groups_table
       schema = config.groups_table_schema
-      database.create_table(:groups) do
-        schema.each do |col|
-          column(col[:name], col[:type], col[:opts] || {})
+      database do |db|
+        db.create_table(:groups) do
+          schema.each do |col|
+            column(col[:name], col[:type], col[:opts] || {})
+          end
         end
       end
     end

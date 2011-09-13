@@ -10,12 +10,18 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
   end
 
   test "kind when two fields from different datasets" do
-    dataset_1 = mock('dataset 1')
-    dataset_2 = mock('dataset 2')
-    dataset_1.expects(:==).with(dataset_2).returns(false)
-    field_1 = mock('field 1', :dataset => dataset_1)
-    field_2 = mock('field 2', :dataset => dataset_2)
+    field_1 = mock('field 1')
+    field_2 = mock('field 2')
+    field_1.expects(:==).with(field_2).returns(false)
     exp = Linkage::MustExpectation.new(:==, field_1, field_2)
-    assert_equal :join, exp.kind
+    assert_equal :dual, exp.kind
+  end
+
+  test "kind when two identical fields from the same dataset" do
+    field_1 = mock('field 1')
+    field_2 = mock('field 2')
+    field_1.expects(:==).with(field_2).returns(true)
+    exp = Linkage::MustExpectation.new(:==, field_1, field_2)
+    assert_equal :self, exp.kind
   end
 end

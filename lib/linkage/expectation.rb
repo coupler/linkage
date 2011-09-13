@@ -14,8 +14,10 @@ module Linkage
 
     # @return [Symbol] :join or :filter
     def kind
-      if @field_1.dataset != @field_2.dataset
-        :join
+      if @field_1 == @field_2
+        :self
+      else
+        :dual
       end
     end
   end

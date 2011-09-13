@@ -88,12 +88,12 @@ module Linkage
       # add group_id
       schema << {:name => :group_id, :type => Integer, :opts => {}}
 
-      @expectations.each do |exp|
-        if exp.kind == :join
-          new_field = exp.field_1.merge(exp.field_2)
-          schema << new_field.ruby_type.merge(:name => new_field.name)
-        end
-      end
+      #@expectations.each do |exp|
+        #if exp.kind == :join
+          #new_field = exp.field_1.merge(exp.field_2)
+          #schema << new_field.ruby_type.merge(:name => new_field.name)
+        #end
+      #end
 
       schema
     end

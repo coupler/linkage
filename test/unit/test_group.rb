@@ -12,4 +12,10 @@ class UnitTests::TestGroup < Test::Unit::TestCase
     g.add_record(123)
     assert_equal [123], g.records
   end
+
+  test "count returns number of records" do
+    g = Linkage::Group.new(:test => 'test')
+    g.add_record(123)
+    assert_equal 1, g.count
+  end
 end

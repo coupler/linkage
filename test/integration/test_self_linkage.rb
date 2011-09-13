@@ -5,20 +5,23 @@ module IntegrationTests
     def setup
       @tmpdir = Dir.mktmpdir('linkage')
       @tmpuri = "sqlite://" + File.join(@tmpdir, "foo")
-      @db = Sequel.connect(@tmpuri)
-      @db.create_table(:foo) { primary_key(:id); String(:ssn) }
+    end
+
+    def database(&block)
+      Sequel.connect(@tmpuri, &block)
     end
 
     def teardown
-      @db.disconnect
       FileUtils.remove_entry_secure(@tmpdir)
     end
 
     test "one mandatory field equality on single threaded runner" do
-      pend
       # insert the test data
-      @db[:foo].import([:id, :ssn],
-        Array.new(100) { |i| [i, "12345678#{i%10}"] })
+      database do |db|
+        db.create_table(:foo) { primary_key(:id); String(:ssn) }
+        db[:foo].import([:id, :ssn],
+          Array.new(100) { |i| [i, "12345678#{i%10}"] })
+      end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo")
       conf = ds.link_with(ds) do
@@ -27,16 +30,15 @@ module IntegrationTests
       runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
       runner.execute
 
-      tables = @db.tables
-      assert_include tables, :groups
-      assert_equal 100, @db[:groups].count
+      database do |db|
+        tables = db.tables
+        assert_include tables, :groups
+        assert_equal 100, db[:groups].count
 
-      expected_group_id = nil
-      @db[:groups].order(:record_id).each do |row|
-        if row[:record_id] % 10 == 0
-          expected_group_id = row[:group_id]
-        else
-          assert_equal expected_group_id, row[:group_id]
+        expected_group_id = nil
+        db[:groups].order(:record_id).each do |row|
+          expected_group_id = (row[:record_id] % 10) + 1
+          assert_equal expected_group_id, row[:group_id], "Record #{row[:record_id]} should have been in group #{expected_group_id}"
         end
       end
     end

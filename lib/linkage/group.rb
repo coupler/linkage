@@ -31,5 +31,10 @@ module Linkage
     def add_record(record_id)
       @records << record_id
     end
+
+    # @return [Fixnum] Number of records in this group
+    def count
+      @records.count
+    end
   end
 end

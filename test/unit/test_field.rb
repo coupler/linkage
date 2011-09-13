@@ -389,4 +389,28 @@ class UnitTests::TestField < Test::Unit::TestCase
     result_field = field_2.merge(field_1, 'foo')
     assert_equal :foo, result_field.name
   end
+
+  test "== returns true when fields have the same name and are from the same dataset" do
+    dataset_1 = stub('dataset')
+    field_1 = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
+    field_1.dataset = dataset_1
+    dataset_2 = stub('dataset clone')
+    field_2 = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
+    field_2.dataset = dataset_2
+
+    dataset_1.expects(:==).with(dataset_2).returns(true)
+    assert_equal field_1, field_2
+  end
+
+  test "== returns false when fields have the same name but are from different datasets" do
+    dataset_1 = stub('dataset 1')
+    field_1 = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
+    field_1.dataset = dataset_1
+    dataset_2 = stub('dataset 2')
+    field_2 = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
+    field_2.dataset = dataset_2
+
+    dataset_1.expects(:==).with(dataset_2).returns(false)
+    assert_not_equal field_1, field_2
+  end
 end

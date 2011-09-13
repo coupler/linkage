@@ -180,6 +180,14 @@ module Linkage
       Field.new(name, nil, result)
     end
 
+    def ==(other)
+      if !other.is_a?(Field)
+        super
+      else
+        self.dataset == other.dataset && self.name == other.name
+      end
+    end
+
     private
 
     def first_common_type(type_1, type_2)
