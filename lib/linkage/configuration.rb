@@ -1,7 +1,18 @@
 module Linkage
-  # Internal class used to configure linkages. See {Dataset#link_with}
-  # for more information.
+  # {Configuration} is used to configure linkages. When you call
+  # {Dataset#link_with}, the block you supply gets called in the context of
+  # an instance of {Configuration}.
+  #
+  # @example
+  #   dataset_1 = Linkage::Dataset.new("mysql://example.com/database_name", "table_1")
+  #   dataset_2 = Linkage::Dataset.new("mysql://example.com/database_name", "table_2")
+  #   dataset_1.link_with(dataset_2) do
+  #     # this gets run inside of a Configuration instance
+  #   end
+  #
+  # @see Dataset#link_with
   class Configuration
+    # @private
     class ExpectationWrapper
       def initialize(type, field, config)
         @type = type
@@ -22,6 +33,7 @@ module Linkage
       end
     end
 
+    # @private
     class FieldWrapper
       attr_reader :field, :side
       def initialize(field, config)
@@ -34,6 +46,7 @@ module Linkage
       end
     end
 
+    # @private
     class DatasetWrapper
       def initialize(dataset, config)
         @dataset = dataset
@@ -74,10 +87,12 @@ module Linkage
       @rhs ||= DatasetWrapper.new(@dataset_2, self)
     end
 
+    # @private
     def add_expectation(expectation)
       @expectations << expectation
     end
 
+    # @private
     def groups_table_schema
       schema = []
 
@@ -98,6 +113,7 @@ module Linkage
       schema
     end
 
+    # @private
     def inspect
       to_s
     end
