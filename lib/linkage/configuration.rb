@@ -96,19 +96,14 @@ module Linkage
     def groups_table_schema
       schema = []
 
-      # add record_id
-      f = @dataset_1.primary_key.merge(@dataset_2.primary_key, :record_id)
-      schema << f.ruby_type.merge(:name => f.name)
+      # add id
+      schema << [:id, Integer, :primary_key => true]
 
-      # add group_id
-      schema << {:name => :group_id, :type => Integer, :opts => {}}
-
-      #@expectations.each do |exp|
-        #if exp.kind == :join
-          #new_field = exp.field_1.merge(exp.field_2)
-          #schema << new_field.ruby_type.merge(:name => new_field.name)
-        #end
-      #end
+      # add values
+      @expectations.each do |exp|
+        merged_type = exp.merged_field.ruby_type
+        schema << [exp.name, merged_type[:type], merged_type[:opts]]
+      end
 
       schema
     end

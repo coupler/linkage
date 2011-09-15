@@ -9,6 +9,9 @@ module Linkage
     # @return [Array<Object>] An array of this group's record ids
     attr_reader :records
 
+    # @return [Hash] Hash of matching values
+    attr_reader :values
+
     # @param [Hash] matching_values Values that define this group
     # @example
     #   Linkage::Group.new({:foo => 123, :bar => 'baz'})

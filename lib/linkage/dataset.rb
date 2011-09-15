@@ -79,8 +79,9 @@ module Linkage
     # Add a field to use for ordering the dataset.
     #
     # @param [Linkage::Field] field
-    def add_order(field)
-      @order << field
+    # @param [nil, Symbol] desc nil or :desc (for descending order)
+    def add_order(field, desc = nil)
+      @order << (desc == :desc ? field.name.desc : field.name)
     end
 
     # Add a field to be selected on the dataset. If you don't add any
@@ -88,8 +89,9 @@ module Linkage
     # selected in either case.
     #
     # @param [Linkage::Field] field
-    def add_select(field)
-      @select << field
+    # @param [Symbol] as Optional field alias
+    def add_select(field, as = nil)
+      @select << (as ? field.name.as(as) : field.name)
     end
 
     # Yield each row of the dataset in a block.
@@ -103,10 +105,10 @@ module Linkage
 
         pk = @primary_key.name
         if !@select.empty?
-          ds = ds.select(pk, *@select.collect(&:name))
+          ds = ds.select(pk, *@select)
         end
         if !@order.empty?
-          ds = ds.order(*@order.collect(&:name))
+          ds = ds.order(*@order)
         end
         ds.each do |row|
           yield({:pk => row.delete(pk), :values => row})

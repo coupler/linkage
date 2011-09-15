@@ -23,13 +23,18 @@ module Linkage
       Sequel.connect(@uri, &block)
     end
 
-    def create_groups_table
-      schema = config.groups_table_schema
+    def create_tables
       database do |db|
+        schema = config.groups_table_schema
         db.create_table(:groups) do
-          schema.each do |col|
-            column(col[:name], col[:type], col[:opts] || {})
-          end
+          schema.each { |col| column(*col) }
+        end
+
+        pk_type = config.dataset_1.primary_key.merge(config.dataset_2.primary_key).ruby_type
+        db.create_table(:groups_records) do
+          column(:record_id, pk_type[:type], pk_type[:opts] || {})
+          foreign_key :group_id, :groups
+          Integer :dataset
         end
       end
     end

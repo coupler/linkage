@@ -1,7 +1,7 @@
 require 'helper'
 
 module IntegrationTests
-  class TestSelfLinkage < Test::Unit::TestCase
+  class TestDualLinkage < Test::Unit::TestCase
     def setup
       @tmpdir = Dir.mktmpdir('linkage')
       @tmpuri = "sqlite://" + File.join(@tmpdir, "foo")
@@ -16,15 +16,20 @@ module IntegrationTests
     end
 
     test "one mandatory field equality on single threaded runner" do
-      # insert the test data
+      # create the test data
       database do |db|
         db.create_table(:foo) { primary_key(:id); String(:ssn) }
         db[:foo].import([:id, :ssn],
           Array.new(100) { |i| [i, "12345678#{i%10}"] })
+
+        db.create_table(:bar) { primary_key(:id); String(:ssn) }
+        db[:bar].import([:id, :ssn],
+          Array.new(100) { |i| [i, "12345678#{i%10}"] })
       end
 
-      ds = Linkage::Dataset.new(@tmpuri, "foo")
-      conf = ds.link_with(ds) do
+      ds_1 = Linkage::Dataset.new(@tmpuri, "foo")
+      ds_2 = Linkage::Dataset.new(@tmpuri, "bar")
+      conf = ds_1.link_with(ds_2) do
         lhs[:ssn].must == rhs[:ssn]
       end
       runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
@@ -36,11 +41,16 @@ module IntegrationTests
           assert_equal "12345678#{i%10}", row[:ssn]
         end
 
-        assert_equal 100, db[:groups_records].count
-        expected_group_id = nil
-        db[:groups_records].order(:record_id).each do |row|
-          expected_group_id = (row[:record_id] % 10) + 1
-          assert_equal expected_group_id, row[:group_id], "Record #{row[:record_id]} should have been in group #{expected_group_id}"
+        assert_equal 200, db[:groups_records].count
+        db[:groups_records].order(:group_id, :dataset, :record_id).each_with_index do |row, i|
+          p row
+          if i % 20 >= 10
+            assert_equal 2, row[:dataset], row.inspect
+          else
+            assert_equal 1, row[:dataset], row.inspect
+          end
+          expected_group_id = i / 20 + 1
+          assert_equal expected_group_id, row[:group_id], "Record #{row.inspect} should have been in group #{expected_group_id}"
         end
       end
     end

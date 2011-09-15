@@ -180,12 +180,24 @@ module Linkage
       Field.new(name, nil, result)
     end
 
+    # Returns true if this field's name and dataset match the other's name
+    # and dataset (using {Dataset#==})
     def ==(other)
       if !other.is_a?(Field)
         super
       else
         self.dataset == other.dataset && self.name == other.name
       end
+    end
+
+    # Returns true if this field's dataset is equal to the given dataset
+    # (using Dataset#==)
+    def belongs_to?(dataset)
+      self.dataset == dataset
+    end
+
+    def primary_key?
+      schema && schema[:primary_key]
     end
 
     private
