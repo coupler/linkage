@@ -102,7 +102,7 @@ module Linkage
       # add values
       @expectations.each do |exp|
         merged_type = exp.merged_field.ruby_type
-        schema << [exp.name, merged_type[:type], merged_type[:opts]]
+        schema << [exp.name, merged_type[:type], merged_type[:opts] || {}]
       end
 
       schema
