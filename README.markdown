@@ -43,8 +43,8 @@ You can also link a dataset to itself:
     runner = Linkage::SingleThreadedRunner.new(config, 'sqlite://results.db')
     runner.execute
 
-The above example would find birth records that have a mothers with the
-same name.
+The above example would find birth records that have mothers with the same
+name.
 
 ## Contributing to linkage
 
