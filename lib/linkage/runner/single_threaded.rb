@@ -14,13 +14,13 @@ module Linkage
 
     def setup_datasets
       @dataset_1 = config.dataset_1.clone
-      @dataset_2 = config.dataset_2.clone if config.linkage_type == :dual
+      @dataset_2 = config.dataset_2.clone if @config.linkage_type != :self
     end
 
     def apply_expectations
       config.expectations.each do |exp|
         exp.apply_to(@dataset_1)
-        exp.apply_to(@dataset_2) if config.linkage_type == :dual
+        exp.apply_to(@dataset_2) if config.linkage_type != :self
       end
     end
 
@@ -32,12 +32,12 @@ module Linkage
       end
     end
 
-    def group_records_for(dataset)
+    def group_records_for(dataset, ignore_empty_groups = true)
       groups = []
       current_group = nil
       dataset.each do |row|
         if current_group.nil? || !current_group.matches?(row[:values])
-          if current_group && current_group.count > 1
+          if current_group && (!ignore_empty_groups || current_group.count > 1)
             groups << current_group
           end
           new_group = Group.new(row[:values])
@@ -45,7 +45,7 @@ module Linkage
         end
         current_group.add_record(row[:pk])
       end
-      if current_group && current_group.count > 1
+      if current_group && (!ignore_empty_groups || current_group.count > 1)
         groups << current_group
       end
       groups
@@ -68,7 +68,7 @@ module Linkage
 
     def combine_groups
       # Create a new dataset for the groups table
-      ds = Dataset.new(@uri, :groups)
+      ds = Dataset.new(@uri, :groups, :single_threaded => true)
       ds.fields.each_value do |field|
         # Sort on all fields
         next if field.primary_key?
@@ -76,18 +76,23 @@ module Linkage
         ds.add_select(field)
       end
       ds.add_order(ds.primary_key) # ensure matching groups are sorted by id
-      combined_groups = group_records_for(ds)
+      combined_groups = group_records_for(ds, false)
       combined_groups.each do |group|
-        next  if group.count <= 1
-
-        # Change group_id in the groups_records table to the first group
-        # id, delete other groups.
-        new_group_id = group.records[0]
         database do |db|
-          group.records[1..-1].each do |old_group_id|
-            db[:groups_records].filter(:group_id => old_group_id).
-              update(:group_id => new_group_id)
-            db[:groups].filter(:id => old_group_id).delete
+          if group.count == 1
+            # Delete the empty group
+            group_id = group.records[0]
+            db[:groups_records].filter(:group_id => group_id).delete
+            db[:groups].filter(:id => group_id).delete
+          else
+            # Change group_id in the groups_records table to the first group
+            # id, delete other groups.
+            new_group_id = group.records[0]
+            group.records[1..-1].each do |old_group_id|
+              db[:groups_records].filter(:group_id => old_group_id).
+                update(:group_id => new_group_id)
+              db[:groups].filter(:id => old_group_id).delete
+            end
           end
         end
       end

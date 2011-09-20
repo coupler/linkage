@@ -12,16 +12,19 @@ module Linkage
       @field_2 = field_2
     end
 
-    # @return [Symbol] :self or :dual
+    # @return [Symbol] :self, :dual, or :cross
     def kind
-      if @field_1 == @field_2
-        :self
-      else
-        :dual
-      end
+      @kind ||=
+        if @field_1 == @field_2
+          :self
+        elsif @field_1.dataset == @field_2.dataset
+          :cross
+        else
+          :dual
+        end
     end
 
-    # @return [Symbol] name of the merged field (for :dual) types
+    # @return [Symbol] name of the merged field type
     def name
       merged_field.name
     end
@@ -33,14 +36,14 @@ module Linkage
 
     # Apply changes to a dataset based on the expectation, such as
     # calling {Dataset#add_order} and {Dataset#add_select} with the
-    # appropriate arguments
+    # appropriate arguments.
     def apply_to(dataset)
       as = name != @field_1.name ? name : nil
-      if @field_1.belongs_to?(dataset)
+      if @field_1.belongs_to?(dataset, kind == :cross)
         dataset.add_order(@field_1)
         dataset.add_select(@field_1, as)
       end
-      if @field_2.belongs_to?(dataset)
+      if @field_2.belongs_to?(dataset, kind == :cross)
         dataset.add_order(@field_2)
         dataset.add_select(@field_2, as)
       end

@@ -186,14 +186,18 @@ module Linkage
       if !other.is_a?(Field)
         super
       else
-        self.dataset == other.dataset && self.name == other.name
+        self.name == other.name && self.dataset == other.dataset
       end
     end
 
     # Returns true if this field's dataset is equal to the given dataset
-    # (using Dataset#==)
-    def belongs_to?(dataset)
-      self.dataset == dataset
+    # (using Dataset#==).
+    #
+    # @param [Linkage::Dataset]
+    # @param [Boolean] exact If true, then compares this field's dataset's
+    #   id with the other dataset's id
+    def belongs_to?(dataset, exact = false)
+      exact ? self.dataset.id == dataset.id : self.dataset == dataset
     end
 
     def primary_key?

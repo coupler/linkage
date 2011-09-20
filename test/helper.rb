@@ -10,6 +10,7 @@ end
 require 'test/unit'
 require 'mocha'
 require 'tmpdir'
+require 'logger'
 require 'pp'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))

@@ -23,7 +23,7 @@ module IntegrationTests
           Array.new(100) { |i| [i, "12345678#{i%10}"] })
       end
 
-      ds = Linkage::Dataset.new(@tmpuri, "foo")
+      ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
       conf = ds.link_with(ds) do
         lhs[:ssn].must == rhs[:ssn]
       end
@@ -53,7 +53,7 @@ module IntegrationTests
           Array.new(100) { |i| [i, "12345678#{i%10}", Date.civil(1985, 1, (i % 20) + 1)] })
       end
 
-      ds = Linkage::Dataset.new(@tmpuri, "foo")
+      ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
       conf = ds.link_with(ds) do
         lhs[:ssn].must == rhs[:ssn]
         lhs[:dob].must == rhs[:dob]

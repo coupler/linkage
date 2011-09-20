@@ -421,6 +421,22 @@ class UnitTests::TestField < Test::Unit::TestCase
     assert field.belongs_to?(dataset)
   end
 
+  test "belongs_to? dataset with same id and exact match" do
+    dataset_1 = stub('dataset 1', :id => 1)
+    dataset_2 = stub('dataset 2', :id => 1)
+    field = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
+    field.dataset = dataset_1
+    assert field.belongs_to?(dataset_2, true)
+  end
+
+  test "belongs_to? dataset with different id and exact match" do
+    dataset_1 = stub('dataset 1', :id => 1)
+    dataset_2 = stub('dataset 2', :id => 2)
+    field = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
+    field.dataset = dataset_1
+    assert !field.belongs_to?(dataset_2, true)
+  end
+
   test "primary_key? returns true if primary key" do
     field_1 = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
     assert field_1.primary_key?

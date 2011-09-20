@@ -22,7 +22,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   end
 
   test "initialize with uri and table name" do
-    Sequel.expects(:connect).with("foo:/bar").yields(@database)
+    Sequel.expects(:connect).with("foo:/bar", {}).yields(@database)
     @database.expects(:schema).with(:baz).returns(@schema)
     primary_key_field = mock(:dataset= => nil)
     Linkage::Field.expects(:new).with(*@schema[0]).returns(primary_key_field)
@@ -33,20 +33,16 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert_equal primary_key_field, ds.primary_key
   end
 
-  test "link_with self makes a copy" do
-    dataset = Linkage::Dataset.new("foo:/bar", "baz")
+  test "initialize with sequel options" do
+    Sequel.expects(:connect).with("foo:/bar", :junk => 123).yields(@database)
+    ds = Linkage::Dataset.new("foo:/bar", "baz", :junk => 123)
+  end
 
-    dataset_clone = stub('dataset clone')
-    dataset.expects(:clone).returns(dataset_clone)
-
-    conf = stub('configuration')
-    Linkage::Configuration.expects(:new).with(dataset, dataset_clone).returns(conf)
-    conf.expects(:instance_eval)
-
-    result = dataset.link_with(dataset) do
-      lhs[:first_name].must == rhs[:first_name]
-    end
-    assert_equal conf, result
+  test "dataset id increments" do
+    dataset_1 = Linkage::Dataset.new("foo:/bar", "baz")
+    assert_kind_of Fixnum, dataset_1.id
+    dataset_2 = Linkage::Dataset.new("foo:/qux", "corge")
+    assert_equal dataset_1.id + 1, dataset_2.id
   end
 
   test "== compares uri and table name" do
@@ -67,7 +63,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   end
 
   test "clone doesn't shallow copy fields" do
-    field_1 = stub('field 1', :dataset= => nil)
+    field_1 = stub('field 1', :name => :id, :dataset= => nil)
     Linkage::Field.expects(:new).with(*@schema[0]).returns(field_1)
     field_2 = stub('field 2', :dataset= => nil)
     Linkage::Field.expects(:new).with(*@schema[1]).returns(field_2)
@@ -82,6 +78,15 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     dataset_2.fields.each_pair do |name, field|
       assert !field.equal?(dataset_1.fields[name])
     end
+    assert !dataset_2.primary_key.equal?(dataset_1.primary_key)
+    assert_equal dataset_1.id, dataset_2.id
+  end
+
+  test "clone doesn't shallow copy @order" do
+    dataset_1 = Linkage::Dataset.new("foo:/bar", "baz")
+    dataset_2 = dataset_1.clone
+    dataset_1.add_order(@first_name_field)
+    assert_empty dataset_2.instance_variable_get(:@order)
   end
 
   test "add_order, then each" do

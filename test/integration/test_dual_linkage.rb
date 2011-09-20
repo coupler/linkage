@@ -27,8 +27,8 @@ module IntegrationTests
           Array.new(100) { |i| [i, "12345678#{i%10}"] })
       end
 
-      ds_1 = Linkage::Dataset.new(@tmpuri, "foo")
-      ds_2 = Linkage::Dataset.new(@tmpuri, "bar")
+      ds_1 = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      ds_2 = Linkage::Dataset.new(@tmpuri, "bar", :single_threaded => true)
       conf = ds_1.link_with(ds_2) do
         lhs[:ssn].must == rhs[:ssn]
       end
@@ -43,7 +43,6 @@ module IntegrationTests
 
         assert_equal 200, db[:groups_records].count
         db[:groups_records].order(:group_id, :dataset, :record_id).each_with_index do |row, i|
-          p row
           if i % 20 >= 10
             assert_equal 2, row[:dataset], row.inspect
           else

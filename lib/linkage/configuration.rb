@@ -35,7 +35,7 @@ module Linkage
 
     # @private
     class FieldWrapper
-      attr_reader :field, :side
+      attr_reader :field
       def initialize(field, config)
         @field = field
         @config = config
@@ -60,7 +60,7 @@ module Linkage
 
     include Utils
 
-    # @return [Symbol] :self or :dual
+    # @return [Symbol] :self, :dual, or :cross
     attr_reader :linkage_type
 
     # @return [Array<Linkage::Expectation>]
@@ -73,8 +73,8 @@ module Linkage
     attr_reader :dataset_2
 
     def initialize(dataset_1, dataset_2)
-      @dataset_1 = dataset_1
-      @dataset_2 = dataset_2
+      @dataset_1 = dataset_1.clone
+      @dataset_2 = dataset_2.clone
       @expectations = []
       @linkage_type = dataset_1 == dataset_2 ? :self : :dual
     end
@@ -89,7 +89,15 @@ module Linkage
 
     # @private
     def add_expectation(expectation)
+      # If the expectation created turns the linkage type from a self to a
+      # cross, then the dataset gets a new id. This is so that
+      # Expectation#apply does the right thing.
+
       @expectations << expectation
+      if @linkage_type == :self && expectation.kind == :cross
+        @linkage_type = :cross
+        @dataset_2.send(:set_new_id)
+      end
     end
 
     # @private

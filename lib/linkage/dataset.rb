@@ -1,6 +1,19 @@
 module Linkage
   # Wrapper for a Sequel dataset
   class Dataset
+    @@next_id = 1 # Internal ID used for expectations
+    @@next_id_mutex = Mutex.new
+
+    # @private
+    def self.next_id
+      result = nil
+      @@next_id_mutex.synchronize do
+        result = @@next_id
+        @@next_id += 1
+      end
+      result
+    end
+
     # @return [Array] Schema information about the dataset's primary key
     attr_reader :primary_key
 
@@ -16,12 +29,18 @@ module Linkage
     # @return [Array<Linkage::Field>] List of {Linkage::Field}'s
     attr_reader :fields
 
+    # @private
+    attr_reader :id
+
     # @param [String] uri Sequel-style database URI
     # @param [String, Symbol] table Database table name
+    # @param [Hash] options Options to pass to Sequel.connect
     # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database
-    def initialize(uri, table)
+    def initialize(uri, table, options = {})
+      @id = self.class.next_id
       @uri = uri
       @table = table.to_sym
+      @options = options
       schema = nil
       database { |db| schema = db.schema(@table) }
       @schema = schema
@@ -34,9 +53,6 @@ module Linkage
     #
     # @return [Linkage::Configuration]
     def link_with(dataset, &block)
-      if dataset.equal?(self)
-        dataset = clone
-      end
       conf = Configuration.new(self, dataset)
       conf.instance_eval(&block)
       conf
@@ -65,15 +81,11 @@ module Linkage
     #
     # @return [Linkage::Dataset]
     def clone
-      other = super
-      other_fields = other.fields.inject({}) do |hsh, (name, field)| 
-        new_field = field.clone
-        new_field.dataset = other
-        hsh[name] = new_field
-        hsh
-      end
-      other.instance_variable_set(:@fields, other_fields)
-      other
+      other = self.class.allocate
+      other.send(:initialize_copy, self, {
+        :order => @order.clone, :select => @select.clone,
+        :options => @options.clone
+      })
     end
 
     # Add a field to use for ordering the dataset.
@@ -118,8 +130,26 @@ module Linkage
 
     private
 
+    def initialize_copy(dataset, options = {})
+      @id = dataset.id
+      @uri = dataset.uri
+      @table = dataset.table
+      @schema = dataset.schema
+      @options = options[:options]
+      @order = options[:order]
+      @select = options[:select]
+      @fields = dataset.fields.inject({}) do |hsh, (name, field)|
+        new_field = field.clone
+        new_field.dataset = self
+        hsh[name] = new_field
+        hsh
+      end
+      @primary_key = @fields[dataset.primary_key.name]
+      self
+    end
+
     def database(&block)
-      Sequel.connect(uri, &block)
+      Sequel.connect(uri, @options, &block)
     end
 
     def create_fields
@@ -133,6 +163,10 @@ module Linkage
           @primary_key = f
         end
       end
+    end
+
+    def set_new_id
+      @id = self.class.next_id
     end
   end
 end
