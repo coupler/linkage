@@ -86,21 +86,23 @@ module Linkage
       combined_groups = group_records_for(ds, false)
       database do |db|
         groups_to_delete = []
-        combined_groups.each do |group|
-          if group.count == 1
-            # Delete the empty group
-            groups_to_delete << group.records[0]
-          else
-            # Change group_id in the groups_records table to the first group
-            # id, delete other groups.
-            new_group_id = group.records[0]
-            group.records[1..-1].each do |old_group_id|
-              # There can only be a group with max size of 2, but this
-              # adds in future support for matching more than 2 datasets
-              # at once. Code smell?
-              db[:groups_records].filter(:group_id => old_group_id).
-                update(:group_id => new_group_id)
-              groups_to_delete << old_group_id
+        db.transaction do  # for speed reasons
+          combined_groups.each do |group|
+            if group.count == 1
+              # Delete the empty group
+              groups_to_delete << group.records[0]
+            else
+              # Change group_id in the groups_records table to the first group
+              # id, delete other groups.
+              new_group_id = group.records[0]
+              group.records[1..-1].each do |old_group_id|
+                # There can only be a group with max size of 2, but this
+                # adds in future support for matching more than 2 datasets
+                # at once. Code smell?
+                db[:groups_records].filter(:group_id => old_group_id).
+                  update(:group_id => new_group_id)
+                groups_to_delete << old_group_id
+              end
             end
           end
         end
