@@ -60,7 +60,11 @@ module Linkage
       end
 
       def [](field_name)
-        FieldWrapper.new(@dataset.fields[field_name], @config)
+        field = @dataset.fields[field_name]
+        if field.nil?
+          raise ArgumentError, "The '#{field_name}' field doesn't exist for that dataset!"
+        end
+        FieldWrapper.new(field, @config)
       end
     end
 

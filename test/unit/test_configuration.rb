@@ -46,4 +46,21 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
       #123.must == lhs[:foo]
     #end
   #end
+
+  test "complain if an invalid field is accessed" do
+    dataset_1 = stub('dataset')
+    field_1 = stub_field('field 1')
+    dataset_1.stubs(:fields).returns({:foo => field_1})
+
+    dataset_2 = stub('dataset')
+    field_2 = stub_field('field 2')
+    dataset_2.stubs(:fields).returns({:bar => field_2})
+
+    c = Linkage::Configuration.new(dataset_1, dataset_2)
+    assert_raises(ArgumentError) do
+      c.send(:instance_eval) do
+        lhs[:foo].must == rhs[:non_existant_field]
+      end
+    end
+  end
 end
