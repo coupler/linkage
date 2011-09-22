@@ -89,6 +89,20 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert_empty dataset_2.instance_variable_get(:@order)
   end
 
+  test "clone doesn't shallow copy @select" do
+    dataset_1 = Linkage::Dataset.new("foo:/bar", "baz")
+    dataset_2 = dataset_1.clone
+    dataset_1.add_select(@first_name_field)
+    assert_empty dataset_2.instance_variable_get(:@select)
+  end
+
+  test "clone doesn't shallow copy @filter" do
+    dataset_1 = Linkage::Dataset.new("foo:/bar", "baz")
+    dataset_2 = dataset_1.clone
+    dataset_1.add_filter(@first_name_field, :==, "foo")
+    assert_empty dataset_2.instance_variable_get(:@filter)
+  end
+
   test "add_order, then each" do
     field = stub('field', :name => :last_name)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
@@ -142,6 +156,22 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_select(field, :junk)
     @dataset.expects(:select).with(:id, :last_name.as(:junk)).returns(@dataset)
+    row = {:id => 123, :junk => 'foo'}
+    @dataset.expects(:each).yields(row)
+
+    ran = false
+    ds.each do |yielded_row|
+      ran = true
+      assert_equal({:pk => 123, :values => {:junk => 'foo'}}, yielded_row)
+    end
+    assert ran
+  end
+
+  test "add_filter, then each" do
+    field = stub('field', :name => :age)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_filter(field, :==, 30)
+    @dataset.expects(:filter).with(:age => 30).returns(@dataset)
     row = {:id => 123, :junk => 'foo'}
     @dataset.expects(:each).yields(row)
 

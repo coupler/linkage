@@ -46,6 +46,7 @@ module Linkage
       @schema = schema
       @order = []
       @select = []
+      @filter = []
       create_fields
     end
 
@@ -84,7 +85,7 @@ module Linkage
       other = self.class.allocate
       other.send(:initialize_copy, self, {
         :order => @order.clone, :select => @select.clone,
-        :options => @options.clone
+        :filter => @filter.clone, :options => @options.clone
       })
     end
 
@@ -106,6 +107,15 @@ module Linkage
       @select << (as ? field.name.as(as) : field.name)
     end
 
+    # Add a filter (SQL WHERE) condition to the dataset.
+    #
+    # @param [Linkage::Field] field
+    # @param [Symbol] operator
+    # @param [Linkage::Field, Object] other
+    def add_filter(field, operator, other)
+      @filter << {field.name => other}
+    end
+
     # Yield each row of the dataset in a block.
     #
     # @yield [row] A Hash of two elements, :pk and :values, where row[:pk] is
@@ -121,6 +131,9 @@ module Linkage
         end
         if !@order.empty?
           ds = ds.order(*@order)
+        end
+        if !@filter.empty?
+          ds = ds.filter(*@filter)
         end
         ds.each do |row|
           yield({:pk => row.delete(pk), :values => row})
@@ -138,6 +151,7 @@ module Linkage
       @options = options[:options]
       @order = options[:order]
       @select = options[:select]
+      @filter = options[:filter]
       @fields = dataset.fields.inject({}) do |hsh, (name, field)|
         new_field = field.clone
         new_field.dataset = self

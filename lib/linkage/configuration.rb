@@ -21,7 +21,13 @@ module Linkage
       end
 
       def ==(other)
-        @other = other
+        @other =
+          case other
+          when FieldWrapper
+            other.field
+          else
+            other
+          end
         add_expectation(:==)
       end
 
@@ -29,7 +35,7 @@ module Linkage
 
       def add_expectation(operator)
         klass = Expectation.get(@type)
-        @config.add_expectation(klass.new(operator, @field.field, @other.field))
+        @config.add_expectation(klass.new(operator, @field.field, @other))
       end
     end
 
@@ -109,6 +115,8 @@ module Linkage
 
       # add values
       @expectations.each do |exp|
+        next  if exp.kind == :filter
+
         merged_type = exp.merged_field.ruby_type
         schema << [exp.name, merged_type[:type], merged_type[:opts] || {}]
       end

@@ -21,4 +21,29 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     c.add_expectation(exp)
     assert_equal :cross, c.linkage_type
   end
+
+  test "static expectation" do
+    dataset_1 = stub('dataset')
+    field = stub('field')
+    dataset_1.stubs(:fields).returns({:foo => field})
+    dataset_2 = stub('dataset')
+    c = Linkage::Configuration.new(dataset_1, dataset_2)
+    Linkage::MustExpectation.expects(:new).with(:==, field, 123)
+    c.send(:instance_eval) do
+      lhs[:foo].must == 123
+    end
+  end
+
+  ## Maybe in the future
+  #test "static expectation, flopped" do
+    #dataset_1 = stub('dataset')
+    #field = stub('field')
+    #dataset_1.stubs(:fields).returns({:foo => field})
+    #dataset_2 = stub('dataset')
+    #c = Linkage::Configuration.new(dataset_1, dataset_2)
+    #Linkage::MustExpectation.expects(:new).with(:==, 123, field)
+    #c.send(:instance_eval) do
+      #123.must == lhs[:foo]
+    #end
+  #end
 end

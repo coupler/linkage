@@ -8,6 +8,7 @@ module Linkage
       setup_datasets
       apply_expectations
       group_records
+      nil
     end
 
     private

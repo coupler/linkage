@@ -18,6 +18,16 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'linkage'
 
 class Test::Unit::TestCase
+  def stub_field(name, options = {}, &block)
+    f = Linkage::Field.allocate
+    f.stubs(options)
+    if block
+      f.send(:instance_eval, &block)
+    end
+    f.stubs(:is_a?).returns(false)
+    f.stubs(:is_a?).with(Linkage::Field).returns(true)
+    f
+  end
 end
 
 module UnitTests; end
