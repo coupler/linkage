@@ -55,30 +55,20 @@ module Linkage
     def add_groups(groups, dataset_id = nil)
       return if groups.empty?
 
-      database do |db|
-        groups_dataset = db[:groups]
-        groups_records_dataset = db[:groups_records]
+      groups_headers = [:id] + groups[0].values.keys
+      groups_buffer = ImportBuffer.new(@uri, :groups, groups_headers)
 
-        # FIXME: naive array usage
-        groups_values = []
-        groups_headers = [:id] + groups[0].values.keys
-        groups.each_with_index do |group, i|
-          group_id = next_group_id
-          groups_values << [group_id] + group.values.values
-          if i % 1000 == 999
-            groups_dataset.import(groups_headers, groups_values)
-            groups_values.clear
-          end
+      groups_records_buffer = ImportBuffer.new(@uri, :groups_records, [:group_id, :dataset, :record_id])
 
-          groups_records_dataset.import(
-            [:group_id, :dataset, :record_id],
-            group.records.collect { |record_id| [group_id, dataset_id, record_id] }
-          )
-        end
-        if !groups_values.empty?
-          groups_dataset.import(groups_headers, groups_values)
+      groups.each_with_index do |group, i|
+        group_id = next_group_id
+        groups_buffer.add([group_id] + group.values.values)
+        group.records.each do |record_id|
+          groups_records_buffer.add([group_id, dataset_id, record_id])
         end
       end
+      groups_buffer.flush
+      groups_records_buffer.flush
     end
 
     def combine_groups
