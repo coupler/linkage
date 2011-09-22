@@ -58,9 +58,9 @@ module Linkage
       return if groups.empty?
 
       groups_headers = [:id] + groups[0].values.keys
-      groups_buffer = ImportBuffer.new(@uri, :groups, groups_headers)
+      groups_buffer = ImportBuffer.new(@uri, :groups, groups_headers, @options)
 
-      groups_records_buffer = ImportBuffer.new(@uri, :groups_records, [:group_id, :dataset, :record_id])
+      groups_records_buffer = ImportBuffer.new(@uri, :groups_records, [:group_id, :dataset, :record_id], @options)
 
       groups.each_with_index do |group, i|
         group_id = next_group_id

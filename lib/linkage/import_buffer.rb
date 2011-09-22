@@ -1,9 +1,15 @@
 module Linkage
   class ImportBuffer
-    def initialize(uri, table_name, headers, limit = 1000)
+    # @param [String] uri Sequel-style URI
+    # @param [Symbol, String] table_name
+    # @param [Array<Symbol>] headers List of fields you want to insert
+    # @param [Hash] options Sequel.connect options
+    # @param [Fixnum] limit Number of records to insert at a time
+    def initialize(uri, table_name, headers, options = {}, limit = 1000)
       @uri = uri
       @table_name = table_name.to_sym
       @headers = headers
+      @options = options
       @limit = limit
       @values = []
     end
@@ -19,13 +25,7 @@ module Linkage
       return if @values.empty?
       database do |db|
         ds = db[@table_name]
-        begin
-          ds.import(@headers, @values)
-        rescue Sequel::Error
-          pp @headers
-          pp @values
-          raise
-        end
+        ds.import(@headers, @values)
         @values.clear
       end
     end
@@ -33,7 +33,7 @@ module Linkage
     private
 
     def database(&block)
-      Sequel.connect(@uri, &block)
+      Sequel.connect(@uri, @options, &block)
     end
   end
 end
