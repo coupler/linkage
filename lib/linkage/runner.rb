@@ -5,11 +5,13 @@ module Linkage
 
     # @param [Linkage::Configuration] config
     # @param [String] uri Sequel-style database URI
+    # @param [Hash] options Sequel.connect options
     # @see Dataset#link_with
     # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database
-    def initialize(config, uri)
+    def initialize(config, uri, options = {})
       @config = config
       @uri = uri
+      @options = options
       @next_group_id = 1
       @next_group_mutex = Mutex.new
     end
@@ -22,7 +24,7 @@ module Linkage
     protected
 
     def database(&block)
-      Sequel.connect(@uri, &block)
+      Sequel.connect(@uri, @options, &block)
     end
 
     def create_tables
@@ -37,6 +39,7 @@ module Linkage
           column(:record_id, pk_type[:type], pk_type[:opts] || {})
           Integer :group_id
           Integer :dataset
+          index :group_id
         end
       end
     end
