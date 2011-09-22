@@ -10,6 +10,8 @@ module Linkage
     def initialize(config, uri)
       @config = config
       @uri = uri
+      @next_group_id = 1
+      @next_group_mutex = Mutex.new
     end
 
     # @abstract
@@ -33,10 +35,19 @@ module Linkage
         pk_type = config.dataset_1.primary_key.merge(config.dataset_2.primary_key).ruby_type
         db.create_table(:groups_records) do
           column(:record_id, pk_type[:type], pk_type[:opts] || {})
-          foreign_key :group_id, :groups
+          Integer :group_id
           Integer :dataset
         end
       end
+    end
+
+    def next_group_id
+      result = nil
+      @next_group_mutex.synchronize do
+        result = @next_group_id
+        @next_group_id += 1
+      end
+      result
     end
   end
 end
