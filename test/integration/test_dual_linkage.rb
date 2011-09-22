@@ -53,5 +53,33 @@ module IntegrationTests
         end
       end
     end
+
+    test "don't ignore 1-record groups before the combining phase" do
+      # create the test data
+      database do |db|
+        db.create_table(:foo) { primary_key(:id); String(:ssn) }
+        db[:foo].import([:id, :ssn],
+          Array.new(100) { |i| [i, "1234567%03d" % i] })
+
+        db.create_table(:bar) { primary_key(:id); String(:ssn) }
+        db[:bar].import([:id, :ssn],
+          Array.new(100) { |i| [i, "1234567%03d" % i] })
+      end
+
+      ds_1 = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      ds_2 = Linkage::Dataset.new(@tmpuri, "bar", :single_threaded => true)
+      conf = ds_1.link_with(ds_2) do
+        lhs[:ssn].must == rhs[:ssn]
+      end
+      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner.execute
+
+      database do |db|
+        assert_equal 100, db[:groups].count
+        db[:groups].order(:ssn).each_with_index do |row, i|
+          assert_equal "1234567%03d" % i, row[:ssn]
+        end
+      end
+    end
   end
 end

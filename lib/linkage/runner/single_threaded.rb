@@ -26,9 +26,11 @@ module Linkage
     end
 
     def group_records
-      add_groups(group_records_for(@dataset_1), 1)
-      if config.linkage_type != :self
-        add_groups(group_records_for(@dataset_2), 2)
+      if config.linkage_type == :self
+        add_groups(group_records_for(@dataset_1), 1)
+      else
+        add_groups(group_records_for(@dataset_1, false), 1)
+        add_groups(group_records_for(@dataset_2, false), 2)
         combine_groups
       end
     end
