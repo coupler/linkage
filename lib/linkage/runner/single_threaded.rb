@@ -82,9 +82,9 @@ module Linkage
       end
       ds.add_order(ds.primary_key) # ensure matching groups are sorted by id
       combined_groups = group_records_for(ds, false)
-      combined_groups.each do |group|
-        database do |db|
-          groups_to_delete = []
+      database do |db|
+        groups_to_delete = []
+        combined_groups.each do |group|
           if group.count == 1
             # Delete the empty group
             groups_to_delete << group.records[0]
@@ -101,9 +101,9 @@ module Linkage
               groups_to_delete << old_group_id
             end
           end
-          db[:groups_records].filter(:group_id => groups_to_delete).delete
-          db[:groups].filter(:id => groups_to_delete).delete
         end
+        db[:groups_records].filter(:group_id => groups_to_delete).delete
+        db[:groups].filter(:id => groups_to_delete).delete
       end
     end
   end
