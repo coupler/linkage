@@ -191,13 +191,11 @@ module Linkage
     end
 
     # Returns true if this field's dataset is equal to the given dataset
-    # (using Dataset#==).
+    # (using Dataset#id).
     #
     # @param [Linkage::Dataset]
-    # @param [Boolean] exact If true, then compares this field's dataset's
-    #   id with the other dataset's id
-    def belongs_to?(dataset, exact = false)
-      exact ? self.dataset.id == dataset.id : self.dataset == dataset
+    def belongs_to?(dataset)
+      self.dataset.id == dataset.id
     end
 
     def primary_key?

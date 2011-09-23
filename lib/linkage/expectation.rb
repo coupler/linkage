@@ -66,16 +66,16 @@ module Linkage
     # with the appropriate arguments.
     def apply_to(dataset)
       if kind == :filter
-        if @filter_field.belongs_to?(dataset, true)
+        if @filter_field.belongs_to?(dataset)
           dataset.add_filter(@filter_field, @operator, @filter_value)
         end
       else
         as = name != @field_1.name ? name : nil
-        if @field_1.belongs_to?(dataset, kind == :cross)
+        if @field_1.belongs_to?(dataset)
           dataset.add_order(@field_1)
           dataset.add_select(@field_1, as)
         end
-        if @field_2.belongs_to?(dataset, kind == :cross)
+        if @field_2.belongs_to?(dataset)
           dataset.add_order(@field_2)
           dataset.add_select(@field_2, as)
         end

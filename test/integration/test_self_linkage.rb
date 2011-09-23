@@ -117,8 +117,7 @@ module IntegrationTests
           Array.new(100) { |i| [i, "12345678#{i%10}", i % 5] })
       end
 
-      logger = Logger.new(STDERR)
-      ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true, :logger => logger)
+      ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
       conf = ds.link_with(ds) do
         lhs[:ssn].must == rhs[:ssn]
         lhs[:mod_5].must > 2
@@ -128,7 +127,6 @@ module IntegrationTests
       runner.execute
 
       database do |db|
-        pp db[:groups].all
         assert_equal 2, db[:groups].count
         db[:groups].order(:ssn).each_with_index do |row, i|
           assert_equal "12345678#{(i * 5) + 3}", row[:ssn]
