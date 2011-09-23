@@ -20,15 +20,17 @@ module Linkage
         @config = config
       end
 
-      def ==(other)
-        @other =
-          case other
-          when FieldWrapper
-            other.field
-          else
-            other
-          end
-        add_expectation(:==)
+      Linkage::Expectation::VALID_OPERATORS.each do |op|
+        define_method(op) do |other|
+          @other =
+            case other
+            when FieldWrapper
+              other.field
+            else
+              other
+            end
+          add_expectation(op)
+        end
       end
 
       private

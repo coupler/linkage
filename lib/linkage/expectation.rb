@@ -1,5 +1,7 @@
 module Linkage
   class Expectation
+    VALID_OPERATORS = [:==, :>, :<, :>=, :<=, :'!=']
+
     def self.get(type)
       TYPES[type]
     end
@@ -10,13 +12,17 @@ module Linkage
     # @param [Linkage::Field, Object] field_1
     # @param [Linkage::Field, Object] field_2
     def initialize(operator, field_1, field_2)
+      if !(field_1.is_a?(Field) || field_2.is_a?(Field))
+        raise ArgumentError, "You must have at least one Linkage::Field"
+      end
+
+      if !VALID_OPERATORS.include?(operator)
+        raise ArgumentError, "Invalid operator: #{operator.inspect}"
+      end
+
       @operator = operator
       @field_1 = field_1
       @field_2 = field_2
-
-      if !(@field_1.is_a?(Field) || @field_2.is_a?(Field))
-        raise ArgumentError, "You must have at least one Linkage::Field"
-      end
 
       if kind == :filter
         if @field_1.is_a?(Field)
@@ -26,6 +32,8 @@ module Linkage
           @filter_field = @field_2
           @filter_value = @field_1
         end
+      elsif @operator != :==
+        raise ArgumentError, "Inequality operators are not allowed for non-filter expectations"
       end
     end
 

@@ -113,7 +113,20 @@ module Linkage
     # @param [Symbol] operator
     # @param [Linkage::Field, Object] other
     def add_filter(field, operator, other)
-      @filter << {field.name => other}
+      arg1 = field.name
+      arg2 = other.is_a?(Field) ? other.name : other
+      expr =
+        case operator
+        when :==
+          { arg1 => arg2 }
+        when :'!='
+          ~{ arg1 => arg2 }
+        else
+          arg1 = Sequel::SQL::Identifier.new(arg1)
+          arg2 = arg2.is_a?(Symbol) ? Sequel::SQL::Identifier.new(arg2) : arg2
+          Sequel::SQL::BooleanExpression.new(operator, arg1, arg2)
+        end
+      @filter << expr
     end
 
     # Yield each row of the dataset in a block.

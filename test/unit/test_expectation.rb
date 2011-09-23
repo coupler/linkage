@@ -151,7 +151,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
 
   test "apply filter expectation, static value first" do
     dataset_1 = stub('dataset 1')
-    dataset_2 = stub('dataset 1')
+    dataset_2 = stub('dataset 2')
     field = stub_field('field', :dataset => dataset_1)
     exp = Linkage::MustExpectation.new(:==, 123, field)
 
@@ -165,6 +165,36 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
   test "creating expectation with two non-fields raises ArgumentError" do
     assert_raises(ArgumentError) do
       exp = Linkage::MustExpectation.new(:==, 123, 456)
+    end
+  end
+
+  test "raise error if operator is not supported" do
+    field = stub_field('field')
+    assert_raises(ArgumentError) do
+      exp = Linkage::MustExpectation.new(:foo, field, 456)
+    end
+  end
+
+  [:>, :<, :>=, :<=, :'!='].each do |operator|
+    test "#{operator} filter expectation" do
+      dataset_1 = stub('dataset 1')
+      dataset_2 = stub('dataset 2')
+      field = stub_field('field', :dataset => dataset_1)
+      exp = Linkage::MustExpectation.new(operator, field, 123)
+
+      dataset_1.expects(:add_filter).with(field, operator, 123)
+      field.expects(:belongs_to?).with(dataset_1, true).returns(true)
+      exp.apply_to(dataset_1)
+      field.expects(:belongs_to?).with(dataset_2, true).returns(false)
+      exp.apply_to(dataset_2)
+    end
+  end
+
+  test "only allows :== for non-filter expectations between two fields" do
+    field_1 = stub_field('field 1')
+    field_2 = stub_field('field 2')
+    assert_raises(ArgumentError) do
+      Linkage::MustExpectation.new(:>, field_1, field_2)
     end
   end
 end

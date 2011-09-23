@@ -22,6 +22,15 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     assert_equal :cross, c.linkage_type
   end
 
+  test "linkage_type is cross when there's different filters on both sides" do
+    pend
+    dataset = mock('dataset', :set_new_id => nil)
+    c = Linkage::Configuration.new(dataset, dataset)
+    exp = stub('expectation', :kind => :filter)
+    c.add_expectation(exp)
+    assert_equal :cross, c.linkage_type
+  end
+
   test "static expectation" do
     dataset_1 = stub('dataset')
     field = stub('field')
@@ -61,6 +70,23 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
       c.send(:instance_eval) do
         lhs[:foo].must == rhs[:non_existant_field]
       end
+    end
+  end
+
+  [:>, :<, :>=, :<=, :'!='].each do |operator|
+    test "DSL #{operator} filter operator" do
+      dataset_1 = stub('dataset 1')
+      field_1 = stub_field('field 1')
+      dataset_1.stubs(:fields).returns({:foo => field_1})
+
+      dataset_2 = stub('dataset 2')
+      field_2 = stub_field('field 2')
+      dataset_2.stubs(:fields).returns({:bar => field_2})
+
+      c = Linkage::Configuration.new(dataset_1, dataset_2)
+      Linkage::MustExpectation.expects(:new).with(operator, field_1, field_2)
+      block = eval("Proc.new { lhs[:foo].must #{operator} rhs[:bar] }")
+      c.send(:instance_eval, &block)
     end
   end
 end

@@ -21,6 +21,10 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     Linkage::Field.stubs(:new).with(:last_name, kind_of(Hash)).returns(@last_name_field)
   end
 
+  def expr(&block)
+    Sequel.virtual_row(&block)
+  end
+
   test "initialize with uri and table name" do
     Sequel.expects(:connect).with("foo:/bar", {}).yields(@database)
     @database.expects(:schema).with(:baz).returns(@schema)
@@ -167,7 +171,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert ran
   end
 
-  test "add_filter, then each" do
+  test "add_filter with :==, then each" do
     field = stub('field', :name => :age)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_filter(field, :==, 30)
@@ -181,5 +185,60 @@ class UnitTests::TestDataset < Test::Unit::TestCase
       assert_equal({:pk => 123, :values => {:junk => 'foo'}}, yielded_row)
     end
     assert ran
+  end
+
+  test "add_filter with :>, then each" do
+    field = stub('field', :name => :age)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_filter(field, :>, 30)
+    @dataset.expects(:filter).with(expr{age > 30}).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
+  end
+
+  test "add_filter with :<, then each" do
+    field = stub('field', :name => :age)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_filter(field, :<, 30)
+    @dataset.expects(:filter).with(expr{age < 30}).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
+  end
+
+  test "add_filter with :>=, then each" do
+    field = stub('field', :name => :age)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_filter(field, :>=, 30)
+    @dataset.expects(:filter).with(expr{age >= 30}).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
+  end
+
+  test "add_filter with :<=, then each" do
+    field = stub('field', :name => :age)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_filter(field, :<=, 30)
+    @dataset.expects(:filter).with(expr{age <= 30}).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
+  end
+
+  test "add_filter with :!=, then each" do
+    field = stub('field', :name => :age)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_filter(field, :'!=', 30)
+    @dataset.expects(:filter).with(~{:age => 30}).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
+  end
+
+  test "add_filter with :> field, then each" do
+    field_1 = stub_field('field 1', :name => :age)
+    field_2 = stub_field('field 2', :name => :age_2)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_filter(field_1, :>, field_2)
+    @dataset.expects(:filter).with(expr{age > age_2}).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
   end
 end
