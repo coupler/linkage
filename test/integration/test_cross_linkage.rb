@@ -43,5 +43,26 @@ module IntegrationTests
         end
       end
     end
+
+    test "match same field with different filters" do
+      database do |db|
+        db.create_table(:foo) { primary_key(:id); Integer(:foo); Integer(:bar) }
+        db[:foo].import([:id, :foo, :bar],
+          Array.new(100) { |i| [i, i % 10, i % 20] })
+      end
+
+      ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      conf = ds.link_with(ds) do
+        lhs[:foo].must == rhs[:foo]
+        lhs[:bar].must == 0
+        rhs[:bar].must == 10
+      end
+      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner.execute
+
+      database do |db|
+        assert_equal 1, db[:groups].count
+      end
+    end
   end
 end

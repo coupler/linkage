@@ -23,12 +23,50 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "linkage_type is cross when there's different filters on both sides" do
-    pend
-    dataset = mock('dataset', :set_new_id => nil)
+    field = stub('field')
+    dataset = stub('dataset', :set_new_id => nil)
+    dataset.stubs(:fields).returns({:foo => field})
     c = Linkage::Configuration.new(dataset, dataset)
-    exp = stub('expectation', :kind => :filter)
-    c.add_expectation(exp)
+    exp_1 = stub('expectation', :kind => :filter)
+    Linkage::MustExpectation.expects(:new).with(:==, field, 123, nil).returns(exp_1)
+    exp_2 = stub('expectation', :kind => :filter)
+    Linkage::MustExpectation.expects(:new).with(:==, field, 456, nil).returns(exp_2)
+    c.send(:instance_eval) do
+      lhs[:foo].must == 123
+      rhs[:foo].must == 456
+    end
     assert_equal :cross, c.linkage_type
+  end
+
+  test "linkage_type is self when there's identical static filters on each side" do
+    field = stub('field')
+    dataset = stub('dataset', :set_new_id => nil)
+    dataset.stubs(:fields).returns({:foo => field})
+    c = Linkage::Configuration.new(dataset, dataset)
+    exp_1 = stub('expectation', :kind => :filter)
+    Linkage::MustExpectation.expects(:new).twice.with(:==, field, 123, nil).returns(exp_1)
+    c.send(:instance_eval) do
+      lhs[:foo].must == 123
+      rhs[:foo].must == 123
+    end
+    assert_equal :self, c.linkage_type
+  end
+
+  test "linkage_type is self when there's a two-field filter on one side" do
+    field_1 = stub('field 1')
+    field_2 = stub('field 2')
+    dataset = stub('dataset', :set_new_id => nil)
+    dataset.stubs(:fields).returns({:foo => field_1, :bar => field_2})
+    c = Linkage::Configuration.new(dataset, dataset)
+    exp_1 = stub('expectation', :kind => :filter)
+    Linkage::MustExpectation.expects(:new).with(:==, field_1, field_2, :filter).returns(exp_1)
+    exp_2 = stub('expectation', :kind => :self)
+    Linkage::MustExpectation.expects(:new).with(:==, field_1, field_1, nil).returns(exp_2)
+    c.send(:instance_eval) do
+      lhs[:foo].must == lhs[:bar]
+      lhs[:foo].must == rhs[:foo]
+    end
+    assert_equal :self, c.linkage_type
   end
 
   test "static expectation" do
@@ -37,7 +75,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     dataset_1.stubs(:fields).returns({:foo => field})
     dataset_2 = stub('dataset')
     c = Linkage::Configuration.new(dataset_1, dataset_2)
-    Linkage::MustExpectation.expects(:new).with(:==, field, 123)
+    Linkage::MustExpectation.expects(:new).with(:==, field, 123, nil)
     c.send(:instance_eval) do
       lhs[:foo].must == 123
     end
@@ -84,7 +122,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
       dataset_2.stubs(:fields).returns({:bar => field_2})
 
       c = Linkage::Configuration.new(dataset_1, dataset_2)
-      Linkage::MustExpectation.expects(:new).with(operator, field_1, field_2)
+      Linkage::MustExpectation.expects(:new).with(operator, field_1, field_2, nil)
       block = eval("Proc.new { lhs[:foo].must #{operator} rhs[:bar] }")
       c.send(:instance_eval, &block)
     end

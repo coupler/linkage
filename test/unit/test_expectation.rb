@@ -39,6 +39,14 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     assert_equal :cross, exp.kind
   end
 
+  test "manually set kind with two different fields from the same dataset" do
+    dataset = mock('dataset 1')
+    field_1 = stub_field('field 1', :dataset => dataset)
+    field_2 = stub_field('field 2', :dataset => dataset)
+    exp = Linkage::MustExpectation.new(:==, field_1, field_2, :filter)
+    assert_equal :filter, exp.kind
+  end
+
   test "apply a two-field dual expectation to two datasets" do
     dataset_1 = stub('dataset 1')
     dataset_2 = stub('dataset 2')
@@ -120,6 +128,42 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     exp.apply_to(dataset_2)
   end
 
+  test "apply a two-field self expectation" do
+    dataset = stub('dataset')
+    field = stub_field('field 1', :name => :foo, :dataset => dataset) do
+      expects(:belongs_to?).with(dataset).twice.returns(true)
+    end
+    exp = Linkage::MustExpectation.new(:==, field, field)
+
+    # Twice is okay, since add_order/add_select will take care of
+    # duplicates.
+    dataset.expects(:add_order).twice.with(field, nil)
+    dataset.expects(:add_select).twice.with(field, nil)
+    exp.apply_to(dataset)
+  end
+
+  test "apply a two-field self expectation like a cross" do
+    dataset_1 = stub('dataset 1')
+    dataset_2 = stub('dataset 2')
+    field_1 = stub_field('field 1', :name => :foo, :dataset => dataset_1) do
+      expects(:belongs_to?).with(dataset_1).returns(true)
+      expects(:belongs_to?).with(dataset_2).returns(false)
+    end
+    field_2 = stub_field('field 2', :name => :foo, :dataset => dataset_2) do
+      expects(:belongs_to?).with(dataset_2).returns(true)
+      expects(:belongs_to?).with(dataset_1).returns(false)
+    end
+    exp = Linkage::MustExpectation.new(:==, field_1, field_2, :self)
+
+    dataset_1.expects(:add_order).once.with(field_1, nil)
+    dataset_1.expects(:add_select).once.with(field_1, nil)
+    exp.apply_to(dataset_1)
+
+    dataset_2.expects(:add_order).once.with(field_2, nil)
+    dataset_2.expects(:add_select).once.with(field_2, nil)
+    exp.apply_to(dataset_2)
+  end
+
   test "expectation name for join types" do
     field_1 = stub_field('field 1')
     field_2 = stub_field('field 2')
@@ -138,7 +182,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
 
   test "apply filter expectation" do
     dataset_1 = stub('dataset 1')
-    dataset_2 = stub('dataset 1')
+    dataset_2 = stub('dataset 2')
     field = stub_field('field', :dataset => dataset_1)
     exp = Linkage::MustExpectation.new(:==, field, 123)
 
@@ -160,6 +204,17 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     exp.apply_to(dataset_1)
     field.expects(:belongs_to?).with(dataset_2).returns(false)
     exp.apply_to(dataset_2)
+  end
+
+  test "apply two-field filter expectation" do
+    dataset = stub('dataset')
+    field_1 = stub_field('field 1', :dataset => dataset)
+    field_2 = stub_field('field 2', :dataset => dataset)
+    exp = Linkage::MustExpectation.new(:==, field_1, field_2, :filter)
+
+    dataset.expects(:add_filter).with(field_1, :==, field_2)
+    field_1.expects(:belongs_to?).with(dataset).returns(true)
+    exp.apply_to(dataset)
   end
 
   test "creating expectation with two non-fields raises ArgumentError" do
@@ -196,5 +251,31 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     assert_raises(ArgumentError) do
       Linkage::MustExpectation.new(:>, field_1, field_2)
     end
+  end
+
+  test "applies_to? with filter expectation" do
+    dataset = stub('dataset')
+    field = stub_field('field')
+    exp = Linkage::MustExpectation.new(:==, field, 123)
+    assert_equal :filter, exp.kind
+
+    field.expects(:belongs_to?).with(dataset).returns(true)
+    assert exp.applies_to?(dataset)
+  end
+
+  test "applies_to? with non-filter expectation" do
+    dataset_1 = stub('dataset 1')
+    field_1 = stub_field('field 1')
+    dataset_2 = stub('dataset 2')
+    field_2 = stub_field('field 2')
+    exp = Linkage::MustExpectation.new(:==, field_1, field_2)
+    assert_not_equal :filter, exp.kind
+
+    field_1.expects(:belongs_to?).with(dataset_1).returns(true)
+    assert exp.applies_to?(dataset_1)
+
+    field_1.expects(:belongs_to?).with(dataset_2).returns(false)
+    field_2.expects(:belongs_to?).with(dataset_2).returns(true)
+    assert exp.applies_to?(dataset_2)
   end
 end

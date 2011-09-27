@@ -11,7 +11,9 @@ module Linkage
     # @param [Symbol] operator Currently, only :==
     # @param [Linkage::Field, Object] field_1
     # @param [Linkage::Field, Object] field_2
-    def initialize(operator, field_1, field_2)
+    # @param [Symbol] force_kind Manually set type of expectation (useful for
+    #   a filter between two fields)
+    def initialize(operator, field_1, field_2, force_kind = nil)
       if !(field_1.is_a?(Field) || field_2.is_a?(Field))
         raise ArgumentError, "You must have at least one Linkage::Field"
       end
@@ -23,6 +25,7 @@ module Linkage
       @operator = operator
       @field_1 = field_1
       @field_2 = field_2
+      @kind = force_kind
 
       if kind == :filter
         if @field_1.is_a?(Field)
@@ -34,6 +37,15 @@ module Linkage
         end
       elsif @operator != :==
         raise ArgumentError, "Inequality operators are not allowed for non-filter expectations"
+      end
+    end
+
+    def ==(other)
+      if other.is_a?(Expectation)
+        @operator == other.operator && @field_1 == other.field_1 &&
+          @field_2 == other.field_2
+      else
+        super
       end
     end
 
@@ -61,16 +73,33 @@ module Linkage
       @merged_field ||= @field_1.merge(@field_2)
     end
 
+    # @return [Boolean] Whether or not this expectation involves a field in
+    #   the given dataset (Only useful for :filter expressions)
+    def applies_to?(dataset)
+      if kind == :filter
+        @filter_field.belongs_to?(dataset)
+      else
+        @field_1.belongs_to?(dataset) || @field_2.belongs_to?(dataset)
+      end
+    end
+
     # Apply changes to a dataset based on the expectation, such as calling
     # {Dataset#add_order}, {Dataset#add_select}, and {Dataset#add_filter}
     # with the appropriate arguments.
     def apply_to(dataset)
-      if kind == :filter
+      case kind
+      when :filter
         if @filter_field.belongs_to?(dataset)
           dataset.add_filter(@filter_field, @operator, @filter_value)
         end
       else
-        as = name != @field_1.name ? name : nil
+        as =
+          if kind == :self
+            nil
+          else
+            name != @field_1.name ? name : nil
+          end
+
         if @field_1.belongs_to?(dataset)
           dataset.add_order(@field_1)
           dataset.add_select(@field_1, as)

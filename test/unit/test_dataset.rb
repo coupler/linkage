@@ -139,6 +139,16 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert ran
   end
 
+  test "add_order weeds out duplicates" do
+    field = stub('field', :name => :last_name)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_order(field)
+    ds.add_order(field)
+    @dataset.expects(:order).with(:last_name).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
+  end
+
   test "add_select, then each" do
     field = stub('field', :name => :last_name)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
@@ -171,6 +181,16 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert ran
   end
 
+  test "add_select weeds out duplicates" do
+    field = stub('field', :name => :last_name)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_select(field)
+    ds.add_select(field)
+    @dataset.expects(:select).with(:id, :last_name).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
+  end
+
   test "add_filter with :==, then each" do
     field = stub('field', :name => :age)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
@@ -185,6 +205,16 @@ class UnitTests::TestDataset < Test::Unit::TestCase
       assert_equal({:pk => 123, :values => {:junk => 'foo'}}, yielded_row)
     end
     assert ran
+  end
+
+  test "add_filter with :== between two fields, then each" do
+    field_1 = stub_field('field 1', :name => :foo)
+    field_2 = stub_field('field 2', :name => :bar)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_filter(field_1, :==, field_2)
+    @dataset.expects(:filter).with(:foo => :bar).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
   end
 
   test "add_filter with :>, then each" do

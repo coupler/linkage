@@ -18,17 +18,23 @@ module Linkage
         @type = type
         @field = field
         @config = config
+        @side = nil
+        @forced_kind = nil
       end
 
       Linkage::Expectation::VALID_OPERATORS.each do |op|
         define_method(op) do |other|
-          @other =
-            case other
-            when FieldWrapper
-              other.field
-            else
-              other
+          case other
+          when FieldWrapper
+            @other = other.field
+            if other.side == @field.side
+              @forced_kind = :filter
+              @side = @field.side
             end
+          else
+            @other = other
+            @side = @field.side
+          end
           add_expectation(op)
         end
       end
@@ -37,15 +43,17 @@ module Linkage
 
       def add_expectation(operator)
         klass = Expectation.get(@type)
-        @config.add_expectation(klass.new(operator, @field.field, @other))
+        exp = klass.new(operator, @field.field, @other, @forced_kind)
+        @config.add_expectation(exp, @side)
       end
     end
 
     # @private
     class FieldWrapper
-      attr_reader :field
-      def initialize(field, config)
+      attr_reader :field, :side
+      def initialize(field, side, config)
         @field = field
+        @side = side
         @config = config
       end
 
@@ -56,8 +64,9 @@ module Linkage
 
     # @private
     class DatasetWrapper
-      def initialize(dataset, config)
+      def initialize(dataset, side, config)
         @dataset = dataset
+        @side = side
         @config = config
       end
 
@@ -66,7 +75,7 @@ module Linkage
         if field.nil?
           raise ArgumentError, "The '#{field_name}' field doesn't exist for that dataset!"
         end
-        FieldWrapper.new(field, @config)
+        FieldWrapper.new(field, @side, @config)
       end
     end
 
@@ -89,26 +98,53 @@ module Linkage
       @dataset_2 = dataset_2.clone
       @expectations = []
       @linkage_type = dataset_1 == dataset_2 ? :self : :dual
+      @lhs_filters = []
+      @rhs_filters = []
     end
 
     def lhs
-      @lhs ||= DatasetWrapper.new(@dataset_1, self)
+      @lhs ||= DatasetWrapper.new(@dataset_1, :lhs, self)
     end
 
     def rhs
-      @rhs ||= DatasetWrapper.new(@dataset_2, self)
+      @rhs ||= DatasetWrapper.new(@dataset_2, :rhs, self)
     end
 
     # @private
-    def add_expectation(expectation)
+    def add_expectation(expectation, side = nil)
       # If the expectation created turns the linkage type from a self to a
       # cross, then the dataset gets a new id. This is so that
       # Expectation#apply does the right thing.
 
       @expectations << expectation
-      if @linkage_type == :self && expectation.kind == :cross
-        @linkage_type = :cross
-        @dataset_2.send(:set_new_id)
+      if @linkage_type == :self
+        cross = false
+
+        case expectation.kind
+        when :cross
+          cross = true
+        when :filter
+          # If there different filters on both 'sides' of a self-linkage,
+          # it turns into a cross linkage.
+          these_filters, other_filters =
+            case side
+            when :lhs
+              [@lhs_filters, @rhs_filters]
+            when :rhs
+              [@rhs_filters, @lhs_filters]
+            end
+
+          if !other_filters.empty? && !other_filters.include?(expectation)
+            cross = true
+          else
+            these_filters << expectation
+          end
+        end
+
+        if cross
+          @linkage_type = :cross
+          @dataset_2.send(:set_new_id)
+        end
       end
     end
 

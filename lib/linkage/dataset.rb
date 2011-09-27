@@ -94,7 +94,10 @@ module Linkage
     # @param [Linkage::Field] field
     # @param [nil, Symbol] desc nil or :desc (for descending order)
     def add_order(field, desc = nil)
-      @order << (desc == :desc ? field.name.desc : field.name)
+      expr = desc == :desc ? field.name.desc : field.name
+      unless @order.include?(expr)
+        @order << expr
+      end
     end
 
     # Add a field to be selected on the dataset. If you don't add any
@@ -104,7 +107,10 @@ module Linkage
     # @param [Linkage::Field] field
     # @param [Symbol] as Optional field alias
     def add_select(field, as = nil)
-      @select << (as ? field.name.as(as) : field.name)
+      expr = as ? field.name.as(as) : field.name
+      unless @select.include?(expr)
+        @select << expr
+      end
     end
 
     # Add a filter (SQL WHERE) condition to the dataset.
