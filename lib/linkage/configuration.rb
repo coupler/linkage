@@ -60,6 +60,10 @@ module Linkage
       def must
         ExpectationWrapper.new(:must, self, @config)
       end
+
+      def must_not
+        ExpectationWrapper.new(:must_not, self, @config)
+      end
     end
 
     # @private
@@ -153,7 +157,7 @@ module Linkage
       schema = []
 
       # add id
-      schema << [:id, Integer, :primary_key => true]
+      schema << [:id, Integer, {:primary_key => true}]
 
       # add values
       @expectations.each do |exp|

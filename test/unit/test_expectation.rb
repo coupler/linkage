@@ -278,4 +278,17 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     field_2.expects(:belongs_to?).with(dataset_2).returns(true)
     assert exp.applies_to?(dataset_2)
   end
+
+  test "MustNotExpectation negates operator" do
+    dataset_1 = stub('dataset 1')
+    dataset_2 = stub('dataset 2')
+    field = stub_field('field', :dataset => dataset_1)
+    exp = Linkage::MustNotExpectation.new(:==, field, 123)
+
+    dataset_1.expects(:add_filter).with(field, :'!=', 123)
+    field.expects(:belongs_to?).with(dataset_1).returns(true)
+    exp.apply_to(dataset_1)
+    field.expects(:belongs_to?).with(dataset_2).returns(false)
+    exp.apply_to(dataset_2)
+  end
 end

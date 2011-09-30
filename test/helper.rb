@@ -12,6 +12,7 @@ require 'mocha'
 require 'tmpdir'
 require 'logger'
 require 'pp'
+require 'versionomy'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
@@ -27,6 +28,14 @@ class Test::Unit::TestCase
     f.stubs(:is_a?).returns(false)
     f.stubs(:is_a?).with(Linkage::Field).returns(true)
     f
+  end
+
+  def self.current_ruby_version
+    @current_ruby_version ||= Versionomy.parse(RUBY_VERSION)
+  end
+
+  def self.ruby19
+    @ruby19 ||= Versionomy.parse("1.9")
   end
 end
 

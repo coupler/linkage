@@ -17,6 +17,8 @@ To describe a linkage, you use the `Dataset#link_with` method.
     config = parents.link_with(children) do
       lhs[:first_name].must == rhs[:parent_first_name]
       lhs[:last_name].must == rhs[:parent_last_name]
+      lhs[:last_name].must_not == "Smith"  # exclude parents with the last
+                                           # name "Smith"
     end
 
 Note that the datasets don't have to be in the same database, or even on

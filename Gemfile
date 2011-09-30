@@ -11,6 +11,7 @@ group :development do
   gem "mocha"
   gem "sqlite3"
   gem "yard"
-  gem "guard-yard"
   gem "rake"
+  gem "versionomy"
+  gem "guard-yard", :platforms => :ruby_19
 end

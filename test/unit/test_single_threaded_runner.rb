@@ -5,7 +5,8 @@ class UnitTests::TestSingleThreadedRunner < Test::Unit::TestCase
     assert_equal Linkage::Runner, Linkage::SingleThreadedRunner.superclass
   end
 
-  test "responds to execute" do
-    assert_include Linkage::SingleThreadedRunner.public_instance_methods(false), :execute
+  test "defines execute" do
+    methods = Linkage::SingleThreadedRunner.public_instance_methods(false)
+    assert methods.include?(:execute) || methods.include?("execute")
   end
 end

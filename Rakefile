@@ -15,11 +15,11 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "linkage"
-  gem.homepage = "http://github.com/viking/linkage"
+  gem.homepage = "http://github.com/coupler/linkage"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
-  gem.email = "viking415@gmail.com"
+  gem.summary = %Q{Sequel-based record linkage}
+  gem.description = %Q{Wraps Sequel to perform record linkage between one or two datasets}
+  gem.email = "jeremy.f.stephens@vanderbilt.edu"
   gem.authors = ["Jeremy Stephens"]
   # dependencies defined in Gemfile
 end

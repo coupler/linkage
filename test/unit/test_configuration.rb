@@ -111,7 +111,9 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     end
   end
 
-  [:>, :<, :>=, :<=, :'!='].each do |operator|
+  operators = [:>, :<, :>=, :<=]
+  operators << :'!='  if current_ruby_version >= ruby19
+  operators.each do |operator|
     test "DSL #{operator} filter operator" do
       dataset_1 = stub('dataset 1')
       field_1 = stub_field('field 1')
@@ -125,6 +127,19 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
       Linkage::MustExpectation.expects(:new).with(operator, field_1, field_2, nil)
       block = eval("Proc.new { lhs[:foo].must #{operator} rhs[:bar] }")
       c.send(:instance_eval, &block)
+    end
+  end
+
+  test "must_not expectation" do
+    dataset_1 = stub('dataset 1')
+    field_1 = stub_field('field 1')
+    dataset_1.stubs(:fields).returns({:foo => field_1})
+    dataset_2 = stub('dataset 2')
+
+    c = Linkage::Configuration.new(dataset_1, dataset_2)
+    Linkage::MustNotExpectation.expects(:new).with(:==, field_1, 123, nil)
+    c.send(:instance_eval) do
+      lhs[:foo].must_not == 123
     end
   end
 end

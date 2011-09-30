@@ -115,5 +115,24 @@ module Linkage
   class MustExpectation < Expectation
   end
 
-  Expectation::TYPES = { :must => MustExpectation }
+  class MustNotExpectation < Expectation
+    OPERATOR_OPPOSITES = {
+      :==   => :'!=',
+      :'!=' => :==,
+      :>    => :<=,
+      :<=   => :>,
+      :<    => :>=,
+      :>=   => :<
+    }
+
+    # Same as Expectation, except it negates the operator.
+    def initialize(operator, field_1, field_2, force_kind = nil)
+      super(OPERATOR_OPPOSITES[operator], field_1, field_2, force_kind)
+    end
+  end
+
+  Expectation::TYPES = {
+    :must => MustExpectation,
+    :must_not => MustNotExpectation
+  }
 end
