@@ -27,11 +27,11 @@ module IntegrationTests
       conf = ds.link_with(ds) do
         lhs[:foo].must == rhs[:bar]
       end
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri, :single_threaded => true)
       runner.execute
 
       database do |db|
-        assert_equal 5, db[:groups].count
+        assert_equal 5, db[:groups].count, PP.pp(db[:groups].all, "")
         db[:groups].order(:foo_bar).each_with_index do |row, i|
           assert_equal i, row[:foo_bar]
         end

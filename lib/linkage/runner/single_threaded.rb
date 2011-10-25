@@ -27,21 +27,26 @@ module Linkage
 
     def group_records
       if config.linkage_type == :self
-        add_groups(group_records_for(@dataset_1), 1)
+        group_records_for(@dataset_1, 1)
       else
-        add_groups(group_records_for(@dataset_1, false), 1)
-        add_groups(group_records_for(@dataset_2, false), 2)
+        group_records_for(@dataset_1, 1, false)
+        group_records_for(@dataset_2, 2, false)
         combine_groups
       end
     end
 
-    def group_records_for(dataset, ignore_empty_groups = true)
-      groups = []
+    # @param [Linkage::Dataset] dataset
+    # @param [Fixnum, nil] dataset_id
+    # @param [Boolean] ignore_empty_groups
+    # @yield [Linkage::Group] If a block is given, yield completed groups to
+    #   the block. Otherwise, call save_group on the group.
+    def group_records_for(dataset, dataset_id = nil, ignore_empty_groups = true, &block)
       current_group = nil
+      block ||= lambda { |group| save_group(current_group, dataset_id) }
       dataset.each do |row|
         if current_group.nil? || !current_group.matches?(row[:values])
           if current_group && (!ignore_empty_groups || current_group.count > 1)
-            groups << current_group
+            block.call(current_group)
           end
           new_group = Group.new(row[:values])
           current_group = new_group
@@ -49,33 +54,33 @@ module Linkage
         current_group.add_record(row[:pk])
       end
       if current_group && (!ignore_empty_groups || current_group.count > 1)
-        groups << current_group
+        block.call(current_group)
       end
-      groups
+      flush_buffers
     end
 
-    def add_groups(groups, dataset_id = nil)
-      return if groups.empty?
-
-      groups_headers = [:id] + groups[0].values.keys
-      groups_buffer = ImportBuffer.new(@uri, :groups, groups_headers, @options)
-
-      groups_records_buffer = ImportBuffer.new(@uri, :groups_records, [:group_id, :dataset, :record_id], @options)
-
-      groups.each_with_index do |group, i|
-        group_id = next_group_id
-        groups_buffer.add([group_id] + group.values.values)
-        group.records.each do |record_id|
-          groups_records_buffer.add([group_id, dataset_id, record_id])
-        end
+    def save_group(group, dataset_id = nil)
+      if !@groups_buffer
+        groups_headers = [:id] + group.values.keys
+        @groups_buffer = ImportBuffer.new(@uri, :groups, groups_headers, @options)
       end
-      groups_buffer.flush
-      groups_records_buffer.flush
+      @groups_records_buffer ||= ImportBuffer.new(@uri, :groups_records, [:group_id, :dataset, :record_id], @options)
+
+      group_id = next_group_id
+      @groups_buffer.add([group_id] + group.values.values)
+      group.records.each do |record_id|
+        @groups_records_buffer.add([group_id, dataset_id, record_id])
+      end
+    end
+
+    def flush_buffers
+      @groups_buffer.flush if @groups_buffer
+      @groups_records_buffer.flush if @groups_records_buffer
     end
 
     def combine_groups
       # Create a new dataset for the groups table
-      ds = Dataset.new(@uri, :groups, :single_threaded => true)
+      ds = Dataset.new(@uri, :groups, @options)
       ds.fields.each_value do |field|
         # Sort on all fields
         next if field.primary_key?
@@ -83,11 +88,10 @@ module Linkage
         ds.add_select(field)
       end
       ds.add_order(ds.primary_key) # ensure matching groups are sorted by id
-      combined_groups = group_records_for(ds, false)
       database do |db|
         groups_to_delete = []
         db.transaction do  # for speed reasons
-          combined_groups.each do |group|
+          group_records_for(ds, nil, false) do |group|
             if group.count == 1
               # Delete the empty group
               groups_to_delete << group.records[0]
@@ -96,9 +100,9 @@ module Linkage
               # id, delete other groups.
               new_group_id = group.records[0]
               group.records[1..-1].each do |old_group_id|
-                # There can only be a group with max size of 2, but this
-                # adds in future support for matching more than 2 datasets
-                # at once. Code smell?
+                # NOTE: There can only be a group with max size of 2, but
+                #       this adds in future support for matching more than
+                #       2 datasets at once.
                 db[:groups_records].filter(:group_id => old_group_id).
                   update(:group_id => new_group_id)
                 groups_to_delete << old_group_id
