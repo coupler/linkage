@@ -1,7 +1,7 @@
 module Linkage
   # This class is for holding information about a particular field in a
   # dataset.
-  class Field
+  class Field < Data
     # A "tree" used to find compatible types.
     TYPE_CONVERSION_TREE = {
       TrueClass => [Integer],
@@ -88,6 +88,10 @@ module Linkage
         @ruby_type[:opts] = hsh if !hsh.empty?
       end
       @ruby_type
+    end
+
+    def static?
+      false
     end
 
     # Create a field that can hold data from two other fields. If the fields

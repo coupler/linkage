@@ -7,6 +7,10 @@ class UnitTests::TestField < Test::Unit::TestCase
     f
   end
 
+  test "subclass of data" do
+    assert_equal Linkage::Data, Linkage::Field.superclass
+  end
+
   test "initialize with schema info" do
     schema = {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil}
     field = Linkage::Field.new(:id, schema)
@@ -20,6 +24,13 @@ class UnitTests::TestField < Test::Unit::TestCase
     assert_equal :id, field.name
     assert_equal info, field.ruby_type
   end
+
+  test "static? is always false" do
+    schema = {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil}
+    field = Linkage::Field.new(:id, schema)
+    assert !field.static?
+  end
+
 
   test "merge two identical fields" do
     field_1 = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})

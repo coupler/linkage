@@ -23,7 +23,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "linkage_type is cross when there's different filters on both sides" do
-    field = stub('field')
+    field = stub_field('field')
     dataset = stub('dataset', :set_new_id => nil)
     dataset.stubs(:fields).returns({:foo => field})
     c = Linkage::Configuration.new(dataset, dataset)
@@ -39,7 +39,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "linkage_type is self when there's identical static filters on each side" do
-    field = stub('field')
+    field = stub_field('field')
     dataset = stub('dataset', :set_new_id => nil)
     dataset.stubs(:fields).returns({:foo => field})
     c = Linkage::Configuration.new(dataset, dataset)
@@ -53,8 +53,8 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "linkage_type is self when there's a two-field filter on one side" do
-    field_1 = stub('field 1')
-    field_2 = stub('field 2')
+    field_1 = stub_field('field 1')
+    field_2 = stub_field('field 2')
     dataset = stub('dataset', :set_new_id => nil)
     dataset.stubs(:fields).returns({:foo => field_1, :bar => field_2})
     c = Linkage::Configuration.new(dataset, dataset)
@@ -71,7 +71,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
   test "static expectation" do
     dataset_1 = stub('dataset')
-    field = stub('field')
+    field = stub_field('field')
     dataset_1.stubs(:fields).returns({:foo => field})
     dataset_2 = stub('dataset')
     c = Linkage::Configuration.new(dataset_1, dataset_2)
@@ -84,7 +84,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   ## Maybe in the future
   #test "static expectation, flopped" do
     #dataset_1 = stub('dataset')
-    #field = stub('field')
+    #field = stub_field('field')
     #dataset_1.stubs(:fields).returns({:foo => field})
     #dataset_2 = stub('dataset')
     #c = Linkage::Configuration.new(dataset_1, dataset_2)
@@ -141,5 +141,45 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     c.send(:instance_eval) do
       lhs[:foo].must_not == 123
     end
+  end
+
+  test "dynamic database function" do
+    dataset_1 = stub('dataset')
+    field_1 = stub_field('field 1')
+    dataset_1.stubs(:fields).returns({:foo => field_1})
+    dataset_2 = stub('dataset')
+    field_2 = stub_field('field 2')
+    dataset_2.stubs(:fields).returns({:foo => field_2})
+
+    func = stub_function('function', :static? => false)
+    Linkage::Functions::Trim.expects(:new).with(field_1).returns(func)
+
+    c = Linkage::Configuration.new(dataset_1, dataset_2)
+    Linkage::MustExpectation.expects(:new).with(:==, func, field_2, nil)
+    c.send(:instance_eval) do
+      trim(lhs[:foo]).must == rhs[:foo]
+    end
+  end
+
+  test "static database function" do
+    dataset_1 = stub('dataset')
+    field_1 = stub_field('field 1')
+    dataset_1.stubs(:fields).returns({:foo => field_1})
+    dataset_2 = stub('dataset')
+    field_2 = stub_field('field 2')
+    dataset_2.stubs(:fields).returns({:foo => field_2})
+
+    func = stub_function('function', :static? => true)
+    Linkage::Functions::Trim.expects(:new).with("foo").returns(func)
+
+    c = Linkage::Configuration.new(dataset_1, dataset_2)
+    Linkage::MustExpectation.expects(:new).with(:==, field_1, func, :filter)
+    c.send(:instance_eval) do
+      lhs[:foo].must == trim("foo")
+    end
+  end
+
+  test "dynamic database function with conflicting sides" do
+    pend("Function that accepts multiple arguments")
   end
 end

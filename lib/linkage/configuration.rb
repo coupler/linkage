@@ -14,9 +14,9 @@ module Linkage
   class Configuration
     # @private
     class ExpectationWrapper
-      def initialize(type, field, config)
+      def initialize(type, data, config)
         @type = type
-        @field = field
+        @data = data
         @config = config
         @side = nil
         @forced_kind = nil
@@ -25,15 +25,15 @@ module Linkage
       Linkage::Expectation::VALID_OPERATORS.each do |op|
         define_method(op) do |other|
           case other
-          when FieldWrapper
-            @other = other.field
-            if other.side == @field.side
+          when DataWrapper
+            @other = other.data
+            if @other.static? || other.side == @data.side
               @forced_kind = :filter
-              @side = @field.side
+              @side = @data.side
             end
           else
             @other = other
-            @side = @field.side
+            @side = @data.side
           end
           add_expectation(op)
         end
@@ -43,19 +43,14 @@ module Linkage
 
       def add_expectation(operator)
         klass = Expectation.get(@type)
-        exp = klass.new(operator, @field.field, @other, @forced_kind)
+        exp = klass.new(operator, @data.data, @other, @forced_kind)
         @config.add_expectation(exp, @side)
       end
     end
 
     # @private
-    class FieldWrapper
-      attr_reader :field, :side
-      def initialize(field, side, config)
-        @field = field
-        @side = side
-        @config = config
-      end
+    class DataWrapper
+      attr_reader :data, :side
 
       def must
         ExpectationWrapper.new(:must, self, @config)
@@ -63,6 +58,41 @@ module Linkage
 
       def must_not
         ExpectationWrapper.new(:must_not, self, @config)
+      end
+
+      def static?
+        false
+      end
+    end
+
+    # @private
+    class FunctionWrapper < DataWrapper
+      def initialize(klass, args, config)
+        @klass = klass
+        @args = args
+        @config = config
+
+        @side = args.inject(nil) do |side, arg|
+          if arg.kind_of?(DataWrapper)
+            raise "conflicting sides" if side && side != arg.side
+            arg.side
+          else
+            side
+          end
+        end
+      end
+
+      def data
+        @klass.new(*@args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg })
+      end
+    end
+
+    # @private
+    class FieldWrapper < DataWrapper
+      def initialize(field, side, config)
+        @data = field
+        @side = side
+        @config = config
       end
     end
 
@@ -173,6 +203,16 @@ module Linkage
     # @private
     def inspect
       to_s
+    end
+
+    # For handling functions
+    def method_missing(name, *args, &block)
+      klass = Function[name.to_s]
+      if klass
+        FunctionWrapper.new(klass, args, self)
+      else
+        super
+      end
     end
   end
 end

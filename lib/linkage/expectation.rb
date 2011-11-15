@@ -9,8 +9,8 @@ module Linkage
     attr_reader :operator, :field_1, :field_2
 
     # @param [Symbol] operator Currently, only :==
-    # @param [Linkage::Field, Object] field_1
-    # @param [Linkage::Field, Object] field_2
+    # @param [Linkage::Field, Linkage::Function, Object] field_1
+    # @param [Linkage::Field, Linkage::Function, Object] field_2
     # @param [Symbol] force_kind Manually set type of expectation (useful for
     #   a filter between two fields)
     def initialize(operator, field_1, field_2, force_kind = nil)
