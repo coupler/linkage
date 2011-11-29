@@ -291,4 +291,14 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     field.expects(:belongs_to?).with(dataset_2).returns(false)
     exp.apply_to(dataset_2)
   end
+
+  test "allows a dynamic function filter" do
+    func = stub_function("foo", :static? => false)
+    exp = Linkage::MustNotExpectation.new(:==, func, 123)
+  end
+
+  test "does not allow a static function filter" do
+    func = stub_function("foo", :static? => true)
+    assert_raises(ArgumentError) { Linkage::MustNotExpectation.new(:==, func, 123) }
+  end
 end

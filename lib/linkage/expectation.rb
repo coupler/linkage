@@ -14,8 +14,8 @@ module Linkage
     # @param [Symbol] force_kind Manually set type of expectation (useful for
     #   a filter between two fields)
     def initialize(operator, field_1, field_2, force_kind = nil)
-      if !(field_1.is_a?(Field) || field_2.is_a?(Field))
-        raise ArgumentError, "You must have at least one Linkage::Field"
+      if !((field_1.kind_of?(Data) && !field_1.static?) || (field_2.kind_of?(Data) && !field_2.static?))
+        raise ArgumentError, "You must have at least one data source (Linkage::Field or Linkage::Function)"
       end
 
       if !VALID_OPERATORS.include?(operator)

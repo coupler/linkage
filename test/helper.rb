@@ -13,6 +13,7 @@ require 'tmpdir'
 require 'logger'
 require 'pp'
 require 'versionomy'
+require 'pry'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))

@@ -2,6 +2,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     blockenspiel (0.4.3)
+    coderay (0.9.8)
     ffi (1.0.11)
     git (1.2.5)
     guard (0.8.8)
@@ -17,14 +18,25 @@ GEM
       git (>= 1.2.5)
       rake
     metaclass (0.0.1)
+    method_source (0.6.7)
+      ruby_parser (>= 2.3.1)
     mocha (0.10.0)
       metaclass (~> 0.0.1)
     mysql2 (0.3.10)
+    pry (0.9.7.4)
+      coderay (~> 0.9.8)
+      method_source (~> 0.6.7)
+      ruby_parser (>= 2.3.1)
+      slop (~> 2.1.0)
     rake (0.9.2.2)
     rb-inotify (0.8.8)
       ffi (>= 0.5.0)
     rcov (0.9.11)
+    ruby_parser (2.3.1)
+      sexp_processor (~> 3.0)
     sequel (3.29.0)
+    sexp_processor (3.0.8)
+    slop (2.1.0)
     sqlite3 (1.3.4)
     test-unit (2.3.2)
     thor (0.14.6)
@@ -42,6 +54,7 @@ DEPENDENCIES
   jeweler (~> 1.6.4)
   mocha
   mysql2
+  pry
   rake
   rb-inotify
   rcov

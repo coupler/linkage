@@ -16,4 +16,5 @@ group :development do
   gem "guard-yard", :platforms => :ruby_19
   gem "rb-inotify", :platforms => :ruby_19
   gem "mysql2"
+  gem 'pry'
 end

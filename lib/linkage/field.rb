@@ -16,9 +16,6 @@ module Linkage
       File => nil
     }
 
-    # @return [Symbol] This field's name
-    attr_reader :name
-
     # @return [Symbol] This field's schema information
     attr_reader :schema
 
