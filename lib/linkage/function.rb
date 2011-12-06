@@ -38,10 +38,18 @@ module Linkage
       nil
     end
 
+    attr_reader :dataset
+
     # @param [Linkage::Field, Object] args Function arguments
     def initialize(*args)
+      @names = [self.class.function_name]
       @args = args
+      @dataset = nil
       process_args
+    end
+
+    def name
+      @name ||= @names.join("_").to_sym
     end
 
     def static?
@@ -73,10 +81,16 @@ module Linkage
       @values = []
       @args.each_with_index do |arg, i|
         if arg.kind_of?(Data)
-          @static = false
+          @names << arg.name
+          @static &&= arg.static?
+          if @dataset && !arg.static? && @dataset != arg.dataset
+            raise ArgumentError, "You cannot supply fields from different datasets as arguments to the same function)"
+          end
+          @dataset ||= arg.dataset
           type = arg.ruby_type[:type]
           value = arg.is_a?(Field) ? arg.name : arg.to_expr
         else
+          @names << arg.to_s.gsub(/\W/, "")
           type = arg.class
           value = arg
         end

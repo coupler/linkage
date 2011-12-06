@@ -21,7 +21,9 @@ class UnitTests::TestFunction < Test::Unit::TestCase
   end
 
   test "ruby_type raises not implemented error in base class" do
-    f = Linkage::Function.new
+    klass = Class.new(Linkage::Function)
+    klass.send(:define_singleton_method, :function_name) { "foo" }
+    f = klass.new
     assert_raises(NotImplementedError) { f.ruby_type }
   end
 
@@ -38,6 +40,7 @@ class UnitTests::TestFunction < Test::Unit::TestCase
   test "function with no arguments" do
     klass = new_function('foo', {:type => String})
     f = klass.new
+    assert_equal :foo, f.name
     assert_equal :foo.sql_function, f.to_expr
     assert f.static?
   end
@@ -46,22 +49,108 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     klass = new_function('foo', {:type => String})
     f = klass.new(123)
     assert_equal :foo.sql_function(123), f.to_expr
+    assert_equal :foo_123, f.name
     assert f.static?
   end
 
   test "function with field" do
     klass = new_function('foo', {:type => String})
-    field = stub_field('field', :name => :bar, :ruby_type => {:type => String})
+    dataset = stub('dataset')
+    field = stub_field('field', :name => :bar, :ruby_type => {:type => String}, :dataset => dataset)
     f = klass.new(field)
+    assert_equal :foo_bar, f.name
     assert_equal :foo.sql_function(:bar), f.to_expr
     assert !f.static?
+    assert_equal dataset, f.dataset
   end
 
-  test "function with multiple arguments" do
+  test "function with dynamic function" do
+    klass_1 = new_function('foo', {:type => String})
+    klass_2 = new_function('bar', {:type => String})
+
+    dataset = stub('dataset')
+    field = stub_field('field', :name => :baz, :ruby_type => {:type => String}, :dataset => dataset)
+    func_1 = klass_1.new(field)
+    assert_equal :foo_baz, func_1.name
+    assert !func_1.static?
+    assert_equal dataset, func_1.dataset
+
+    func_2 = klass_2.new(func_1)
+    assert_equal :bar_foo_baz, func_2.name
+    assert !func_2.static?
+    assert_equal :bar.sql_function(:foo.sql_function(:baz)), func_2.to_expr
+    assert_equal dataset, func_2.dataset
+  end
+
+  test "function with static function" do
+    klass_1 = new_function('foo', {:type => String})
+    klass_2 = new_function('bar', {:type => String})
+
+    dataset = stub('dataset')
+    func_1 = klass_1.new(123)
+    assert_equal :foo_123, func_1.name
+    assert func_1.static?
+
+    func_2 = klass_2.new(func_1)
+    assert_equal :bar_foo_123, func_2.name
+    assert_equal :bar.sql_function(:foo.sql_function(123)), func_2.to_expr
+    assert func_2.static?
+  end
+
+  test "function with mixed function arguments" do
+    klass_1 = new_function('foo', {:type => String})
+    klass_2 = new_function('bar', {:type => String})
+    klass_3 = new_function('baz', {:type => String})
+
+    func_1 = klass_1.new(123)
+    assert_equal :foo_123, func_1.name
+    assert func_1.static?
+
+    dataset = stub('dataset')
+    field = stub_field('field', :name => :quux, :ruby_type => {:type => String}, :dataset => dataset)
+    func_2 = klass_2.new(field)
+    assert_equal :bar_quux, func_2.name
+    assert !func_2.static?
+    assert_equal dataset, func_2.dataset
+
+    func_3 = klass_3.new(func_2, func_1)
+    assert_equal :baz_bar_quux_foo_123, func_3.name
+    assert !func_3.static?
+    assert_equal dataset, func_3.dataset
+    assert_equal :baz.sql_function(:bar.sql_function(:quux), :foo.sql_function(123)), func_3.to_expr
+  end
+
+  test "function with multiple fields" do
     klass = new_function('foo', {:type => String})
-    field = stub_field('field', :name => :bar, :ruby_type => {:type => String})
+    dataset = stub('dataset')
+    field_1 = stub_field('field', :name => :bar, :ruby_type => {:type => String}, :dataset => dataset)
+    field_2 = stub_field('field', :name => :baz, :ruby_type => {:type => String}, :dataset => dataset)
+    func = klass.new(field_1, field_2)
+    assert_equal :foo_bar_baz, func.name
+    assert_equal :foo.sql_function(:bar, :baz), func.to_expr
+    assert !func.static?
+  end
+
+  test "function with multiple mixed arguments" do
+    klass = new_function('foo', {:type => String})
+    dataset = stub('dataset')
+    field = stub_field('field', :name => :bar, :ruby_type => {:type => String}, :dataset => dataset)
     f = klass.new(field, 123, 'abc')
+    assert_equal :foo_bar_123_abc, f.name
     assert_equal :foo.sql_function(:bar, 123, 'abc'), f.to_expr
+    assert_equal dataset, f.dataset
+  end
+
+  test "illegal function with fields from more than one dataset" do
+    klass = new_function('foo', {:type => String})
+    dataset_1 = stub('dataset 1')
+    dataset_2 = stub('dataset 2')
+    field_1 = stub_field('field', :name => :bar, :ruby_type => {:type => String}, :dataset => dataset_1)
+    field_2 = stub_field('field', :name => :baz, :ruby_type => {:type => String}, :dataset => dataset_2)
+
+    assert_raises(ArgumentError) do
+      func = klass.new(field_1, field_2)
+    end
   end
 
   test "fetching registered function" do

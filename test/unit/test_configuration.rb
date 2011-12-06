@@ -178,8 +178,4 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
       lhs[:foo].must == trim("foo")
     end
   end
-
-  test "dynamic database function with conflicting sides" do
-    pend("Function that accepts multiple arguments")
-  end
 end

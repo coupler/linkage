@@ -205,5 +205,26 @@ module IntegrationTests
         end
       end
     end
+
+    test "match functions" do
+      # insert the test data
+      database do |db|
+        db.create_table(:foo) { primary_key(:id); String(:bar) }
+        db[:foo].import([:id, :bar],
+          Array.new(100) { |i| [i, "bar%s" % (" " * (i % 10))] })
+      end
+
+      ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      conf = ds.link_with(ds) do
+        trim(lhs[:bar]).must == trim(rhs[:bar])
+      end
+      assert_equal :self, conf.linkage_type
+      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner.execute
+
+      database do |db|
+        assert_equal 1, db[:groups].count
+      end
+    end
   end
 end

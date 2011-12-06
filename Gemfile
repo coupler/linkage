@@ -17,4 +17,5 @@ group :development do
   gem "rb-inotify", :platforms => :ruby_19
   gem "mysql2"
   gem 'pry'
+  gem 'rdiscount'
 end

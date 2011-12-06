@@ -89,25 +89,25 @@ module Linkage
       })
     end
 
-    # Add a field to use for ordering the dataset.
+    # Add a data source to use for ordering the dataset.
     #
-    # @param [Linkage::Field] field
+    # @param [Linkage::Data] data
     # @param [nil, Symbol] desc nil or :desc (for descending order)
-    def add_order(field, desc = nil)
-      expr = desc == :desc ? field.name.desc : field.name
+    def add_order(data, desc = nil)
+      expr = desc == :desc ? data.to_expr.desc : data.to_expr
       unless @order.include?(expr)
         @order << expr
       end
     end
 
-    # Add a field to be selected on the dataset. If you don't add any
-    # selects, all fields will be selected. The primary key is always
-    # selected in either case.
+    # Add a data source to be selected on the dataset. If you don't add any
+    # selects, all fields will be selected. The primary key is always selected
+    # in either case.
     #
-    # @param [Linkage::Field] field
-    # @param [Symbol] as Optional field alias
-    def add_select(field, as = nil)
-      expr = as ? field.name.as(as) : field.name
+    # @param [Linkage::Data] data
+    # @param [Symbol] as Optional field/function alias
+    def add_select(data, as = nil)
+      expr = as ? data.to_expr.as(as) : data.to_expr
       unless @select.include?(expr)
         @select << expr
       end
@@ -115,12 +115,12 @@ module Linkage
 
     # Add a filter (SQL WHERE) condition to the dataset.
     #
-    # @param [Linkage::Field] field
+    # @param [Linkage::Data] data
     # @param [Symbol] operator
-    # @param [Linkage::Field, Object] other
-    def add_filter(field, operator, other)
-      arg1 = field.name
-      arg2 = other.is_a?(Field) ? other.name : other
+    # @param [Linkage::Data, Object] other
+    def add_filter(data, operator, other)
+      arg1 = data.to_expr
+      arg2 = other.is_a?(Data) ? other.to_expr : other
       expr =
         case operator
         when :==

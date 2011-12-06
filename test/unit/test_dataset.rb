@@ -15,9 +15,9 @@ class UnitTests::TestDataset < Test::Unit::TestCase
 
     @id_field = stub("id field", :dataset= => nil, :name => :id)
     Linkage::Field.stubs(:new).with(:id, kind_of(Hash)).returns(@id_field)
-    @first_name_field = stub("first_name field", :dataset= => nil, :name => :first_name)
+    @first_name_field = stub("first_name field", :dataset= => nil, :name => :first_name, :to_expr => :first_name)
     Linkage::Field.stubs(:new).with(:first_name, kind_of(Hash)).returns(@first_name_field)
-    @last_name_field = stub("last_name field", :dataset= => nil, :name => :last_name)
+    @last_name_field = stub("last_name field", :dataset= => nil, :name => :last_name, :to_expr => :last_name)
     Linkage::Field.stubs(:new).with(:last_name, kind_of(Hash)).returns(@last_name_field)
   end
 
@@ -107,8 +107,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert_empty dataset_2.instance_variable_get(:@filter)
   end
 
-  test "add_order, then each" do
-    field = stub('field', :name => :last_name)
+  test "add_order with field, then each" do
+    field = stub_field('field', :name => :last_name, :to_expr => :last_name)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_order(field)
     @dataset.expects(:order).with(:last_name).returns(@dataset)
@@ -123,8 +123,25 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert ran
   end
 
+  test "add_order with function, then each" do
+    expr = stub('expression')
+    func = stub_function('func', :name => :trim_stuff, :to_expr => expr)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_order(func)
+    @dataset.expects(:order).with(expr).returns(@dataset)
+    row = {:id => 123, :trim_stuff => 'foo'}
+    @dataset.expects(:each).yields(row)
+
+    ran = false
+    ds.each do |yielded_row|
+      ran = true
+      assert_equal({:pk => 123, :values => {:trim_stuff => 'foo'}}, yielded_row)
+    end
+    assert ran
+  end
+
   test "add_order descending, then each" do
-    field = stub('field', :name => :last_name)
+    field = stub_field('field', :name => :last_name, :to_expr => :last_name)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_order(field, :desc)
     @dataset.expects(:order).with(:last_name.desc).returns(@dataset)
@@ -139,8 +156,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert ran
   end
 
-  test "add_order weeds out duplicates" do
-    field = stub('field', :name => :last_name)
+  test "add_order weeds out field duplicates" do
+    field = stub_field('field', :name => :last_name, :to_expr => :last_name)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_order(field)
     ds.add_order(field)
@@ -149,8 +166,19 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     ds.each { }
   end
 
-  test "add_select, then each" do
-    field = stub('field', :name => :last_name)
+  test "add_order weeds out function duplicates" do
+    expr = stub('expression')
+    func = stub_function('func', :name => :trim_stuff, :to_expr => expr)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_order(func)
+    ds.add_order(func)
+    @dataset.expects(:order).with(expr).returns(@dataset)
+    @dataset.expects(:each)
+    ds.each { }
+  end
+
+  test "add_select with field, then each" do
+    field = stub_field('field', :name => :last_name, :to_expr => :last_name)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_select(field)
     @dataset.expects(:select).with(:id, :last_name).returns(@dataset)
@@ -166,7 +194,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   end
 
   test "add_select with an alias, then each" do
-    field = stub('field', :name => :last_name)
+    field = stub_field('field', :name => :last_name, :to_expr => :last_name)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_select(field, :junk)
     @dataset.expects(:select).with(:id, :last_name.as(:junk)).returns(@dataset)
@@ -181,8 +209,25 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert ran
   end
 
+  test "add_select with function, then each" do
+    expr = stub('expression')
+    func = stub_function('func', :name => :trim_stuff, :to_expr => expr)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_select(func)
+    @dataset.expects(:select).with(:id, expr).returns(@dataset)
+    row = {:id => 123, :trim_stuff => 'foo'}
+    @dataset.expects(:each).yields(row)
+
+    ran = false
+    ds.each do |yielded_row|
+      ran = true
+      assert_equal({:pk => 123, :values => {:trim_stuff => 'foo'}}, yielded_row)
+    end
+    assert ran
+  end
+
   test "add_select weeds out duplicates" do
-    field = stub('field', :name => :last_name)
+    field = stub_field('field', :name => :last_name, :to_expr => :last_name)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_select(field)
     ds.add_select(field)
@@ -191,8 +236,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     ds.each { }
   end
 
-  test "add_filter with :==, then each" do
-    field = stub('field', :name => :age)
+  test "add_filter with :== between field and static value, then each" do
+    field = stub('field', :name => :age, :to_expr => :age)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_filter(field, :==, 30)
     @dataset.expects(:filter).with(:age => 30).returns(@dataset)
@@ -207,9 +252,27 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert ran
   end
 
+  test "add_filter with :== between field and static function, then each" do
+    field = stub_field('field', :name => :age, :to_expr => :age)
+    expr = stub('expression')
+    func = stub_function('func', :name => :func, :to_expr => expr)
+    ds = Linkage::Dataset.new("foo:/bar", "baz")
+    ds.add_filter(field, :==, func)
+    @dataset.expects(:filter).with(:age => expr).returns(@dataset)
+    row = {:id => 123, :junk => 'foo'}
+    @dataset.expects(:each).yields(row)
+
+    ran = false
+    ds.each do |yielded_row|
+      ran = true
+      assert_equal({:pk => 123, :values => {:junk => 'foo'}}, yielded_row)
+    end
+    assert ran
+  end
+
   test "add_filter with :== between two fields, then each" do
-    field_1 = stub_field('field 1', :name => :foo)
-    field_2 = stub_field('field 2', :name => :bar)
+    field_1 = stub_field('field 1', :name => :foo, :to_expr => :foo)
+    field_2 = stub_field('field 2', :name => :bar, :to_expr => :bar)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_filter(field_1, :==, field_2)
     @dataset.expects(:filter).with(:foo => :bar).returns(@dataset)
@@ -218,7 +281,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   end
 
   test "add_filter with :>, then each" do
-    field = stub('field', :name => :age)
+    field = stub('field', :name => :age, :to_expr => :age)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_filter(field, :>, 30)
     @dataset.expects(:filter).with(expr{age > 30}).returns(@dataset)
@@ -227,7 +290,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   end
 
   test "add_filter with :<, then each" do
-    field = stub('field', :name => :age)
+    field = stub_field('field', :name => :age, :to_expr => :age)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_filter(field, :<, 30)
     @dataset.expects(:filter).with(expr{age < 30}).returns(@dataset)
@@ -236,7 +299,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   end
 
   test "add_filter with :>=, then each" do
-    field = stub('field', :name => :age)
+    field = stub_field('field', :name => :age, :to_expr => :age)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_filter(field, :>=, 30)
     @dataset.expects(:filter).with(expr{age >= 30}).returns(@dataset)
@@ -245,7 +308,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   end
 
   test "add_filter with :<=, then each" do
-    field = stub('field', :name => :age)
+    field = stub('field', :name => :age, :to_expr => :age)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_filter(field, :<=, 30)
     @dataset.expects(:filter).with(expr{age <= 30}).returns(@dataset)
@@ -254,7 +317,7 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   end
 
   test "add_filter with :!=, then each" do
-    field = stub('field', :name => :age)
+    field = stub_field('field', :name => :age, :to_expr => :age)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_filter(field, :'!=', 30)
     @dataset.expects(:filter).with(~{:age => 30}).returns(@dataset)
@@ -263,8 +326,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   end
 
   test "add_filter with :> field, then each" do
-    field_1 = stub_field('field 1', :name => :age)
-    field_2 = stub_field('field 2', :name => :age_2)
+    field_1 = stub_field('field 1', :name => :age, :to_expr => :age)
+    field_2 = stub_field('field 2', :name => :age_2, :to_expr => :age_2)
     ds = Linkage::Dataset.new("foo:/bar", "baz")
     ds.add_filter(field_1, :>, field_2)
     @dataset.expects(:filter).with(expr{age > age_2}).returns(@dataset)

@@ -52,7 +52,7 @@ module Linkage
     # @return [Symbol] :self, :dual, :cross, or :filter
     def kind
       @kind ||=
-        if !(@field_1.is_a?(Field) && @field_2.is_a?(Field))
+        if !(@field_1.is_a?(Data) && !@field_1.static? && @field_2.is_a?(Data) && !@field_2.static?)
           :filter
         elsif @field_1 == @field_2
           :self
@@ -95,7 +95,7 @@ module Linkage
       else
         as =
           if kind == :self
-            nil
+            @field_1.is_a?(Function) ? @field_1.name : nil
           else
             name != @field_1.name ? name : nil
           end

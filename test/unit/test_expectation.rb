@@ -20,11 +20,41 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     assert_equal :dual, exp.kind
   end
 
+  test "kind when one field and one function from different datasets" do
+    dataset_1 = mock('dataset 1')
+    dataset_2 = mock('dataset 2')
+    field = stub_field('field', :dataset => dataset_1)
+    func = stub_function('function', :dataset => dataset_2, :static? => false)
+    field.expects(:==).with(func).returns(false)
+    dataset_1.expects(:==).with(dataset_2).returns(false)
+    exp = Linkage::MustExpectation.new(:==, field, func)
+    assert_equal :dual, exp.kind
+  end
+
+  test "kind when two functions from different datasets" do
+    dataset_1 = mock('dataset 1')
+    dataset_2 = mock('dataset 2')
+    func_1 = stub_function('function 1', :dataset => dataset_1, :static? => false)
+    func_2 = stub_function('function 2', :dataset => dataset_2, :static? => false)
+    func_1.expects(:==).with(func_2).returns(false)
+    dataset_1.expects(:==).with(dataset_2).returns(false)
+    exp = Linkage::MustExpectation.new(:==, func_1, func_2)
+    assert_equal :dual, exp.kind
+  end
+
   test "kind when two identical fields from the same dataset" do
     field_1 = stub_field('field 1')
     field_2 = stub_field('field 2')
     field_1.expects(:==).with(field_2).returns(true)
     exp = Linkage::MustExpectation.new(:==, field_1, field_2)
+    assert_equal :self, exp.kind
+  end
+
+  test "kind when two identical functions from the same dataset" do
+    func_1 = stub_function('function 1')
+    func_2 = stub_function('function 2')
+    func_1.expects(:==).with(func_2).returns(true)
+    exp = Linkage::MustExpectation.new(:==, func_1, func_2)
     assert_equal :self, exp.kind
   end
 
@@ -36,6 +66,17 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     field_1.expects(:==).with(field_2).returns(false)
     dataset_1.expects(:==).with(dataset_2).returns(true)
     exp = Linkage::MustExpectation.new(:==, field_1, field_2)
+    assert_equal :cross, exp.kind
+  end
+
+  test "kind when two different functions from the same dataset" do
+    dataset_1 = mock('dataset 1')
+    dataset_2 = mock('dataset 2')
+    func_1 = stub_function('function 1', :dataset => dataset_1)
+    func_2 = stub_function('function 2', :dataset => dataset_2)
+    func_1.expects(:==).with(func_2).returns(false)
+    dataset_1.expects(:==).with(dataset_2).returns(true)
+    exp = Linkage::MustExpectation.new(:==, func_1, func_2)
     assert_equal :cross, exp.kind
   end
 
@@ -68,6 +109,30 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
 
     dataset_2.expects(:add_order).with(field_2)
     dataset_2.expects(:add_select).with(field_2, nil)
+    exp.apply_to(dataset_2)
+  end
+
+  test "apply a two-function dual expectation to two datasets" do
+    dataset_1 = stub('dataset 1')
+    dataset_2 = stub('dataset 2')
+    func_1 = stub_function('function 1', :name => :foo, :dataset => dataset_1) do
+      stubs(:belongs_to?).with(dataset_1).returns(true)
+      stubs(:belongs_to?).with(dataset_2).returns(false)
+    end
+    func_2 = stub_function('function 2', :name => :bar, :dataset => dataset_2) do
+      stubs(:belongs_to?).with(dataset_2).returns(true)
+      stubs(:belongs_to?).with(dataset_1).returns(false)
+    end
+    merged_field = stub_field('merged field', :name => :foo_bar)
+    func_1.stubs(:merge).with(func_2).returns(merged_field)
+    exp = Linkage::MustExpectation.new(:==, func_1, func_2)
+
+    dataset_1.expects(:add_order).with(func_1)
+    dataset_1.expects(:add_select).with(func_1, :foo_bar)
+    exp.apply_to(dataset_1)
+
+    dataset_2.expects(:add_order).with(func_2)
+    dataset_2.expects(:add_select).with(func_2, :foo_bar)
     exp.apply_to(dataset_2)
   end
 
@@ -142,6 +207,20 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     exp.apply_to(dataset)
   end
 
+  test "apply a two-function self expectation" do
+    dataset = stub('dataset')
+    func = stub_function('function', :name => :foo, :dataset => dataset) do
+      expects(:belongs_to?).with(dataset).twice.returns(true)
+    end
+    exp = Linkage::MustExpectation.new(:==, func, func)
+
+    # Twice is okay, since add_order/add_select will take care of
+    # duplicates.
+    dataset.expects(:add_order).twice.with(func)
+    dataset.expects(:add_select).twice.with(func, :foo)
+    exp.apply_to(dataset)
+  end
+
   test "apply a two-field self expectation like a cross" do
     dataset_1 = stub('dataset 1')
     dataset_2 = stub('dataset 2')
@@ -174,9 +253,16 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     assert_equal :foo_bar, exp.name
   end
 
-  test "expectation with static value" do
+  test "expectation with static value is of type 'filter'" do
     field = stub_field('field')
     exp = Linkage::MustExpectation.new(:==, field, 123)
+    assert_equal :filter, exp.kind
+  end
+
+  test "expectation with static function is of type 'filter'" do
+    field = stub_field('field')
+    func = stub_function('func', :static? => true)
+    exp = Linkage::MustExpectation.new(:==, field, func)
     assert_equal :filter, exp.kind
   end
 

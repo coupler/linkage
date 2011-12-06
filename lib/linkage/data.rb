@@ -32,6 +32,10 @@ module Linkage
       raise NotImplementedError
     end
 
+    def to_expr
+      raise NotImplementedError
+    end
+
     # Create a data object that can hold data from two other fields. If the fields
     # have different types, the resulting type is determined via a
     # type-conversion tree.
@@ -120,6 +124,26 @@ module Linkage
         name = self.name == other.name ? self.name : :"#{self.name}_#{other.name}"
       end
       Field.new(name, nil, result)
+    end
+
+    # Returns true if this data's name and dataset match the other's name
+    # and dataset (using {Dataset#==})
+    def ==(other)
+      if !other.is_a?(self.class)
+        super
+      elsif equal?(other)
+        true
+      else
+        self.name == other.name && self.dataset == other.dataset
+      end
+    end
+
+    # Returns true if this data source's dataset is equal to the given dataset
+    # (using Dataset#id).
+    #
+    # @param [Linkage::Dataset]
+    def belongs_to?(dataset)
+      self.dataset.id == dataset.id
     end
 
     private

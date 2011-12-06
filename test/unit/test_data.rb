@@ -2,15 +2,16 @@ require 'helper'
 
 class UnitTests::TestData < Test::Unit::TestCase
   class DataSubclass < Linkage::Data
-    attr_reader :ruby_type
-    def initialize(name, ruby_type)
+    attr_reader :ruby_type, :dataset
+    def initialize(name, ruby_type, dataset = nil)
       super(name)
       @ruby_type = ruby_type
+      @dataset = dataset
     end
   end
 
-  def new_data(name, ruby_type)
-    DataSubclass.new(name, ruby_type)
+  def new_data(name, ruby_type, dataset = nil, klass = DataSubclass)
+    klass.new(name, ruby_type, dataset)
   end
 
   test "ruby_type raises NotImplementedError" do
@@ -21,6 +22,11 @@ class UnitTests::TestData < Test::Unit::TestCase
   test "dataset raises NotImplementedError" do
     d = Linkage::Data.new(:foo)
     assert_raises(NotImplementedError) { d.dataset }
+  end
+
+  test "to_expr raises NotImplementedError" do
+    d = Linkage::Data.new(:foo)
+    assert_raises(NotImplementedError) { d.to_expr }
   end
 
   test "merge two identical fields" do
@@ -390,5 +396,61 @@ class UnitTests::TestData < Test::Unit::TestCase
 
     result_data = data_2.merge(data_1, 'foo')
     assert_equal :foo, result_data.name
+  end
+
+  test "== returns true when data have the same name and are from the same dataset" do
+    dataset_1 = stub('dataset')
+    data_1 = new_data(:foo, {:type => Integer}, dataset_1)
+    dataset_2 = stub('dataset clone')
+    data_2 = new_data(:foo, {:type => Integer}, dataset_2)
+
+    dataset_1.expects(:==).with(dataset_2).returns(true)
+    assert_equal data_1, data_2
+  end
+
+  test "== returns false when data have different classes" do
+    dataset_1 = stub('dataset')
+    data_1 = new_data(:foo, {:type => Integer}, dataset_1, DataSubclass)
+    dataset_2 = stub('dataset clone')
+    data_2 = new_data(:foo, {:type => Integer}, dataset_2, DataSubclass.clone)
+    assert_not_equal data_1, data_2
+  end
+
+  test "== returns false when data have the same name but are from different datasets" do
+    dataset_1 = stub('dataset')
+    data_1 = new_data(:foo, {:type => Integer}, dataset_1)
+    dataset_2 = stub('dataset clone')
+    data_2 = new_data(:foo, {:type => Integer}, dataset_2)
+
+    dataset_1.expects(:==).with(dataset_2).returns(false)
+    assert_not_equal data_1, data_2
+  end
+
+  test "== returns true for identical static functions" do
+    klass = new_function('foo', {:type => String})
+    func_1 = klass.new(123)
+    func_2 = klass.new(123)
+
+    assert_equal func_1, func_2
+  end
+
+  test "belongs_to? dataset" do
+    dataset = stub('dataset 1', :id => 1)
+    data = new_data(:foo, {:type => Integer}, dataset)
+    assert data.belongs_to?(dataset)
+  end
+
+  test "belongs_to? dataset with same id" do
+    dataset_1 = stub('dataset 1', :id => 1)
+    dataset_2 = stub('dataset 2', :id => 1)
+    data = new_data(:foo, {:type => Integer}, dataset_1)
+    assert data.belongs_to?(dataset_2)
+  end
+
+  test "belongs_to? dataset with different id" do
+    dataset_1 = stub('dataset 1', :id => 1)
+    dataset_2 = stub('dataset 2', :id => 2)
+    data = new_data(:foo, {:type => Integer}, dataset_1)
+    assert !data.belongs_to?(dataset_2)
   end
 end
