@@ -1,56 +1,25 @@
 module Linkage
   # Use this class to run a configuration created by {Dataset#link_with}.
   class Runner
-    attr_reader :config
+    attr_reader :config, :result_set
 
     # @param [Linkage::Configuration] config
     # @param [String] uri Sequel-style database URI
     # @param [Hash] options Sequel.connect options
     # @see Dataset#link_with
     # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database
-    def initialize(config, uri, options = {})
+    def initialize(config, uri = nil, options = {})
       @config = config
-      @uri = uri
-      @options = options
-      @next_group_id = 1
-      @next_group_mutex = Mutex.new
+      if uri
+        warn("[DEPRECATION] Please use Configuration#save_results_in with the database URI and options instead")
+        @config.save_results_in(uri, options)
+      end
+      @result_set = ResultSet.new(config)
     end
 
     # @abstract
     def execute
       raise NotImplementedError
-    end
-
-    protected
-
-    def database(&block)
-      Sequel.connect(@uri, @options, &block)
-    end
-
-    def create_tables
-      database do |db|
-        schema = config.groups_table_schema
-        db.create_table(:groups) do
-          schema.each { |col| column(*col) }
-        end
-
-        pk_type = config.dataset_1.primary_key.merge(config.dataset_2.primary_key).ruby_type
-        db.create_table(:groups_records) do
-          column(:record_id, pk_type[:type], pk_type[:opts] || {})
-          Integer :group_id
-          Integer :dataset
-          index :group_id
-        end
-      end
-    end
-
-    def next_group_id
-      result = nil
-      @next_group_mutex.synchronize do
-        result = @next_group_id
-        @next_group_id += 1
-      end
-      result
     end
   end
 end

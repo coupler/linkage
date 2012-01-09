@@ -19,6 +19,8 @@ To describe a linkage, you use the `Dataset#link_with` method.
       lhs[:last_name].must == rhs[:parent_last_name]
       lhs[:last_name].must_not == "Smith"  # exclude parents with the last
                                            # name "Smith"
+
+      save_results_in('sqlite://results.db') # see below
     end
 
 Note that the datasets don't have to be in the same database, or even on
@@ -27,13 +29,14 @@ the same machine.
 To run a linkage, use a Runner with the resulting configuration from
 `Dataset#link_with`:
 
-    runner = Linkage::SingleThreadedRunner.new(config, 'sqlite://results.db')
+    runner = Linkage::SingleThreadedRunner.new(config)
     runner.execute
 
-The runner needs a database URI, since it stores its results in two
-database tables: `groups` and `groups_records`. The `groups` table contains
-all of the unique combinations of values in your datasets, and
-`groups_records` maps records to groups.
+The runner saves results in a database that you specify in the configuration
+(via the `save_results_in` method). It stores its results in two database
+tables: `groups` and `groups_records`. The `groups` table contains all of the
+unique combinations of values in your datasets, and `groups_records` maps
+records to groups.
 
 You can also link a dataset to itself:
 

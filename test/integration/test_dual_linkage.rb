@@ -29,10 +29,12 @@ module IntegrationTests
 
       ds_1 = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
       ds_2 = Linkage::Dataset.new(@tmpuri, "bar", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds_1.link_with(ds_2) do
         lhs[:ssn].must == rhs[:ssn]
+        save_results_in(tmpuri)
       end
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
@@ -68,10 +70,12 @@ module IntegrationTests
 
       ds_1 = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
       ds_2 = Linkage::Dataset.new(@tmpuri, "bar", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds_1.link_with(ds_2) do
         lhs[:ssn].must == rhs[:ssn]
+        save_results_in(tmpuri)
       end
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
@@ -101,13 +105,14 @@ module IntegrationTests
 
       ds_1 = Linkage::Dataset.new(uri, "foo", :single_threaded => true)
       ds_2 = Linkage::Dataset.new(uri, "bar", :single_threaded => true)
+      logger = Logger.new(STDERR)
       conf = ds_1.link_with(ds_2) do
         lhs[:one].must == rhs[:one]
         lhs[:two].must == rhs[:two]
+        save_results_in(uri, :logger => logger)
       end
 
-      logger = Logger.new(STDERR)
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri, :logger => logger)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       Sequel.connect(@tmpuri) do |db|

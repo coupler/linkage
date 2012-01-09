@@ -127,6 +127,12 @@ module Linkage
     # @return [Linkage::Dataset]
     attr_reader :dataset_2
 
+    # @return [String]
+    attr_reader :results_uri
+
+    # @return [Hash]
+    attr_reader :results_uri_options
+
     def initialize(dataset_1, dataset_2)
       @dataset_1 = dataset_1.clone
       @dataset_2 = dataset_2.clone
@@ -142,6 +148,11 @@ module Linkage
 
     def rhs
       @rhs ||= DatasetWrapper.new(@dataset_2, :rhs, self)
+    end
+
+    def save_results_in(uri, options = {})
+      @results_uri = uri
+      @results_uri_options = options
     end
 
     # @private

@@ -15,4 +15,6 @@ group :development do
   gem "mysql2"
   gem 'pry'
   gem 'rdiscount'
+  gem 'guard-test'
+  gem 'guard-yard'
 end

@@ -24,10 +24,12 @@ module IntegrationTests
       end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:foo].must == rhs[:bar]
+        save_results_in(tmpuri, :single_threaded => true)
       end
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri, :single_threaded => true)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
@@ -52,12 +54,14 @@ module IntegrationTests
       end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:foo].must == rhs[:foo]
         lhs[:bar].must == 0
         rhs[:bar].must == 10
+        save_results_in(tmpuri)
       end
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|

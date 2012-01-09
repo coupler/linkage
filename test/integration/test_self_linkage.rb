@@ -24,10 +24,12 @@ module IntegrationTests
       end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:ssn].must == rhs[:ssn]
+        save_results_in(tmpuri)
       end
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
@@ -54,11 +56,13 @@ module IntegrationTests
       end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:ssn].must == rhs[:ssn]
         lhs[:dob].must == rhs[:dob]
+        save_results_in(tmpuri)
       end
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
@@ -87,11 +91,13 @@ module IntegrationTests
       end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:ssn].must == rhs[:ssn]
         lhs[:mod_5].must == 3
+        save_results_in(tmpuri)
       end
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
@@ -118,12 +124,14 @@ module IntegrationTests
       end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:ssn].must == rhs[:ssn]
         lhs[:mod_5].must > 2
         lhs[:mod_5].must <= 3
+        save_results_in(tmpuri)
       end
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
@@ -150,12 +158,14 @@ module IntegrationTests
       end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:ssn].must == rhs[:ssn]
         lhs[:mod_5].must == lhs[:mod_20]
+        save_results_in(tmpuri)
       end
       assert_equal :self, conf.linkage_type
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
@@ -182,13 +192,15 @@ module IntegrationTests
       end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:ssn].must == rhs[:ssn]
         lhs[:mod_5].must == lhs[:mod_20]
         rhs[:mod_5].must == rhs[:mod_20]
+        save_results_in(tmpuri)
       end
       assert_equal :self, conf.linkage_type
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
@@ -215,11 +227,13 @@ module IntegrationTests
       end
 
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         trim(lhs[:bar]).must == trim(rhs[:bar])
+        save_results_in(tmpuri)
       end
       assert_equal :self, conf.linkage_type
-      runner = Linkage::SingleThreadedRunner.new(conf, @tmpuri)
+      runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|

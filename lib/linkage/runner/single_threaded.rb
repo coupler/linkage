@@ -4,7 +4,6 @@ module Linkage
   # @see Runner
   class SingleThreadedRunner < Runner
     def execute
-      create_tables
       setup_datasets
       apply_expectations
       group_records
@@ -26,6 +25,8 @@ module Linkage
     end
 
     def group_records
+      result_set.create_tables!
+
       if config.linkage_type == :self
         group_records_for(@dataset_1, 1)
       else
@@ -39,10 +40,10 @@ module Linkage
     # @param [Fixnum, nil] dataset_id
     # @param [Boolean] ignore_empty_groups
     # @yield [Linkage::Group] If a block is given, yield completed groups to
-    #   the block. Otherwise, call save_group on the group.
+    #   the block. Otherwise, call ResultSet#add_group on the group.
     def group_records_for(dataset, dataset_id = nil, ignore_empty_groups = true, &block)
       current_group = nil
-      block ||= lambda { |group| save_group(current_group, dataset_id) }
+      block ||= lambda { |group| result_set.add_group(current_group, dataset_id) }
       dataset.each do |row|
         if current_group.nil? || !current_group.matches?(row[:values])
           if current_group && (!ignore_empty_groups || current_group.count > 1)
@@ -56,42 +57,23 @@ module Linkage
       if current_group && (!ignore_empty_groups || current_group.count > 1)
         block.call(current_group)
       end
-      flush_buffers
-    end
-
-    def save_group(group, dataset_id = nil)
-      if !@groups_buffer
-        groups_headers = [:id] + group.values.keys
-        @groups_buffer = ImportBuffer.new(@uri, :groups, groups_headers, @options)
-      end
-      @groups_records_buffer ||= ImportBuffer.new(@uri, :groups_records, [:group_id, :dataset, :record_id], @options)
-
-      group_id = next_group_id
-      @groups_buffer.add([group_id] + group.values.values)
-      group.records.each do |record_id|
-        @groups_records_buffer.add([group_id, dataset_id, record_id])
-      end
-    end
-
-    def flush_buffers
-      @groups_buffer.flush if @groups_buffer
-      @groups_records_buffer.flush if @groups_records_buffer
+      result_set.flush!
     end
 
     def combine_groups
       # Create a new dataset for the groups table
-      ds = Dataset.new(@uri, :groups, @options)
-      ds.fields.each_value do |field|
+      groups_dataset = result_set.groups_dataset
+      groups_dataset.fields.each_value do |field|
         # Sort on all fields
         next if field.primary_key?
-        ds.add_order(field)
-        ds.add_select(field)
+        groups_dataset.add_order(field)
+        groups_dataset.add_select(field)
       end
-      ds.add_order(ds.primary_key) # ensure matching groups are sorted by id
-      database do |db|
+      groups_dataset.add_order(groups_dataset.primary_key) # ensure matching groups are sorted by id
+      result_set.database do |db|
         groups_to_delete = []
         db.transaction do  # for speed reasons
-          group_records_for(ds, nil, false) do |group|
+          group_records_for(groups_dataset, nil, false) do |group|
             if group.count == 1
               # Delete the empty group
               groups_to_delete << group.records[0]

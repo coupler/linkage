@@ -178,4 +178,15 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
       lhs[:foo].must == trim("foo")
     end
   end
+
+  test "save_results_in" do
+    dataset_1 = stub('dataset')
+    dataset_2 = stub('dataset')
+    c = Linkage::Configuration.new(dataset_1, dataset_2)
+    c.send(:instance_eval) do
+      save_results_in("mysql://localhost/results", {:foo => 'bar'})
+    end
+    assert_equal "mysql://localhost/results", c.results_uri
+    assert_equal({:foo => 'bar'}, c.results_uri_options)
+  end
 end
