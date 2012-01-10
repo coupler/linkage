@@ -30,7 +30,8 @@ module IntegrationTests
         save_results_in(tmpuri)
       end
       runner = Linkage::SingleThreadedRunner.new(conf)
-      runner.execute
+      result_set = runner.execute
+      assert_kind_of Linkage::ResultSet, result_set
 
       database do |db|
         assert_equal 10, db[:groups].count

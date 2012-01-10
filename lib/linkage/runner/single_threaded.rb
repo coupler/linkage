@@ -3,11 +3,13 @@ module Linkage
   #
   # @see Runner
   class SingleThreadedRunner < Runner
+    # @return [Linkage::ResultSet]
     def execute
       setup_datasets
       apply_expectations
       group_records
-      nil
+
+      return result_set
     end
 
     private
