@@ -139,11 +139,10 @@ module Linkage
     end
 
     # Returns true if this data source's dataset is equal to the given dataset
-    # (using Dataset#id).
     #
     # @param [Linkage::Dataset]
     def belongs_to?(dataset)
-      self.dataset.id == dataset.id
+      self.dataset == dataset
     end
 
     private

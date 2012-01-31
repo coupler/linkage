@@ -6,7 +6,7 @@ module Linkage
       @next_group_mutex = Mutex.new
     end
 
-    def groups_dataset
+    def groups_model
       Dataset.new(@config.results_uri, :groups, @config.results_uri_options)
     end
 
@@ -21,7 +21,7 @@ module Linkage
           schema.each { |col| column(*col) }
         end
 
-        pk_type = @config.dataset_1.primary_key.merge(@config.dataset_2.primary_key).ruby_type
+        pk_type = @config.dataset_1.field_set.primary_key.merge(@config.dataset_2.field_set.primary_key).ruby_type
         db.create_table(:groups_records) do
           column(:record_id, pk_type[:type], pk_type[:opts] || {})
           Integer :group_id

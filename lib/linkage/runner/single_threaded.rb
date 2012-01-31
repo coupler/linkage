@@ -15,14 +15,16 @@ module Linkage
     private
 
     def setup_datasets
-      @dataset_1 = config.dataset_1.clone
-      @dataset_2 = config.dataset_2.clone if @config.linkage_type != :self
+      @dataset_1 = config.dataset_1.select(config.dataset_1.primary_key)
+      if @config.linkage_type != :self
+        @dataset_2 = config.dataset_2.select(config.dataset_2.primary_key)
+      end
     end
 
     def apply_expectations
       config.expectations.each do |exp|
-        exp.apply_to(@dataset_1)
-        exp.apply_to(@dataset_2) if config.linkage_type != :self
+        @dataset_1 = exp.apply_to(@dataset_1, :lhs)
+        @dataset_2 = exp.apply_to(@dataset_2, :rhs) if config.linkage_type != :self
       end
     end
 
@@ -46,15 +48,18 @@ module Linkage
     def group_records_for(dataset, dataset_id = nil, ignore_empty_groups = true, &block)
       current_group = nil
       block ||= lambda { |group| result_set.add_group(current_group, dataset_id) }
-      dataset.each do |row|
-        if current_group.nil? || !current_group.matches?(row[:values])
+      primary_key = dataset.model.field_set.primary_key.to_expr
+      dataset.each do |record|
+        row = record.values
+        pk = row.delete(primary_key)
+        if current_group.nil? || !current_group.matches?(row)
           if current_group && (!ignore_empty_groups || current_group.count > 1)
             block.call(current_group)
           end
-          new_group = Group.new(row[:values])
+          new_group = Group.new(row)
           current_group = new_group
         end
-        current_group.add_record(row[:pk])
+        current_group.add_record(pk)
       end
       if current_group && (!ignore_empty_groups || current_group.count > 1)
         block.call(current_group)
@@ -64,14 +69,14 @@ module Linkage
 
     def combine_groups
       # Create a new dataset for the groups table
-      groups_dataset = result_set.groups_dataset
-      groups_dataset.fields.each_value do |field|
+      groups_model = result_set.groups_model
+
+      exprs = groups_model.field_set.values.inject([]) do |arr, field|
         # Sort on all fields
-        next if field.primary_key?
-        groups_dataset.add_order(field)
-        groups_dataset.add_select(field)
+        field.primary_key? ? arr : arr << field.to_expr
       end
-      groups_dataset.add_order(groups_dataset.primary_key) # ensure matching groups are sorted by id
+      groups_dataset = groups_model.select(*exprs, groups_model.field_set.primary_key.to_expr).order(*exprs) # ensure matching groups are sorted by id
+
       result_set.database do |db|
         groups_to_delete = []
         db.transaction do  # for speed reasons
