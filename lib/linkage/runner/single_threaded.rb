@@ -15,9 +15,11 @@ module Linkage
     private
 
     def setup_datasets
-      @dataset_1 = config.dataset_1.select(config.dataset_1.primary_key)
+      pk = config.dataset_1.field_set.primary_key
+      @dataset_1 = config.dataset_1.select(pk.to_expr)
       if @config.linkage_type != :self
-        @dataset_2 = config.dataset_2.select(config.dataset_2.primary_key)
+        pk = config.dataset_2.field_set.primary_key
+        @dataset_2 = config.dataset_2.select(pk.to_expr)
       end
     end
 
@@ -48,9 +50,8 @@ module Linkage
     def group_records_for(dataset, dataset_id = nil, ignore_empty_groups = true, &block)
       current_group = nil
       block ||= lambda { |group| result_set.add_group(current_group, dataset_id) }
-      primary_key = dataset.model.field_set.primary_key.to_expr
-      dataset.each do |record|
-        row = record.values
+      primary_key = dataset.field_set.primary_key.to_expr
+      dataset.each do |row|
         pk = row.delete(primary_key)
         if current_group.nil? || !current_group.matches?(row)
           if current_group && (!ignore_empty_groups || current_group.count > 1)
@@ -69,13 +70,13 @@ module Linkage
 
     def combine_groups
       # Create a new dataset for the groups table
-      groups_model = result_set.groups_model
+      groups_dataset = result_set.groups_dataset
 
-      exprs = groups_model.field_set.values.inject([]) do |arr, field|
+      exprs = groups_dataset.field_set.values.inject([]) do |arr, field|
         # Sort on all fields
         field.primary_key? ? arr : arr << field.to_expr
       end
-      groups_dataset = groups_model.select(*exprs, groups_model.field_set.primary_key.to_expr).order(*exprs) # ensure matching groups are sorted by id
+      groups_dataset = groups_dataset.select(*exprs, groups_dataset.field_set.primary_key.to_expr).order(*exprs) # ensure matching groups are sorted by id
 
       result_set.database do |db|
         groups_to_delete = []

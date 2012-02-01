@@ -1,40 +1,44 @@
 module Linkage
-  module Dataset
-    module Plugin
-      module ClassMethods
-        # @return [Linkage::FieldSet]
-        attr_reader :field_set
+  class Dataset < Delegator
+    attr_reader :field_set
 
-        # Setup a linkage with another dataset
-        #
-        # @return [Linkage::Configuration]
-        def link_with(dataset, &block)
-          conf = Configuration.new(self, dataset)
-          conf.configure(&block)
-          conf
-        end
-
-        def clone
-          Linkage::Dataset.at(db.uri, table_name, db.opts)
-        end
-      end
-
-      def self.apply(model)
-        model.instance_variable_set(:@field_set, FieldSet.new(model.db_schema, model))
-      end
-    end
-
-    # @param [String] uri Sequel-style database URI
-    # @param [String, Symbol] table Database table name
-    # @param [Hash] options Options to pass to Sequel.connect
-    # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database
-    def self.at(uri, table, options = {})
+    def initialize(uri, table, options = {})
+      table_name = table.to_sym
       db = Sequel.connect(uri, options)
-      klass = Class.new(Sequel::Model(db[table.to_sym]))
-      klass.plugin(Linkage::Dataset::Plugin)
-      klass
+      ds = db[table_name]
+      super(ds)
+      @field_set = FieldSet.new(db.schema(table_name))
     end
 
-    class << self; alias_method(:new, :at); end
+    def __setobj__(obj); @dataset = obj; end
+    def __getobj__; @dataset; end
+
+    # Setup a linkage with another dataset
+    #
+    # @return [Linkage::Configuration]
+    def link_with(dataset, &block)
+      conf = Configuration.new(self, dataset)
+      conf.configure(&block)
+      conf
+    end
+
+    def initialize_clone(obj)
+      new_obj = obj.instance_variable_get(:@new_obj)
+      if new_obj
+        __setobj__(new_obj)
+      else
+        super
+      end
+    end
+
+    def method_missing(name, *args, &block)
+      result = super
+      if result.kind_of?(Sequel::Dataset)
+        @new_obj = result
+        result = clone
+        @new_obj = nil
+      end
+      result
+    end
   end
 end

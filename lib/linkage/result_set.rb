@@ -6,7 +6,7 @@ module Linkage
       @next_group_mutex = Mutex.new
     end
 
-    def groups_model
+    def groups_dataset
       Dataset.new(@config.results_uri, :groups, @config.results_uri_options)
     end
 

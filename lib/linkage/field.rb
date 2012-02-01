@@ -5,9 +5,6 @@ module Linkage
     # @return [Symbol] This field's schema information
     attr_reader :schema
 
-    # @attr [Linkage::Dataset] This field's associated dataset
-    attr_accessor :dataset
-
     # Create a new instance of Field.
     #
     # @param [Symbol] name The field's name
