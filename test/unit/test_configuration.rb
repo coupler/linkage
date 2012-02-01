@@ -15,23 +15,22 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "linkage_type is cross when there's a 'cross-join'" do
-    dataset = mock('dataset', :set_new_id => nil)
+    field_1 = stub('field_1', :to_expr => :foo)
+    field_2 = stub('field_2', :to_expr => :bar)
+    dataset = stub('dataset', :field_set => {:foo => field_1, :bar => :field_2})
     c = Linkage::Configuration.new(dataset, dataset)
-    exp = stub('expectation', :kind => :cross)
-    c.add_expectation(exp)
+    c.configure do
+      lhs[:foo].must == rhs[:bar]
+    end
     assert_equal :cross, c.linkage_type
   end
 
   test "linkage_type is cross when there's different filters on both sides" do
-    field = stub_field('field')
-    dataset = stub('dataset', :set_new_id => nil)
-    dataset.stubs(:fields).returns({:foo => field})
+    field = stub('field', :to_expr => :foo)
+    dataset = stub('dataset')
+    dataset.stubs(:field_set).returns({:foo => field})
     c = Linkage::Configuration.new(dataset, dataset)
-    exp_1 = stub('expectation', :kind => :filter)
-    Linkage::MustExpectation.expects(:new).with(:==, field, 123, nil).returns(exp_1)
-    exp_2 = stub('expectation', :kind => :filter)
-    Linkage::MustExpectation.expects(:new).with(:==, field, 456, nil).returns(exp_2)
-    c.send(:instance_eval) do
+    c.configure do
       lhs[:foo].must == 123
       rhs[:foo].must == 456
     end
@@ -39,13 +38,12 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "linkage_type is self when there's identical static filters on each side" do
-    field = stub_field('field')
-    dataset = stub('dataset', :set_new_id => nil)
-    dataset.stubs(:fields).returns({:foo => field})
+    field = stub('field', :to_expr => :foo)
+    dataset = stub('dataset')
+    dataset.stubs(:field_set).returns({:foo => field})
     c = Linkage::Configuration.new(dataset, dataset)
     exp_1 = stub('expectation', :kind => :filter)
-    Linkage::MustExpectation.expects(:new).twice.with(:==, field, 123, nil).returns(exp_1)
-    c.send(:instance_eval) do
+    c.configure do
       lhs[:foo].must == 123
       rhs[:foo].must == 123
     end
@@ -53,16 +51,12 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "linkage_type is self when there's a two-field filter on one side" do
-    field_1 = stub_field('field 1')
-    field_2 = stub_field('field 2')
-    dataset = stub('dataset', :set_new_id => nil)
-    dataset.stubs(:fields).returns({:foo => field_1, :bar => field_2})
+    field_1 = stub('field 1', :to_expr => :foo)
+    field_2 = stub('field 2', :to_expr => :bar)
+    dataset = stub('dataset')
+    dataset.stubs(:field_set).returns({:foo => field_1, :bar => field_2})
     c = Linkage::Configuration.new(dataset, dataset)
-    exp_1 = stub('expectation', :kind => :filter)
-    Linkage::MustExpectation.expects(:new).with(:==, field_1, field_2, :filter).returns(exp_1)
-    exp_2 = stub('expectation', :kind => :self)
-    Linkage::MustExpectation.expects(:new).with(:==, field_1, field_1, nil).returns(exp_2)
-    c.send(:instance_eval) do
+    c.configure do
       lhs[:foo].must == lhs[:bar]
       lhs[:foo].must == rhs[:foo]
     end
@@ -71,119 +65,122 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
   test "static expectation" do
     dataset_1 = stub('dataset')
-    field = stub_field('field')
-    dataset_1.stubs(:fields).returns({:foo => field})
+    field = stub('field', :to_expr => :foo)
+    dataset_1.stubs(:field_set).returns({:foo => field})
     dataset_2 = stub('dataset')
     c = Linkage::Configuration.new(dataset_1, dataset_2)
-    Linkage::MustExpectation.expects(:new).with(:==, field, 123, nil)
-    c.send(:instance_eval) do
+    c.configure do
       lhs[:foo].must == 123
     end
+    dataset_1.expects(:filter).with({:foo => 123}).returns(dataset_1)
+    c.expectations[0].apply_to(dataset_1, :lhs)
   end
-
-  ## Maybe in the future
-  #test "static expectation, flopped" do
-    #dataset_1 = stub('dataset')
-    #field = stub_field('field')
-    #dataset_1.stubs(:fields).returns({:foo => field})
-    #dataset_2 = stub('dataset')
-    #c = Linkage::Configuration.new(dataset_1, dataset_2)
-    #Linkage::MustExpectation.expects(:new).with(:==, 123, field)
-    #c.send(:instance_eval) do
-      #123.must == lhs[:foo]
-    #end
-  #end
 
   test "complain if an invalid field is accessed" do
     dataset_1 = stub('dataset')
-    field_1 = stub_field('field 1')
-    dataset_1.stubs(:fields).returns({:foo => field_1})
+    field_1 = stub('field 1')
+    dataset_1.stubs(:field_set).returns({:foo => field_1})
 
     dataset_2 = stub('dataset')
-    field_2 = stub_field('field 2')
-    dataset_2.stubs(:fields).returns({:bar => field_2})
+    field_2 = stub('field 2')
+    dataset_2.stubs(:field_set).returns({:bar => field_2})
 
     c = Linkage::Configuration.new(dataset_1, dataset_2)
     assert_raises(ArgumentError) do
-      c.send(:instance_eval) do
+      c.configure do
         lhs[:foo].must == rhs[:non_existant_field]
       end
     end
   end
 
   operators = [:>, :<, :>=, :<=]
-  operators << :'!='  if current_ruby_version >= ruby19
   operators.each do |operator|
     test "DSL #{operator} filter operator" do
       dataset_1 = stub('dataset 1')
-      field_1 = stub_field('field 1')
-      dataset_1.stubs(:fields).returns({:foo => field_1})
+      field_1 = stub('field 1', :to_expr => :foo)
+      dataset_1.stubs(:field_set).returns({:foo => field_1})
 
       dataset_2 = stub('dataset 2')
-      field_2 = stub_field('field 2')
-      dataset_2.stubs(:fields).returns({:bar => field_2})
 
       c = Linkage::Configuration.new(dataset_1, dataset_2)
-      Linkage::MustExpectation.expects(:new).with(operator, field_1, field_2, nil)
       block = eval("Proc.new { lhs[:foo].must #{operator} rhs[:bar] }")
-      c.send(:instance_eval, &block)
+      c.configure do
+        lhs[:foo].must.send(operator, 123)
+      end
+      expr = Sequel::SQL::BooleanExpression.new(operator, Sequel::SQL::Identifier.new(:foo), 123)
+      dataset_1.expects(:filter).with(expr).returns(dataset_1)
+      c.expectations[0].apply_to(dataset_1, :lhs)
     end
   end
 
   test "must_not expectation" do
     dataset_1 = stub('dataset 1')
-    field_1 = stub_field('field 1')
-    dataset_1.stubs(:fields).returns({:foo => field_1})
+    field_1 = stub('field 1', :to_expr => :foo)
+    dataset_1.stubs(:field_set).returns({:foo => field_1})
     dataset_2 = stub('dataset 2')
 
     c = Linkage::Configuration.new(dataset_1, dataset_2)
-    Linkage::MustNotExpectation.expects(:new).with(:==, field_1, 123, nil)
-    c.send(:instance_eval) do
+    c.configure do
       lhs[:foo].must_not == 123
     end
+    dataset_1.expects(:filter).with(~{:foo => 123}).returns(dataset_1)
+    c.expectations[0].apply_to(dataset_1, :lhs)
   end
 
   test "dynamic database function" do
     dataset_1 = stub('dataset')
-    field_1 = stub_field('field 1')
-    dataset_1.stubs(:fields).returns({:foo => field_1})
+    field_1 = stub('field 1')
+    dataset_1.stubs(:field_set).returns({:foo => field_1})
     dataset_2 = stub('dataset')
-    field_2 = stub_field('field 2')
-    dataset_2.stubs(:fields).returns({:foo => field_2})
+    field_2 = stub('field 2', :to_expr => :foo)
+    dataset_2.stubs(:field_set).returns({:foo => field_2})
 
-    func = stub_function('function', :static? => false)
+    func_expr = stub('function expression') do
+      expects(:as).with(:trim_foo_foo).returns(self)
+    end
+    func = stub('function', :static? => false, :to_expr => func_expr)
     Linkage::Functions::Trim.expects(:new).with(field_1).returns(func)
+    merged_field = stub('merged field', :name => :trim_foo_foo)
+    func.expects(:merge).with(field_2).returns(merged_field)
 
     c = Linkage::Configuration.new(dataset_1, dataset_2)
-    Linkage::MustExpectation.expects(:new).with(:==, func, field_2, nil)
-    c.send(:instance_eval) do
+    c.configure do
       trim(lhs[:foo]).must == rhs[:foo]
     end
+    dataset_1.expects(:select_more).with(func_expr).returns(dataset_1)
+    dataset_1.expects(:order_more).with(func_expr).returns(dataset_1)
+    c.expectations[0].apply_to(dataset_1, :lhs)
+
+    dataset_2.expects(:select_more).with(:foo.as(:trim_foo_foo)).returns(dataset_2)
+    dataset_2.expects(:order_more).with(:foo).returns(dataset_2)
+    c.expectations[0].apply_to(dataset_2, :rhs)
   end
 
   test "static database function" do
     dataset_1 = stub('dataset')
-    field_1 = stub_field('field 1')
-    dataset_1.stubs(:fields).returns({:foo => field_1})
+    field_1 = stub('field 1', :to_expr => :foo)
+    dataset_1.stubs(:field_set).returns({:foo => field_1})
     dataset_2 = stub('dataset')
-    field_2 = stub_field('field 2')
-    dataset_2.stubs(:fields).returns({:foo => field_2})
+    field_2 = stub('field 2')
+    dataset_2.stubs(:field_set).returns({:foo => field_2})
 
-    func = stub_function('function', :static? => true)
+    func_expr = stub('function expression')
+    func = stub('function', :static? => true, :to_expr => func_expr)
     Linkage::Functions::Trim.expects(:new).with("foo").returns(func)
 
     c = Linkage::Configuration.new(dataset_1, dataset_2)
-    Linkage::MustExpectation.expects(:new).with(:==, field_1, func, :filter)
-    c.send(:instance_eval) do
+    c.configure do
       lhs[:foo].must == trim("foo")
     end
+    dataset_1.expects(:filter).with({:foo => func_expr}).returns(dataset_1)
+    c.expectations[0].apply_to(dataset_1, :lhs)
   end
 
   test "save_results_in" do
     dataset_1 = stub('dataset')
     dataset_2 = stub('dataset')
     c = Linkage::Configuration.new(dataset_1, dataset_2)
-    c.send(:instance_eval) do
+    c.configure do
       save_results_in("mysql://localhost/results", {:foo => 'bar'})
     end
     assert_equal "mysql://localhost/results", c.results_uri

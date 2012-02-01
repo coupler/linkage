@@ -55,38 +55,32 @@ class UnitTests::TestFunction < Test::Unit::TestCase
 
   test "function with field" do
     klass = new_function('foo', {:type => String})
-    dataset = stub('dataset')
-    field = stub_field('field', :name => :bar, :ruby_type => {:type => String}, :dataset => dataset)
+    field = stub_field('field', :name => :bar, :ruby_type => {:type => String})
     f = klass.new(field)
     assert_equal :foo_bar, f.name
     assert_equal :foo.sql_function(:bar), f.to_expr
     assert !f.static?
-    assert_equal dataset, f.dataset
   end
 
   test "function with dynamic function" do
     klass_1 = new_function('foo', {:type => String})
     klass_2 = new_function('bar', {:type => String})
 
-    dataset = stub('dataset')
-    field = stub_field('field', :name => :baz, :ruby_type => {:type => String}, :dataset => dataset)
+    field = stub_field('field', :name => :baz, :ruby_type => {:type => String})
     func_1 = klass_1.new(field)
     assert_equal :foo_baz, func_1.name
     assert !func_1.static?
-    assert_equal dataset, func_1.dataset
 
     func_2 = klass_2.new(func_1)
     assert_equal :bar_foo_baz, func_2.name
     assert !func_2.static?
     assert_equal :bar.sql_function(:foo.sql_function(:baz)), func_2.to_expr
-    assert_equal dataset, func_2.dataset
   end
 
   test "function with static function" do
     klass_1 = new_function('foo', {:type => String})
     klass_2 = new_function('bar', {:type => String})
 
-    dataset = stub('dataset')
     func_1 = klass_1.new(123)
     assert_equal :foo_123, func_1.name
     assert func_1.static?
@@ -106,25 +100,21 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     assert_equal :foo_123, func_1.name
     assert func_1.static?
 
-    dataset = stub('dataset')
-    field = stub_field('field', :name => :quux, :ruby_type => {:type => String}, :dataset => dataset)
+    field = stub_field('field', :name => :quux, :ruby_type => {:type => String})
     func_2 = klass_2.new(field)
     assert_equal :bar_quux, func_2.name
     assert !func_2.static?
-    assert_equal dataset, func_2.dataset
 
     func_3 = klass_3.new(func_2, func_1)
     assert_equal :baz_bar_quux_foo_123, func_3.name
     assert !func_3.static?
-    assert_equal dataset, func_3.dataset
     assert_equal :baz.sql_function(:bar.sql_function(:quux), :foo.sql_function(123)), func_3.to_expr
   end
 
   test "function with multiple fields" do
     klass = new_function('foo', {:type => String})
-    dataset = stub('dataset')
-    field_1 = stub_field('field', :name => :bar, :ruby_type => {:type => String}, :dataset => dataset)
-    field_2 = stub_field('field', :name => :baz, :ruby_type => {:type => String}, :dataset => dataset)
+    field_1 = stub_field('field', :name => :bar, :ruby_type => {:type => String})
+    field_2 = stub_field('field', :name => :baz, :ruby_type => {:type => String})
     func = klass.new(field_1, field_2)
     assert_equal :foo_bar_baz, func.name
     assert_equal :foo.sql_function(:bar, :baz), func.to_expr
@@ -133,24 +123,10 @@ class UnitTests::TestFunction < Test::Unit::TestCase
 
   test "function with multiple mixed arguments" do
     klass = new_function('foo', {:type => String})
-    dataset = stub('dataset')
-    field = stub_field('field', :name => :bar, :ruby_type => {:type => String}, :dataset => dataset)
+    field = stub_field('field', :name => :bar, :ruby_type => {:type => String})
     f = klass.new(field, 123, 'abc')
     assert_equal :foo_bar_123_abc, f.name
     assert_equal :foo.sql_function(:bar, 123, 'abc'), f.to_expr
-    assert_equal dataset, f.dataset
-  end
-
-  test "illegal function with fields from more than one dataset" do
-    klass = new_function('foo', {:type => String})
-    dataset_1 = stub('dataset 1')
-    dataset_2 = stub('dataset 2')
-    field_1 = stub_field('field', :name => :bar, :ruby_type => {:type => String}, :dataset => dataset_1)
-    field_2 = stub_field('field', :name => :baz, :ruby_type => {:type => String}, :dataset => dataset_2)
-
-    assert_raises(ArgumentError) do
-      func = klass.new(field_1, field_2)
-    end
   end
 
   test "fetching registered function" do

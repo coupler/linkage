@@ -1,12 +1,6 @@
 require 'helper'
 
 class UnitTests::TestField < Test::Unit::TestCase
-  def new_field(name, schema, ruby_type, dataset = nil)
-    f = Linkage::Field.new(name, schema, ruby_type)
-    f.dataset = dataset || stub('dataset')
-    f
-  end
-
   test "subclass of data" do
     assert_equal Linkage::Data, Linkage::Field.superclass
   end

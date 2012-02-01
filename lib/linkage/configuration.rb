@@ -2,10 +2,9 @@ module Linkage
   class Configuration
     class DSL
       class ExpectationWrapper
-        VALID_OPERATORS = [:==, :>, :<, :>=, :<=, :'!=']
+        VALID_OPERATORS = [:==, :>, :<, :>=, :<=]
         OPERATOR_OPPOSITES = {
           :==   => :'!=',
-          :'!=' => :==,
           :>    => :<=,
           :<=   => :>,
           :<    => :>=,
@@ -112,7 +111,7 @@ module Linkage
       class DataWrapper
         attr_reader :side, :dataset
 
-        %w{must must_not}.each do |type|
+        [:must, :must_not].each do |type|
           define_method(type) do
             ExpectationWrapper.new(@dsl, type, self)
           end
@@ -161,7 +160,7 @@ module Linkage
         end
 
         def data
-          @klass.new(*@args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg })
+          @data ||= @klass.new(*@args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg })
         end
 
         def static?
