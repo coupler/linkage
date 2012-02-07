@@ -1,4 +1,5 @@
 require 'pathname'
+require 'delegate'
 require 'sequel'
 
 module Linkage
