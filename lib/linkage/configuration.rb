@@ -294,5 +294,9 @@ module Linkage
 
       schema
     end
+
+    def result_set
+      @result_set ||= ResultSet.new(self)
+    end
   end
 end

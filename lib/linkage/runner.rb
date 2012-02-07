@@ -14,12 +14,15 @@ module Linkage
         warn("[DEPRECATION] Please use Configuration#save_results_in with the database URI and options instead")
         @config.save_results_in(uri, options)
       end
-      @result_set = ResultSet.new(config)
     end
 
     # @abstract
     def execute
       raise NotImplementedError
+    end
+
+    def result_set
+      @config.result_set
     end
   end
 end
