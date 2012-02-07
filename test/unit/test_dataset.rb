@@ -22,4 +22,16 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     Linkage::FieldSet.expects(:new).with(@schema).returns(@field_set)
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
   end
+
+  test "table_name" do
+    ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    assert_equal :foo, ds.table_name
+  end
+
+  test "adapter_scheme" do
+    ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    @dataset.stubs(:db).returns(@database)
+    @database.expects(:adapter_scheme).returns(:foo)
+    assert_equal :foo, ds.adapter_scheme
+  end
 end

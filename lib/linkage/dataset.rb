@@ -1,13 +1,13 @@
 module Linkage
   class Dataset < Delegator
-    attr_reader :field_set
+    attr_reader :field_set, :table_name
 
     def initialize(uri, table, options = {})
-      table_name = table.to_sym
+      @table_name = table.to_sym
       db = Sequel.connect(uri, options)
-      ds = db[table_name]
+      ds = db[@table_name]
       super(ds)
-      @field_set = FieldSet.new(db.schema(table_name))
+      @field_set = FieldSet.new(db.schema(@table_name))
     end
 
     def __setobj__(obj); @dataset = obj; end
@@ -20,6 +20,10 @@ module Linkage
       conf = Configuration.new(self, dataset)
       conf.configure(&block)
       conf
+    end
+
+    def adapter_scheme
+      @dataset.db.adapter_scheme
     end
 
     def initialize_clone(obj)
