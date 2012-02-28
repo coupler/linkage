@@ -10,6 +10,10 @@ module Linkage
       Dataset.new(@config.results_uri, :groups, @config.results_uri_options)
     end
 
+    def groups_records_dataset
+      Dataset.new(@config.results_uri, :groups_records, @config.results_uri_options)
+    end
+
     def database(&block)
       Sequel.connect(@config.results_uri, @config.results_uri_options, &block)
     end

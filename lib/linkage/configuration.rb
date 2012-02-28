@@ -11,7 +11,7 @@ module Linkage
           :>=   => :<
         }
 
-        attr_reader :kind, :side
+        attr_reader :kind, :side, :lhs, :rhs
 
         def initialize(dsl, type, lhs)
           @dsl = dsl
@@ -119,13 +119,13 @@ module Linkage
       end
 
       class FieldWrapper < DataWrapper
-        attr_reader :field_name
+        attr_reader :name
 
-        def initialize(dsl, side, dataset, field_name)
+        def initialize(dsl, side, dataset, name)
           @dsl = dsl
           @side = side
           @dataset = dataset
-          @field_name = field_name
+          @name = name
         end
 
         def static?
@@ -133,11 +133,11 @@ module Linkage
         end
 
         def same_except_side?(other)
-          other.is_a?(FieldWrapper) && field_name == other.field_name
+          other.is_a?(FieldWrapper) && name == other.name
         end
 
         def data
-          @dataset.field_set[@field_name]
+          @dataset.field_set[@name]
         end
       end
 
@@ -161,6 +161,10 @@ module Linkage
 
         def data
           @data ||= @klass.new(*@args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg })
+        end
+
+        def name
+          data.name
         end
 
         def static?
