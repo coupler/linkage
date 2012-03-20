@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "linkage"
   gem.homepage = "http://github.com/coupler/linkage"
   gem.license = "MIT"
-  gem.summary = %Q{Sequel-based record linkage}
-  gem.description = %Q{Wraps Sequel to perform record linkage between one or two datasets}
+  gem.summary = %Q{Record linkage library}
+  gem.description = %Q{Performs record linkage between one or two datasets, using Sequel on the backend}
   gem.email = "jeremy.f.stephens@vanderbilt.edu"
   gem.authors = ["Jeremy Stephens"]
   # dependencies defined in Gemfile

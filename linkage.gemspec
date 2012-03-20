@@ -5,12 +5,12 @@
 
 Gem::Specification.new do |s|
   s.name = "linkage"
-  s.version = "0.0.3"
+  s.version = "0.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jeremy Stephens"]
-  s.date = "2012-02-28"
-  s.description = "Wraps Sequel to perform record linkage between one or two datasets"
+  s.date = "2012-03-20"
+  s.description = "Performs record linkage between one or two datasets, using Sequel on the backend"
   s.email = "jeremy.f.stephens@vanderbilt.edu"
   s.extra_rdoc_files = [
     "LICENSE.txt",
@@ -67,7 +67,7 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
   s.rubygems_version = "1.3.9.4"
-  s.summary = "Sequel-based record linkage"
+  s.summary = "Record linkage library"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
