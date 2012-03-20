@@ -1,6 +1,28 @@
 module Linkage
   class Configuration
     class DSL
+
+      # Class for visually comparing matched records
+      class VisualComparisonWrapper
+        attr_reader :dsl, :lhs, :rhs
+
+        def initialize(dsl, lhs, rhs)
+          @dsl = dsl
+          @lhs = lhs
+          @rhs = rhs
+
+          if @lhs.is_a?(DataWrapper) && @rhs.is_a?(DataWrapper)
+            if @lhs.side == @rhs.side
+              raise ArgumentError, "Can't visually compare two data sources on the same side"
+            end
+          else
+            raise ArgumentError, "Must supply two data sources for visual comparison"
+          end
+
+          @dsl.add_visual_comparison(self)
+        end
+      end
+
       class ExpectationWrapper
         VALID_OPERATORS = [:==, :>, :<, :>=, :<=]
         OPERATOR_OPPOSITES = {
@@ -111,10 +133,18 @@ module Linkage
       class DataWrapper
         attr_reader :side, :dataset
 
+        def initialize
+          raise NotImplementedError
+        end
+
         [:must, :must_not].each do |type|
           define_method(type) do
             ExpectationWrapper.new(@dsl, type, self)
           end
+        end
+
+        def compare_with(other)
+          VisualComparisonWrapper.new(@dsl, self, other)
         end
       end
 
@@ -256,6 +286,10 @@ module Linkage
         end
       end
 
+      def add_visual_comparison(visual_comparison)
+        @config.visual_comparisons << visual_comparison
+      end
+
       # For handling functions
       def method_missing(name, *args, &block)
         klass = Function[name.to_s]
@@ -267,13 +301,14 @@ module Linkage
       end
     end
 
-    attr_reader :dataset_1, :dataset_2, :expectations
+    attr_reader :dataset_1, :dataset_2, :expectations, :visual_comparisons
     attr_accessor :linkage_type, :results_uri, :results_uri_options
 
     def initialize(dataset_1, dataset_2)
       @dataset_1 = dataset_1
       @dataset_2 = dataset_2
       @expectations = []
+      @visual_comparisons = []
       @linkage_type = dataset_1 == dataset_2 ? :self : :dual
     end
 
