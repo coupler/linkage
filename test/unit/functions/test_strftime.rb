@@ -47,4 +47,10 @@ class UnitTests::TestStrftime < Test::Unit::TestCase
     assert_equal :date_format.sql_function(*args), func.to_expr(:mysql)
     assert_equal :date_format.sql_function(*args), func.to_expr(:mysql2)
   end
+
+  test "to_expr for postgresql" do
+    args = [Time.now, "%Y-%m-%d"]
+    func = Strftime.new(*args)
+    assert_equal :to_char.sql_function(*args), func.to_expr(:postgres)
+  end
 end

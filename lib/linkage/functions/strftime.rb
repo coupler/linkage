@@ -20,6 +20,8 @@ module Linkage
           :date_format.sql_function(*@values)
         when :sqlite
           :strftime.sql_function(@values[1], @values[0])
+        when :postgres
+          :to_char.sql_function(*@values)
         else
           :strftime.sql_function(@values[0], @values[1])
         end
