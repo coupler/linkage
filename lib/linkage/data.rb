@@ -28,7 +28,7 @@ module Linkage
       raise NotImplementedError
     end
 
-    def to_expr
+    def to_expr(adapter = nil)
       raise NotImplementedError
     end
 
@@ -54,6 +54,9 @@ module Linkage
         # type
         if type_1 != type_2
           result_type = first_common_type(type_1, type_2)
+          if result_type.nil?
+            raise "Can't merge #{type_1} (#{name}) with #{type_2} (#{other.name})"
+          end
         end
 
         # text

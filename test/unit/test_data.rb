@@ -392,4 +392,10 @@ class UnitTests::TestData < Test::Unit::TestCase
     result_data = data_2.merge(data_1, 'foo')
     assert_equal :foo, result_data.name
   end
+
+  test "merge a string field and a date field" do
+    data_1 = new_data(:foo, {:type => String})
+    data_2 = new_data(:foo, {:type => Date})
+    assert_raises { data_1.merge(data_2).ruby_type }
+  end
 end

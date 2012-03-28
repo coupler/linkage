@@ -81,8 +81,8 @@ module Linkage
               raise "Wonky filter"
             end
 
-            arg1 = target.data.to_expr
-            arg2 = other.is_a?(DataWrapper) ? other.data.to_expr : other
+            arg1 = target.to_expr(@side)
+            arg2 = other.is_a?(DataWrapper) ? other.to_expr(@side) : other
             @filter_expr =
               case @operator
               when :==
@@ -116,7 +116,7 @@ module Linkage
             raise "Wonky expectation"
           end
 
-          expr = target.data.to_expr
+          expr = target.to_expr(side)
           aliased_expr = expr
           if expr != merged_field.name
             aliased_expr = expr.as(merged_field.name)
@@ -169,6 +169,10 @@ module Linkage
         def data
           @dataset.field_set[@name]
         end
+
+        def to_expr(side = nil)
+          data.to_expr
+        end
       end
 
       class FunctionWrapper < DataWrapper
@@ -191,6 +195,11 @@ module Linkage
 
         def data
           @data ||= @klass.new(*@args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg })
+        end
+
+        def to_expr(side)
+          dataset = side == :lhs ? @dsl.lhs : @dsl.rhs
+          data.to_expr(dataset.dataset.adapter_scheme)
         end
 
         def name
@@ -222,6 +231,8 @@ module Linkage
       end
 
       class DatasetWrapper
+        attr_reader :dataset
+
         def initialize(dsl, side, dataset)
           @dsl = dsl
           @dataset = dataset

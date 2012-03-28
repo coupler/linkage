@@ -42,4 +42,9 @@ class UnitTests::TestField < Test::Unit::TestCase
     field = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
     assert_equal :id, field.to_expr
   end
+
+  test "to_expr ignores adapter argument" do
+    field = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
+    assert_equal :id, field.to_expr(:foo)
+  end
 end

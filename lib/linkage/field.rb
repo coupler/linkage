@@ -70,7 +70,7 @@ module Linkage
       @ruby_type
     end
 
-    def to_expr
+    def to_expr(adapter = nil)
       @name
     end
 

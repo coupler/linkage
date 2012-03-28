@@ -55,7 +55,7 @@ class UnitTests::TestFunction < Test::Unit::TestCase
 
   test "function with field" do
     klass = new_function('foo', {:type => String})
-    field = stub_field('field', :name => :bar, :ruby_type => {:type => String})
+    field = stub_field('field', :name => :bar, :to_expr => :bar, :ruby_type => {:type => String})
     f = klass.new(field)
     assert_equal :foo_bar, f.name
     assert_equal :foo.sql_function(:bar), f.to_expr
@@ -66,7 +66,7 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     klass_1 = new_function('foo', {:type => String})
     klass_2 = new_function('bar', {:type => String})
 
-    field = stub_field('field', :name => :baz, :ruby_type => {:type => String})
+    field = stub_field('field', :name => :baz, :to_expr => :baz, :ruby_type => {:type => String})
     func_1 = klass_1.new(field)
     assert_equal :foo_baz, func_1.name
     assert !func_1.static?
@@ -100,7 +100,7 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     assert_equal :foo_123, func_1.name
     assert func_1.static?
 
-    field = stub_field('field', :name => :quux, :ruby_type => {:type => String})
+    field = stub_field('field', :name => :quux, :to_expr => :quux, :ruby_type => {:type => String})
     func_2 = klass_2.new(field)
     assert_equal :bar_quux, func_2.name
     assert !func_2.static?
@@ -113,8 +113,8 @@ class UnitTests::TestFunction < Test::Unit::TestCase
 
   test "function with multiple fields" do
     klass = new_function('foo', {:type => String})
-    field_1 = stub_field('field', :name => :bar, :ruby_type => {:type => String})
-    field_2 = stub_field('field', :name => :baz, :ruby_type => {:type => String})
+    field_1 = stub_field('field', :name => :bar, :to_expr => :bar, :ruby_type => {:type => String})
+    field_2 = stub_field('field', :name => :baz, :to_expr => :baz, :ruby_type => {:type => String})
     func = klass.new(field_1, field_2)
     assert_equal :foo_bar_baz, func.name
     assert_equal :foo.sql_function(:bar, :baz), func.to_expr
@@ -123,7 +123,7 @@ class UnitTests::TestFunction < Test::Unit::TestCase
 
   test "function with multiple mixed arguments" do
     klass = new_function('foo', {:type => String})
-    field = stub_field('field', :name => :bar, :ruby_type => {:type => String})
+    field = stub_field('field', :name => :bar, :to_expr => :bar, :ruby_type => {:type => String})
     f = klass.new(field, 123, 'abc')
     assert_equal :foo_bar_123_abc, f.name
     assert_equal :foo.sql_function(:bar, 123, 'abc'), f.to_expr
@@ -138,7 +138,7 @@ class UnitTests::TestFunction < Test::Unit::TestCase
   test "valid parameters" do
     func = new_function('foo', {:type => String}, [[String]])
     assert_equal :foo.sql_function("foo"), func.new("foo").to_expr
-    field = stub_field('field', :name => :bar, :ruby_type => {:type => String})
+    field = stub_field('field', :name => :bar, :to_expr => :bar, :ruby_type => {:type => String})
     assert_equal :foo.sql_function(:bar), func.new(field).to_expr
     assert_equal :foo.sql_function(:foo.sql_function("hey")), func.new(func.new("hey")).to_expr
   end
@@ -148,7 +148,7 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     assert_raises(TypeError) do
       func.new(123)
     end
-    field = stub_field('field', :name => :bar, :ruby_type => {:type => Integer})
+    field = stub_field('field', :name => :bar, :to_expr => :bar, :ruby_type => {:type => Integer})
     assert_raises(TypeError) do
       func.new(field)
     end

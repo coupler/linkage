@@ -2,10 +2,10 @@ GEM
   remote: http://rubygems.org/
   specs:
     blockenspiel (0.4.3)
-    coderay (0.9.8)
+    coderay (1.0.5)
     ffi (1.0.11)
     git (1.2.5)
-    guard (1.0.0)
+    guard (1.0.1)
       ffi (>= 0.5.0)
       thor (~> 0.14.6)
     guard-test (0.4.3)
@@ -14,43 +14,42 @@ GEM
     guard-yard (1.0.2)
       guard (>= 0.2.2)
       yard (>= 0.7.0)
-    jeweler (1.6.4)
+    jeweler (1.8.3)
       bundler (~> 1.0)
       git (>= 1.2.5)
       rake
+      rdoc
+    json (1.6.6)
     metaclass (0.0.1)
-    method_source (0.6.7)
-      ruby_parser (>= 2.3.1)
-    mocha (0.10.3)
+    method_source (0.7.1)
+    mocha (0.10.5)
       metaclass (~> 0.0.1)
     mysql2 (0.3.11)
-    pry (0.9.7.4)
-      coderay (~> 0.9.8)
-      method_source (~> 0.6.7)
-      ruby_parser (>= 2.3.1)
-      slop (~> 2.1.0)
+    pry (0.9.8.4)
+      coderay (~> 1.0.5)
+      method_source (~> 0.7.1)
+      slop (>= 2.4.4, < 3)
     rake (0.9.2.2)
     rdiscount (1.6.8)
-    ruby_parser (2.3.1)
-      sexp_processor (~> 3.0)
-    sequel (3.31.0)
-    sexp_processor (3.0.10)
-    slop (2.1.0)
+    rdoc (3.12)
+      json (~> 1.4)
+    sequel (3.33.0)
+    slop (2.4.4)
     sqlite3 (1.3.5)
-    test-unit (2.3.2)
+    test-unit (2.4.8)
     thor (0.14.6)
-    versionomy (0.4.1)
-      blockenspiel (>= 0.4.1)
-    yard (0.7.4)
+    versionomy (0.4.2)
+      blockenspiel (>= 0.4.3)
+    yard (0.7.5)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  bundler (~> 1.0.0)
+  bundler
   guard-test
   guard-yard
-  jeweler (~> 1.6.4)
+  jeweler
   mocha
   mysql2
   pry
@@ -58,6 +57,6 @@ DEPENDENCIES
   rdiscount
   sequel
   sqlite3
-  test-unit (= 2.3.2)
+  test-unit
   versionomy
   yard

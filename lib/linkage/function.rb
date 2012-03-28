@@ -62,7 +62,7 @@ module Linkage
     end
 
     # @return [Sequel::SQL::Function]
-    def to_expr
+    def to_expr(adapter = nil)
       self.class.function_name.to_sym.sql_function(*@values)
     end
 
@@ -81,7 +81,7 @@ module Linkage
           @names << arg.name
           @static &&= arg.static?
           type = arg.ruby_type[:type]
-          value = arg.is_a?(Field) ? arg.name : arg.to_expr
+          value = arg.to_expr
         else
           @names << arg.to_s.gsub(/\W/, "")
           type = arg.class

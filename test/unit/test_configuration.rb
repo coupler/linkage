@@ -128,10 +128,10 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "dynamic database function" do
-    dataset_1 = stub('dataset')
+    dataset_1 = stub('dataset', :adapter_scheme => :sqlite)
     field_1 = stub('field 1')
     dataset_1.stubs(:field_set).returns({:foo => field_1})
-    dataset_2 = stub('dataset')
+    dataset_2 = stub('dataset', :adapter_scheme => :mysql2)
     field_2 = stub('field 2', :to_expr => :foo)
     dataset_2.stubs(:field_set).returns({:foo => field_2})
 
@@ -157,10 +157,10 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "static database function" do
-    dataset_1 = stub('dataset')
+    dataset_1 = stub('dataset', :adapter_scheme => :sqlite)
     field_1 = stub('field 1', :to_expr => :foo)
     dataset_1.stubs(:field_set).returns({:foo => field_1})
-    dataset_2 = stub('dataset')
+    dataset_2 = stub('dataset', :adapter_scheme => :mysql)
     field_2 = stub('field 2')
     dataset_2.stubs(:field_set).returns({:foo => field_2})
 
