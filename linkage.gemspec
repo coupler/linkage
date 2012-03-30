@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "linkage"
-  s.version = "0.0.4"
+  s.version = "0.0.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jeremy Stephens"]
-  s.date = "2012-03-20"
+  s.date = "2012-03-30"
   s.description = "Performs record linkage between one or two datasets, using Sequel on the backend"
   s.email = "jeremy.f.stephens@vanderbilt.edu"
   s.extra_rdoc_files = [
@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
     "lib/linkage/field.rb",
     "lib/linkage/field_set.rb",
     "lib/linkage/function.rb",
+    "lib/linkage/functions/strftime.rb",
     "lib/linkage/functions/trim.rb",
     "lib/linkage/group.rb",
     "lib/linkage/import_buffer.rb",
@@ -47,7 +48,9 @@ Gem::Specification.new do |s|
     "test/integration/test_cross_linkage.rb",
     "test/integration/test_dataset.rb",
     "test/integration/test_dual_linkage.rb",
+    "test/integration/test_functions.rb",
     "test/integration/test_self_linkage.rb",
+    "test/unit/functions/test_strftime.rb",
     "test/unit/functions/test_trim.rb",
     "test/unit/runner/test_single_threaded.rb",
     "test/unit/test_configuration.rb",
@@ -66,7 +69,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/coupler/linkage"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.3.9.4"
+  s.rubygems_version = "1.8.18"
   s.summary = "Record linkage library"
 
   if s.respond_to? :specification_version then
@@ -74,9 +77,9 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<sequel>, [">= 0"])
-      s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
-      s.add_development_dependency(%q<jeweler>, ["~> 1.6.4"])
-      s.add_development_dependency(%q<test-unit>, ["= 2.3.2"])
+      s.add_development_dependency(%q<bundler>, [">= 0"])
+      s.add_development_dependency(%q<jeweler>, [">= 0"])
+      s.add_development_dependency(%q<test-unit>, [">= 0"])
       s.add_development_dependency(%q<mocha>, [">= 0"])
       s.add_development_dependency(%q<sqlite3>, [">= 0"])
       s.add_development_dependency(%q<yard>, [">= 0"])
@@ -89,9 +92,9 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<guard-yard>, [">= 0"])
     else
       s.add_dependency(%q<sequel>, [">= 0"])
-      s.add_dependency(%q<bundler>, ["~> 1.0.0"])
-      s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
-      s.add_dependency(%q<test-unit>, ["= 2.3.2"])
+      s.add_dependency(%q<bundler>, [">= 0"])
+      s.add_dependency(%q<jeweler>, [">= 0"])
+      s.add_dependency(%q<test-unit>, [">= 0"])
       s.add_dependency(%q<mocha>, [">= 0"])
       s.add_dependency(%q<sqlite3>, [">= 0"])
       s.add_dependency(%q<yard>, [">= 0"])
@@ -105,9 +108,9 @@ Gem::Specification.new do |s|
     end
   else
     s.add_dependency(%q<sequel>, [">= 0"])
-    s.add_dependency(%q<bundler>, ["~> 1.0.0"])
-    s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
-    s.add_dependency(%q<test-unit>, ["= 2.3.2"])
+    s.add_dependency(%q<bundler>, [">= 0"])
+    s.add_dependency(%q<jeweler>, [">= 0"])
+    s.add_dependency(%q<test-unit>, [">= 0"])
     s.add_dependency(%q<mocha>, [">= 0"])
     s.add_dependency(%q<sqlite3>, [">= 0"])
     s.add_dependency(%q<yard>, [">= 0"])
