@@ -196,4 +196,19 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     Linkage::ResultSet.expects(:new).with(c).returns(result_set)
     assert_equal result_set, c.result_set
   end
+
+  test "case insensitive field names" do
+    field_1 = stub('field_1', :to_expr => :foo)
+    field_2 = stub('field_2', :to_expr => :bar)
+    field_set = {:foo => field_1, :bar => :field_2}
+    field_set.expects(:has_key?).with(:Foo).returns(true)
+    field_set.expects(:has_key?).with(:baR).returns(true)
+    dataset = stub('dataset', :field_set => field_set)
+    c = Linkage::Configuration.new(dataset, dataset)
+    assert_nothing_raised do
+      c.configure do
+        lhs[:Foo].must == rhs[:baR]
+      end
+    end
+  end
 end
