@@ -34,4 +34,10 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     @database.expects(:adapter_scheme).returns(:foo)
     assert_equal :foo, ds.adapter_scheme
   end
+
+  test "add match expression" do
+    ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    ds_2 = ds_1.match(:foo)
+    assert_not_same ds_1, ds_2
+  end
 end

@@ -122,7 +122,7 @@ module Linkage
             aliased_expr = expr.as(merged_field.name)
           end
 
-          dataset.order_more(expr).select_more(aliased_expr)
+          dataset.match(aliased_expr)
         end
 
         def same_filter?(other)

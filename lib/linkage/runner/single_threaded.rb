@@ -47,23 +47,10 @@ module Linkage
     # @param [Boolean] ignore_empty_groups
     # @yield [Linkage::Group] If a block is given, yield completed groups to
     #   the block. Otherwise, call ResultSet#add_group on the group.
-    def group_records_for(dataset, dataset_id = nil, ignore_empty_groups = true, &block)
-      current_group = nil
-      block ||= lambda { |group| result_set.add_group(current_group, dataset_id) }
-      primary_key = dataset.field_set.primary_key.to_expr
-      dataset.each do |row|
-        pk = row.delete(primary_key)
-        if current_group.nil? || !current_group.matches?(row)
-          if current_group && (!ignore_empty_groups || current_group.count > 1)
-            block.call(current_group)
-          end
-          new_group = Group.new(row)
-          current_group = new_group
-        end
-        current_group.add_record(pk)
-      end
-      if current_group && (!ignore_empty_groups || current_group.count > 1)
-        block.call(current_group)
+    def group_records_for(dataset, dataset_id, ignore_empty_groups = true)
+      group_minimum = ignore_empty_groups ? 2 : 1
+      dataset.each_group(group_minimum) do |group|
+        result_set.add_group(group, dataset_id)
       end
       result_set.flush!
     end
@@ -76,32 +63,19 @@ module Linkage
         # Sort on all fields
         field.primary_key? ? arr : arr << field.to_expr
       end
-      groups_dataset = groups_dataset.select(*exprs, groups_dataset.field_set.primary_key.to_expr).order(*exprs) # ensure matching groups are sorted by id
+      groups_dataset = groups_dataset.match(*exprs)
 
-      result_set.database do |db|
-        groups_to_delete = []
-        db.transaction do  # for speed reasons
-          group_records_for(groups_dataset, nil, false) do |group|
-            if group.count == 1
-              # Delete the empty group
-              groups_to_delete << group.records[0]
-            else
-              # Change group_id in the groups_records table to the first group
-              # id, delete other groups.
-              new_group_id = group.records[0]
-              group.records[1..-1].each do |old_group_id|
-                # NOTE: There can only be a group with max size of 2, but
-                #       this adds in future support for matching more than
-                #       2 datasets at once.
-                db[:groups_records].filter(:group_id => old_group_id).
-                  update(:group_id => new_group_id)
-                groups_to_delete << old_group_id
-              end
-            end
+      groups_dataset.db.transaction do
+        # transaction improves speed
+        groups_dataset.each_group(1) do |group|
+          ds = groups_dataset.filter(group.values)
+          if group.count == 1
+            ds.delete
+          else
+            group_ids = ds.select_map(:id)
+            groups_dataset.filter(:id => group_ids[1..-1]).delete
           end
         end
-        db[:groups_records].filter(:group_id => groups_to_delete).delete
-        db[:groups].filter(:id => groups_to_delete).delete
       end
     end
   end

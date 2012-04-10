@@ -40,18 +40,12 @@ module Linkage
         groups_headers = [:id] + group.values.keys
         @groups_buffer = ImportBuffer.new(@config.results_uri, :groups, groups_headers, @config.results_uri_options)
       end
-      @groups_records_buffer ||= ImportBuffer.new(@config.results_uri, :groups_records, [:group_id, :dataset, :record_id], @config.results_uri_options)
-
       group_id = next_group_id
       @groups_buffer.add([group_id] + group.values.values)
-      group.records.each do |record_id|
-        @groups_records_buffer.add([group_id, dataset_id, record_id])
-      end
     end
 
     def flush!
       @groups_buffer.flush if @groups_buffer
-      @groups_records_buffer.flush if @groups_records_buffer
     end
 
     private

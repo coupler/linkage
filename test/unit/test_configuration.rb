@@ -147,12 +147,10 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     c.configure do
       trim(lhs[:foo]).must == rhs[:foo]
     end
-    dataset_1.expects(:select_more).with(func_expr).returns(dataset_1)
-    dataset_1.expects(:order_more).with(func_expr).returns(dataset_1)
+    dataset_1.expects(:match).with(func_expr).returns(dataset_1)
     c.expectations[0].apply_to(dataset_1, :lhs)
 
-    dataset_2.expects(:select_more).with(:foo.as(:trim_foo_foo)).returns(dataset_2)
-    dataset_2.expects(:order_more).with(:foo).returns(dataset_2)
+    dataset_2.expects(:match).with(:foo.as(:trim_foo_foo)).returns(dataset_2)
     c.expectations[0].apply_to(dataset_2, :rhs)
   end
 

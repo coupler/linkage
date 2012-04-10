@@ -8,6 +8,7 @@ module Linkage
       ds = db[@table_name]
       super(ds)
       @field_set = FieldSet.new(db.schema(@table_name))
+      @match_expressions = []
     end
 
     def __setobj__(obj); @dataset = obj; end
@@ -26,12 +27,35 @@ module Linkage
       @dataset.db.adapter_scheme
     end
 
+    def match(*exprs)
+      @add_match = exprs
+      result = clone
+      @add_match = nil
+      result
+    end
+
+    def each_group(min = 2)
+      #d = @dataset.group_and_count(*@match_expressions).having{count >= min}
+      #p d
+      #d.each do |row|
+      @dataset.group_and_count(*@match_expressions).having{count >= min}.each do |row|
+        yield Group.new(row)
+      end
+    end
+
+    private
+
     def initialize_clone(obj)
-      new_obj = obj.instance_variable_get(:@new_obj)
-      if new_obj
-        __setobj__(new_obj)
+      if @new_obj
+        __setobj__(@new_obj)
+        @new_obj = nil
       else
-        super
+        __setobj__(obj.__getobj__.clone)
+      end
+
+      if @add_match
+        @match_expressions.push(*@add_match)
+        @add_match = nil
       end
     end
 
