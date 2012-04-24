@@ -39,20 +39,21 @@ module IntegrationTests
     end
 
     test "strftime in sqlite" do
-      logger = Logger.new(STDERR)
-      database(:logger => logger) do |db|
+      #logger = Logger.new(STDERR)
+      #database(:logger => logger) do |db|
+      database do |db|
         db.create_table(:foo) { primary_key(:id); Date(:foo_date) }
         db.create_table(:bar) { primary_key(:id); String(:bar_string) }
         db[:foo].insert({:id => 1, :foo_date => Date.today})
         db[:bar].insert({:id => 1, :bar_string => Date.today.strftime("%Y-%m-%d")})
       end
 
-      ds_1 = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true, :logger => logger)
-      ds_2 = Linkage::Dataset.new(@tmpuri, "bar", :single_threaded => true, :logger => logger)
+      ds_1 = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+      ds_2 = Linkage::Dataset.new(@tmpuri, "bar", :single_threaded => true)
       tmpuri = @tmpuri
       conf = ds_1.link_with(ds_2) do
         strftime(lhs[:foo_date], "%Y-%m-%d").must == rhs[:bar_string]
-        save_results_in(tmpuri, :logger => logger)
+        save_results_in(tmpuri)
       end
       runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute

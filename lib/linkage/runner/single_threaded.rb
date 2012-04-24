@@ -65,18 +65,13 @@ module Linkage
       end
       groups_dataset = groups_dataset.match(*exprs)
 
-      groups_dataset.db.transaction do
-        # transaction improves speed
-        groups_dataset.each_group(1) do |group|
-          ds = groups_dataset.filter(group.values)
-          if group.count == 1
-            ds.delete
-          else
-            group_ids = ds.select_map(:id)
-            groups_dataset.filter(:id => group_ids[1..-1]).delete
-          end
-        end
-      end
+      # Delete non-matching groups
+      sub_dataset = groups_dataset.select(:id).group_by_matches.having(:count.sql_function(:id) => 1)
+      groups_dataset.filter(:id => sub_dataset.obj).delete
+
+      # Delete duplicate groups
+      sub_dataset = groups_dataset.select(:max.sql_function(:id).as(:id)).group_by_matches
+      groups_dataset.filter(:id => sub_dataset.obj).delete
     end
   end
 end

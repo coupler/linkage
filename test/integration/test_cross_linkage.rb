@@ -7,8 +7,8 @@ module IntegrationTests
       @tmpuri = "sqlite://" + File.join(@tmpdir, "foo")
     end
 
-    def database(&block)
-      Sequel.connect(@tmpuri, &block)
+    def database(options = {}, &block)
+      Sequel.connect(@tmpuri, options, &block)
     end
 
     def teardown
@@ -16,6 +16,10 @@ module IntegrationTests
     end
 
     test "one mandatory field equality on single threaded runner" do
+      #setup_logger = Logger.new(STDERR)
+      #setup_logger.formatter = lambda { |severity, time, progname, msg|
+        #" SETUP : %s [%s]: %s\n" % [severity, time, msg]
+      #}
       # insert the test data
       database do |db|
         db.create_table(:foo) { primary_key(:id); Integer(:foo); Integer(:bar) }
@@ -23,12 +27,22 @@ module IntegrationTests
           Array.new(100) { |i| [i, i % 10, i % 5] })
       end
 
+      #ds_logger = Logger.new(STDERR)
+      #ds_logger.formatter = lambda { |severity, time, progname, msg|
+        #"DATASET: %s [%s]: %s\n" % [severity, time, msg]
+      #}
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
+
+      #rs_logger = Logger.new(STDERR)
+      #rs_logger.formatter = lambda { |severity, time, progname, msg|
+        #"RESULTS: %s [%s]: %s\n" % [severity, time, msg]
+      #}
       tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:foo].must == rhs[:bar]
         save_results_in(tmpuri, :single_threaded => true)
       end
+      assert_equal :cross, conf.linkage_type
       runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 

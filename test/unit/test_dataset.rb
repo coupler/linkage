@@ -37,7 +37,20 @@ class UnitTests::TestDataset < Test::Unit::TestCase
 
   test "add match expression" do
     ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    @dataset.expects(:clone).returns(@dataset)
     ds_2 = ds_1.match(:foo)
     assert_not_same ds_1, ds_2
+    assert_not_equal ds_1.instance_variable_get(:@_match),
+      ds_2.instance_variable_get(:@_match)
+  end
+
+  test "group_by_matches" do
+    ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+
+    @dataset.expects(:clone).returns(@dataset)
+    ds = ds.match(:foo)
+    @dataset.expects(:group).with(:foo).returns(@dataset)
+
+    ds.group_by_matches
   end
 end

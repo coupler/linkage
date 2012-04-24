@@ -318,9 +318,9 @@ module Linkage
     def initialize(dataset_1, dataset_2)
       @dataset_1 = dataset_1
       @dataset_2 = dataset_2
+      @linkage_type = dataset_1 == dataset_2 ? :self : :dual
       @expectations = []
       @visual_comparisons = []
-      @linkage_type = dataset_1 == dataset_2 ? :self : :dual
     end
 
     def configure(&block)
