@@ -135,9 +135,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     field_2 = stub('field 2', :to_expr => :foo)
     dataset_2.stubs(:field_set).returns({:foo => field_2})
 
-    func_expr = stub('function expression') do
-      expects(:as).with(:trim_foo_foo).returns(self)
-    end
+    func_expr = stub('function expression')
     func = stub('function', :static? => false, :to_expr => func_expr)
     Linkage::Functions::Trim.expects(:new).with(field_1).returns(func)
     merged_field = stub('merged field', :name => :trim_foo_foo)
@@ -147,10 +145,10 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     c.configure do
       trim(lhs[:foo]).must == rhs[:foo]
     end
-    dataset_1.expects(:match).with(func_expr).returns(dataset_1)
+    dataset_1.expects(:match).with(func_expr, :trim_foo_foo).returns(dataset_1)
     c.expectations[0].apply_to(dataset_1, :lhs)
 
-    dataset_2.expects(:match).with(:foo.as(:trim_foo_foo)).returns(dataset_2)
+    dataset_2.expects(:match).with(:foo, :trim_foo_foo).returns(dataset_2)
     c.expectations[0].apply_to(dataset_2, :rhs)
   end
 

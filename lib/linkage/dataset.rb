@@ -2,7 +2,6 @@ module Linkage
   # Delegator around Sequel::Dataset with some extra functionality.
   class Dataset
     attr_reader :field_set, :table_name
-    attr_accessor :_match
 
     def initialize(uri, table, options = {})
       @table_name = table.to_sym
@@ -33,8 +32,8 @@ module Linkage
       @dataset.db.adapter_scheme
     end
 
-    def match(*exprs)
-      clone(:match => exprs)
+    def match(expr, aliaz = nil)
+      clone(:match => {:expr => expr, :alias => aliaz})
     end
 
     def clone(new_opts={})
@@ -57,21 +56,31 @@ module Linkage
       #d = @dataset.group_and_count(*@_match).having{count >= min}
       #p d
       #d.each do |row|
-      @dataset.group_and_count(*@_match).having{count >= min}.each do |row|
-        yield Group.new(row)
+      @dataset.group_and_count(*aliased_match_expressions).having{count >= min}.each do |row|
+        count = row.delete(:count)
+        yield Group.new(row, {:count => count})
       end
     end
 
-    def group_by_matches
-      group(*@_match)
+    def group_by_matches(aliased = false)
+      expr = aliased ? aliased_match_expressions : match_expressions
+      group(*expr)
     end
 
     private
 
-    def _match(exprs)
-      if exprs
-        @_match += exprs
+    def _match(opts)
+      if opts
+        @_match += [opts]
       end
+    end
+
+    def match_expressions
+      @_match.collect { |m| m[:expr] }
+    end
+
+    def aliased_match_expressions
+      @_match.collect { |m| m[:alias] ? m[:expr].as(m[:alias]) : m[:expr] }
     end
 
     def method_missing(name, *args, &block)

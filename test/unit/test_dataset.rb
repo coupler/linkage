@@ -44,6 +44,16 @@ class UnitTests::TestDataset < Test::Unit::TestCase
       ds_2.instance_variable_get(:@_match)
   end
 
+  test "add match expression with alias, then each_group" do
+    ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    @dataset.expects(:clone).returns(@dataset)
+    ds_2 = ds_1.match(:foo, :aliased_foo)
+    @dataset.expects(:group_and_count).with(:foo.as(:aliased_foo)).returns(@dataset)
+    @dataset.expects(:having).returns(@dataset)
+    @dataset.expects(:each).yields({:aliased_foo => 123, :count => 1})
+    ds_2.each_group { |g| }
+  end
+
   test "group_by_matches" do
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
 

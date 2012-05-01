@@ -62,6 +62,16 @@ class Test::Unit::TestCase
   def test_config
     @test_config ||= YAML.load_file(File.join(File.dirname(__FILE__), "config.yml"))
   end
+
+  def prefixed_logger(prefix)
+    logger = Logger.new(STDERR)
+    original_formatter = Logger::Formatter.new
+    logger.formatter = proc { |severity, datetime, progname, msg|
+      result = original_formatter.call(severity, datetime, progname, msg)
+      "[#{prefix}] #{result}"
+    }
+    logger
+  end
 end
 
 module UnitTests; end

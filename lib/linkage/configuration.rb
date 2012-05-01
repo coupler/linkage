@@ -117,12 +117,12 @@ module Linkage
           end
 
           expr = target.to_expr(side)
-          aliased_expr = expr
+          aliaz = nil
           if expr != merged_field.name
-            aliased_expr = expr.as(merged_field.name)
+            aliaz = merged_field.name
           end
 
-          dataset.match(aliased_expr)
+          dataset.match(expr, aliaz)
         end
 
         def same_filter?(other)
@@ -347,6 +347,16 @@ module Linkage
 
     def result_set
       @result_set ||= ResultSet.new(self)
+    end
+
+    def datasets_with_applied_expectations
+      dataset_1 = @dataset_1
+      dataset_2 = @dataset_2
+      @expectations.each do |exp|
+        dataset_1 = exp.apply_to(dataset_1, :lhs)
+        dataset_2 = exp.apply_to(dataset_2, :rhs) if @linkage_type != :self
+      end
+      [dataset_1, dataset_2]
     end
   end
 end

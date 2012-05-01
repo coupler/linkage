@@ -7,8 +7,8 @@ module IntegrationTests
       @tmpuri = "sqlite://" + File.join(@tmpdir, "foo")
     end
 
-    def database(&block)
-      Sequel.connect(@tmpuri, &block)
+    def database(options = {}, &block)
+      Sequel.connect(@tmpuri, options, &block)
     end
 
     def teardown
@@ -111,7 +111,7 @@ module IntegrationTests
       runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
-      Sequel.connect(@tmpuri) do |db|
+      database do |db|
         assert_equal 1, db[:groups].count
       end
     end

@@ -48,6 +48,10 @@ module Linkage
       @groups_buffer.flush if @groups_buffer
     end
 
+    def get_group(index)
+      values = @groups_dataset.order(:id).limit(1, index).first
+    end
+
     private
 
     def next_group_id

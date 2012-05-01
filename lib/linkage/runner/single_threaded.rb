@@ -6,7 +6,6 @@ module Linkage
     # @return [Linkage::ResultSet]
     def execute
       setup_datasets
-      apply_expectations
       group_records
 
       return result_set
@@ -15,18 +14,13 @@ module Linkage
     private
 
     def setup_datasets
-      pk = config.dataset_1.field_set.primary_key
-      @dataset_1 = config.dataset_1.select(pk.to_expr)
-      if @config.linkage_type != :self
-        pk = config.dataset_2.field_set.primary_key
-        @dataset_2 = config.dataset_2.select(pk.to_expr)
-      end
-    end
+      @dataset_1, @dataset_2 = config.datasets_with_applied_expectations
 
-    def apply_expectations
-      config.expectations.each do |exp|
-        @dataset_1 = exp.apply_to(@dataset_1, :lhs)
-        @dataset_2 = exp.apply_to(@dataset_2, :rhs) if config.linkage_type != :self
+      pk = @dataset_1.field_set.primary_key
+      @dataset_1 = @dataset_1.select(pk.to_expr)
+      if @config.linkage_type != :self
+        pk = @dataset_2.field_set.primary_key
+        @dataset_2 = @dataset_2.select(pk.to_expr)
       end
     end
 
@@ -59,11 +53,12 @@ module Linkage
       # Create a new dataset for the groups table
       groups_dataset = result_set.groups_dataset
 
-      exprs = groups_dataset.field_set.values.inject([]) do |arr, field|
+      groups_dataset.field_set.values.each do |field|
         # Sort on all fields
-        field.primary_key? ? arr : arr << field.to_expr
+        if !field.primary_key?
+          groups_dataset = groups_dataset.match(field.to_expr)
+        end
       end
-      groups_dataset = groups_dataset.match(*exprs)
 
       # Delete non-matching groups
       sub_dataset = groups_dataset.select(:id).group_by_matches.having(:count.sql_function(:id) => 1)
