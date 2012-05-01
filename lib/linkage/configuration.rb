@@ -356,7 +356,7 @@ module Linkage
         dataset_1 = exp.apply_to(dataset_1, :lhs)
         dataset_2 = exp.apply_to(dataset_2, :rhs) if @linkage_type != :self
       end
-      [dataset_1, dataset_2]
+      @linkage_type == :self ? [dataset_1, dataset_1] : [dataset_1, dataset_2]
     end
   end
 end

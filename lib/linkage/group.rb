@@ -9,6 +9,19 @@ module Linkage
     # @return [Integer] This group's ID (if it exists)
     attr_reader :id
 
+    def self.from_row(row)
+      values = {}
+      options = {}
+      row.each_pair do |key, value|
+        if key == :id || key == :count
+          options[key] = value
+        else
+          values[key] = value
+        end
+      end
+      new(values, options)
+    end
+
     # @param [Hash] values Values that define this group
     # @param [Hash] options
     # @example

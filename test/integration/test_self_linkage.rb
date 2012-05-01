@@ -37,14 +37,11 @@ module IntegrationTests
         assert_equal 10, db[:groups].count
         db[:groups].order(:ssn).each_with_index do |row, i|
           assert_equal "12345678#{i%10}", row[:ssn]
-        end
 
-        #assert_equal 100, db[:groups_records].count
-        #expected_group_id = nil
-        #db[:groups_records].order(:record_id).each do |row|
-          #expected_group_id = (row[:record_id] % 10) + 1
-          #assert_equal expected_group_id, row[:group_id], "Record #{row[:record_id]} should have been in group #{expected_group_id}"
-        #end
+          group = Linkage::Group.from_row(row)
+          dataset, _ = result_set.groups_records_datasets(group)
+          assert_equal 10, dataset.count
+        end
       end
     end
 

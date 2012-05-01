@@ -63,4 +63,26 @@ class UnitTests::TestDataset < Test::Unit::TestCase
 
     ds.group_by_matches
   end
+
+  test "dataset_for_group" do
+    ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    @dataset.expects(:clone).returns(@dataset)
+    ds = ds.match(:foo, :foo_bar)
+
+    group = stub("group", :values => {:foo_bar => 'baz'})
+    filtered_dataset = stub('filtered dataset')
+    @dataset.expects(:filter).with(:foo => 'baz').returns(filtered_dataset)
+    assert_equal filtered_dataset, ds.dataset_for_group(group)
+  end
+
+  test "dataset_for_group without aliases" do
+    ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    @dataset.expects(:clone).returns(@dataset)
+    ds = ds.match(:foo)
+
+    group = stub("group", :values => {:foo => 'baz'})
+    filtered_dataset = stub('filtered dataset')
+    @dataset.expects(:filter).with(:foo => 'baz').returns(filtered_dataset)
+    assert_equal filtered_dataset, ds.dataset_for_group(group)
+  end
 end

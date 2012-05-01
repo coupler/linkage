@@ -10,10 +10,6 @@ module Linkage
       Dataset.new(@config.results_uri, :groups, @config.results_uri_options)
     end
 
-    def groups_records_dataset
-      Dataset.new(@config.results_uri, :groups_records, @config.results_uri_options)
-    end
-
     def database(&block)
       Sequel.connect(@config.results_uri, @config.results_uri_options, &block)
     end
@@ -50,6 +46,12 @@ module Linkage
 
     def get_group(index)
       values = @groups_dataset.order(:id).limit(1, index).first
+      Group.new(values)
+    end
+
+    def groups_records_datasets(group)
+      datasets = @config.datasets_with_applied_expectations
+      datasets.collect! { |ds| ds.dataset_for_group(group) }
     end
 
     private

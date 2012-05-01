@@ -53,9 +53,6 @@ module Linkage
     end
 
     def each_group(min = 2)
-      #d = @dataset.group_and_count(*@_match).having{count >= min}
-      #p d
-      #d.each do |row|
       @dataset.group_and_count(*aliased_match_expressions).having{count >= min}.each do |row|
         count = row.delete(:count)
         yield Group.new(row, {:count => count})
@@ -65,6 +62,17 @@ module Linkage
     def group_by_matches(aliased = false)
       expr = aliased ? aliased_match_expressions : match_expressions
       group(*expr)
+    end
+
+    def dataset_for_group(group)
+      filters = []
+      group.values.each_pair do |key, value|
+        # find a matched expression with this alias
+        m = @_match.detect { |h| h[:alias] ? h[:alias] == key : h[:expr] == key }
+        raise "this dataset isn't compatible with the given group" if !m
+        filters << {m[:expr] => value}
+      end
+      filter(*filters)
     end
 
     private
