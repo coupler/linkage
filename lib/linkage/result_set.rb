@@ -7,7 +7,7 @@ module Linkage
     end
 
     def groups_dataset
-      Dataset.new(@config.results_uri, :groups, @config.results_uri_options)
+      @groups_dataset ||= Dataset.new(@config.results_uri, :groups, @config.results_uri_options)
     end
 
     def database(&block)
@@ -45,8 +45,8 @@ module Linkage
     end
 
     def get_group(index)
-      values = @groups_dataset.order(:id).limit(1, index).first
-      Group.new(values)
+      values = groups_dataset.order(:id).limit(1, index).first
+      Group.from_row(values)
     end
 
     def groups_records_datasets(group)

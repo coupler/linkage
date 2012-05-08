@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "linkage"
-  s.version = "0.0.5"
+  s.version = "0.0.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jeremy Stephens"]
-  s.date = "2012-03-30"
+  s.date = "2012-05-08"
   s.description = "Performs record linkage between one or two datasets, using Sequel on the backend"
   s.email = "jeremy.f.stephens@vanderbilt.edu"
   s.extra_rdoc_files = [
@@ -69,7 +69,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/coupler/linkage"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.18"
+  s.rubygems_version = "1.8.23"
   s.summary = "Record linkage library"
 
   if s.respond_to? :specification_version then
