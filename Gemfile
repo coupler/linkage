@@ -1,18 +1,16 @@
-source "http://rubygems.org"
+source 'http://rubygems.org'
 
-gem "sequel"
+gemspec
 
 group :development do
-  gem "bundler"
-  gem "jeweler"
-  gem "test-unit"
-  gem "mocha"
-  gem "sqlite3"
-  gem "yard"
-  gem "rake"
-  gem "versionomy"
-  gem "mysql2"
-  gem 'pry'
+  gem 'bundler'
+  gem 'test-unit'
+  gem 'mocha'
+  gem 'sqlite3'
+  gem 'yard'
+  gem 'rake'
+  gem 'versionomy'
+  gem 'mysql2'
   gem 'rdiscount'
   gem 'guard-test'
   gem 'guard-yard'

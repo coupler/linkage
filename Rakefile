@@ -10,20 +10,7 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 require 'rake'
-
-require 'jeweler'
-Jeweler::Tasks.new do |gem|
-  # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-  gem.name = "linkage"
-  gem.homepage = "http://github.com/coupler/linkage"
-  gem.license = "MIT"
-  gem.summary = %Q{Record linkage library}
-  gem.description = %Q{Performs record linkage between one or two datasets, using Sequel on the backend}
-  gem.email = "jeremy.f.stephens@vanderbilt.edu"
-  gem.authors = ["Jeremy Stephens"]
-  # dependencies defined in Gemfile
-end
-Jeweler::RubygemsDotOrgTasks.new
+require "bundler/gem_tasks"
 
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
@@ -34,19 +21,7 @@ end
 
 task :default => :test
 
-require 'rdoc/task'
-Rake::RDocTask.new do |rdoc|
-  version = File.exist?('VERSION') ? File.read('VERSION') : ""
-
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "linkage #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-end
-
 require 'yard'
 YARD::Rake::YardocTask.new do |t|
   t.files = ['lib/**/*.rb']
 end
-
-task :build => :gemspec
