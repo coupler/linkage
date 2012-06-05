@@ -163,4 +163,9 @@ class UnitTests::TestFunction < Test::Unit::TestCase
       func.new
     end
   end
+
+  test "to_expr with binary" do
+    func = new_function('foo', {:type => String}, [[String]])
+    assert_equal :foo.sql_function("foo").cast(:binary), func.new("foo").to_expr(nil, :binary => true)
+  end
 end

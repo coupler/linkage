@@ -13,13 +13,30 @@ require 'tmpdir'
 require 'logger'
 require 'pp'
 require 'versionomy'
-#require 'pry'
+require 'erb'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'linkage'
 
 class Test::Unit::TestCase
+  def self.current_ruby_version
+    @current_ruby_version ||= Versionomy.parse(RUBY_VERSION)
+  end
+
+  def self.ruby19
+    @ruby19 ||= Versionomy.parse("1.9")
+  end
+
+  @@database_config = nil
+  def self.database_config
+    if @@database_config.nil?
+      template = File.read(File.join(File.dirname(__FILE__), "config.yml"))
+      @@database_config = YAML.load(ERB.new(template).result(binding))
+    end
+    @@database_config
+  end
+
   def stub_field(name, options = {}, &block)
     f = Linkage::Field.allocate
     f.stubs({:static? => false}.merge(options))
@@ -50,17 +67,26 @@ class Test::Unit::TestCase
     klass
   end
 
-
-  def self.current_ruby_version
-    @current_ruby_version ||= Versionomy.parse(RUBY_VERSION)
+  def database_config
+    self.class.database_config
   end
 
-  def self.ruby19
-    @ruby19 ||= Versionomy.parse("1.9")
+  def database_options_for(adapter)
+    config = database_config[adapter]
+    if config
+      return config
+    else
+      omit("Couldn't find configuration for adapter '#{adapter}'")
+    end
   end
 
-  def test_config
-    @test_config ||= YAML.load_file(File.join(File.dirname(__FILE__), "config.yml"))
+  def database_for(adapter, &block)
+    config = database_options_for(adapter)
+    if block
+      Sequel.connect(config, &block)
+    else
+      Sequel.connect(config)
+    end
   end
 
   def prefixed_logger(prefix)

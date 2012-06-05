@@ -19,3 +19,5 @@ require path + 'import_buffer'
 require path + 'configuration'
 require path + 'result_set'
 require path + 'field_set'
+
+Sequel.extension :collation

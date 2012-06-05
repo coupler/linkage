@@ -42,6 +42,7 @@ module Linkage
           @rhs = nil
           @side = nil
           @kind = nil
+          @exact_match = false
         end
 
         VALID_OPERATORS.each do |operator|
@@ -62,6 +63,7 @@ module Linkage
             end
             @operator = @type == :must_not ? OPERATOR_OPPOSITES[operator] : operator
             @dsl.add_expectation(self)
+            self
           end
         end
 
@@ -81,8 +83,13 @@ module Linkage
               raise "Wonky filter"
             end
 
-            arg1 = target.to_expr(@side)
-            arg2 = other.is_a?(DataWrapper) ? other.to_expr(@side) : other
+            arg1 = target.to_expr(@side, @exact_match)
+            arg2 =
+              if other.is_a?(DataWrapper)
+                other.to_expr(@side, @exact_match)
+              else
+                @exact_match ? Sequel.cast(other, :binary) : other
+              end
             @filter_expr =
               case @operator
               when :==
@@ -116,7 +123,7 @@ module Linkage
             raise "Wonky expectation"
           end
 
-          expr = target.to_expr(side)
+          expr = target.to_expr(side, @exact_match)
           aliaz = nil
           if expr != merged_field.name
             aliaz = merged_field.name
@@ -127,6 +134,10 @@ module Linkage
 
         def same_filter?(other)
           kind == :filter && other.kind == :filter && filter_expr == other.filter_expr
+        end
+
+        def exactly
+          @exact_match = true
         end
       end
 
@@ -170,8 +181,8 @@ module Linkage
           @dataset.field_set[@name]
         end
 
-        def to_expr(side = nil)
-          data.to_expr
+        def to_expr(side = nil, binary = false)
+          data.to_expr(nil, :binary => binary)
         end
       end
 
@@ -197,9 +208,9 @@ module Linkage
           @data ||= @klass.new(*@args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg })
         end
 
-        def to_expr(side)
+        def to_expr(side, binary = false)
           dataset = side == :lhs ? @dsl.lhs : @dsl.rhs
-          data.to_expr(dataset.dataset.adapter_scheme)
+          data.to_expr(dataset.dataset.adapter_scheme, :binary => binary)
         end
 
         def name

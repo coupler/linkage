@@ -62,8 +62,12 @@ module Linkage
     end
 
     # @return [Sequel::SQL::Function]
-    def to_expr(adapter = nil)
-      self.class.function_name.to_sym.sql_function(*@values)
+    def to_expr(adapter = nil, options = {})
+      result = self.class.function_name.to_sym.sql_function(*@values)
+      if options[:binary]
+        result = result.cast(:binary)
+      end
+      result
     end
 
     private

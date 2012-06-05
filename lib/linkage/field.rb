@@ -70,8 +70,12 @@ module Linkage
       @ruby_type
     end
 
-    def to_expr(adapter = nil)
-      @name
+    def to_expr(adapter = nil, options = {})
+      result = @name
+      if options[:binary]
+        result = result.cast(:binary)
+      end
+      result
     end
 
     def static?
@@ -80,6 +84,10 @@ module Linkage
 
     def primary_key?
       schema && schema[:primary_key]
+    end
+
+    def collation
+      schema[:collate]
     end
   end
 end

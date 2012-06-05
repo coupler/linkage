@@ -6,6 +6,7 @@ module Linkage
     def initialize(uri, table, options = {})
       @table_name = table.to_sym
       db = Sequel.connect(uri, options)
+      db.extend(Sequel::Collation)
       @dataset = db[@table_name]
       @field_set = FieldSet.new(db.schema(@table_name))
       @_match = []
@@ -32,8 +33,8 @@ module Linkage
       @dataset.db.adapter_scheme
     end
 
-    def match(expr, aliaz = nil)
-      clone(:match => {:expr => expr, :alias => aliaz})
+    def match(expr, aliaz = nil, cast = nil)
+      clone(:match => {:expr => expr, :alias => aliaz, :cast => cast})
     end
 
     def clone(new_opts={})
@@ -53,14 +54,14 @@ module Linkage
     end
 
     def each_group(min = 2)
-      @dataset.group_and_count(*aliased_match_expressions).having{count >= min}.each do |row|
+      @dataset.group_and_count(*match_expressions).having{count >= min}.each do |row|
         count = row.delete(:count)
         yield Group.new(row, {:count => count})
       end
     end
 
-    def group_by_matches(aliased = false)
-      expr = aliased ? aliased_match_expressions : match_expressions
+    def group_by_matches(raw = true)
+      expr = raw ? raw_match_expressions : match_expressions
       group(*expr)
     end
 
@@ -83,12 +84,17 @@ module Linkage
       end
     end
 
-    def match_expressions
+    def raw_match_expressions
       @_match.collect { |m| m[:expr] }
     end
 
-    def aliased_match_expressions
-      @_match.collect { |m| m[:alias] ? m[:expr].as(m[:alias]) : m[:expr] }
+    def match_expressions
+      @_match.collect do |m|
+        expr = m[:expr]
+        expr = expr.as(m[:alias]) if m[:alias]
+        expr = expr.cast(m[:cast]) if m[:cast]
+        expr
+      end
     end
 
     def method_missing(name, *args, &block)

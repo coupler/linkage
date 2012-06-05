@@ -87,11 +87,8 @@ module IntegrationTests
     end
 
     test "reacts properly when using two databases with different string equality methods" do
-      if !test_config['mysql']
-        omission("No MySQL test configuration found")
-      end
-      uri = "mysql2://%s:%s/%s?user=%s" % test_config['mysql'].values_at('host', 'port', 'database', 'user')
-      Sequel.connect(uri) do |db|
+      options = database_options_for('mysql')
+      database_for('mysql') do |db|
         db.create_table!(:foo) { primary_key(:id); String(:one); String(:two) }
         db[:foo].import([:id, :one, :two], [[1, "", "test"], [2, "", "test"], [3, " ", "test "], [4, "", "test"], [5, "", "junk"]])
 
@@ -99,8 +96,8 @@ module IntegrationTests
         db[:bar].import([:id, :one, :two], [[1, "", "junk"]])
       end
 
-      ds_1 = Linkage::Dataset.new(uri, "foo", :single_threaded => true)
-      ds_2 = Linkage::Dataset.new(uri, "bar", :single_threaded => true)
+      ds_1 = Linkage::Dataset.new(options, "foo", :single_threaded => true)
+      ds_2 = Linkage::Dataset.new(options, "bar", :single_threaded => true)
       tmpuri = @tmpuri
       conf = ds_1.link_with(ds_2) do
         lhs[:one].must == rhs[:one]

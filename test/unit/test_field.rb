@@ -47,4 +47,14 @@ class UnitTests::TestField < Test::Unit::TestCase
     field = Linkage::Field.new(:id, {:allow_null=>true, :default=>nil, :primary_key=>true, :db_type=>"integer", :type=>:integer, :ruby_default=>nil})
     assert_equal :id, field.to_expr(:foo)
   end
+
+  test "collation" do
+    field = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(255)", :type=>:string, :collate=>"latin1_general_cs", :ruby_default=>nil})
+    assert_equal "latin1_general_cs", field.collation
+  end
+
+  test "to_expr with binary" do
+    field = Linkage::Field.new(:foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(255)", :type=>:string, :collate=>"latin1_general_cs", :ruby_default=>nil})
+    assert_equal :foo.cast(:binary), field.to_expr(nil, :binary => true)
+  end
 end
