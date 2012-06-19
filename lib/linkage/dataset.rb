@@ -29,8 +29,8 @@ module Linkage
       conf
     end
 
-    def adapter_scheme
-      @dataset.db.adapter_scheme
+    def database_type
+      @dataset.db.database_type
     end
 
     def match(expr, aliaz = nil, cast = nil)

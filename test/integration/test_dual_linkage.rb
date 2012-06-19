@@ -34,6 +34,8 @@ module IntegrationTests
         lhs[:ssn].must == rhs[:ssn]
         save_results_in(tmpuri)
       end
+      assert_equal :dual, conf.linkage_type
+
       runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 

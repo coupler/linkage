@@ -33,7 +33,7 @@ module Linkage
           :>=   => :<
         }
 
-        attr_reader :kind, :side, :lhs, :rhs
+        attr_reader :kind, :side, :lhs, :rhs, :exact_match
 
         def initialize(dsl, type, lhs)
           @dsl = dsl
@@ -139,6 +139,21 @@ module Linkage
         def exactly
           @exact_match = true
         end
+
+        def display_warnings
+          return if @kind == :filter || @kind == :self || @exact_match
+          ldata = @lhs.data
+          rdata = @rhs.data
+          if ldata.ruby_type == String && rdata.ruby_type == String
+            if @lhs.dataset.database_type != @rhs.dataset.database_type
+              warn "You are comparing two string fields (#{@lhs.name} and #{@rhs.name}) from different databases. This may result in unexpected results, as different databases compare strings differently. Consider using the =exactly= method."
+            elsif ldata.respond_to?(:collation) && rdata.respond_to?(:collation)
+              if ldata.collation != rdata.collation
+                warn "The two string fields you are comparing (#{@lhs.name} and #{@rhs.name}) have different collations (#{ldata.collation} vs. #{rdata.collation}). This may result in unexpected results, as the database may compare them differently. Consider using the =exactly= method."
+              end
+            end
+          end
+        end
       end
 
       class DataWrapper
@@ -210,7 +225,7 @@ module Linkage
 
         def to_expr(side, binary = false)
           dataset = side == :lhs ? @dsl.lhs : @dsl.rhs
-          data.to_expr(dataset.dataset.adapter_scheme, :binary => binary)
+          data.to_expr(dataset.dataset.database_type, :binary => binary)
         end
 
         def name
@@ -336,6 +351,25 @@ module Linkage
 
     def configure(&block)
       DSL.new(self, &block)
+
+      # display warnings
+      results_database_warning_shown = false
+      @expectations.each do |expectation|
+        expectation.display_warnings
+        if !results_database_warning_shown &&
+            expectation.kind != :filter &&
+            expectation.merged_field.ruby_type == String &&
+            !expectation.exact_match &&
+            @dataset_1.database_type == @dataset_2.database_type
+
+          result_set.database do |db|
+            if db.database_type != @dataset_1.database_type
+              warn "Your results database (#{db.database_type}) differs from the database type of your dataset(s) #{@dataset_1.database_type}. Because you are comparing strings, you may encounter unexpected results, as different databases compare strings differently."
+              results_database_warning_shown = true
+            end
+          end
+        end
+      end
     end
 
     def groups_table_schema

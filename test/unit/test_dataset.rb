@@ -29,11 +29,11 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert_equal :foo, ds.table_name
   end
 
-  test "adapter_scheme" do
+  test "database_type" do
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     @dataset.stubs(:db).returns(@database)
-    @database.expects(:adapter_scheme).returns(:foo)
-    assert_equal :foo, ds.adapter_scheme
+    @database.expects(:database_type).returns(:foo)
+    assert_equal :foo, ds.database_type
   end
 
   test "add match expression" do
