@@ -21,3 +21,6 @@ require path + 'result_set'
 require path + 'field_set'
 
 Sequel.extension :collation
+if Sequel::Collation.respond_to?(:suppress_warnings=)
+  Sequel::Collation.suppress_warnings = true
+end
