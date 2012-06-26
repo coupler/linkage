@@ -14,4 +14,5 @@ group :development do
   gem 'rdiscount'
   gem 'guard-test'
   gem 'guard-yard'
+  gem 'debugger'
 end
