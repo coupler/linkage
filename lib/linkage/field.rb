@@ -71,11 +71,7 @@ module Linkage
     end
 
     def to_expr(adapter = nil, options = {})
-      result = @name
-      if options[:binary]
-        result = result.cast(:binary)
-      end
-      result
+      @name
     end
 
     def static?

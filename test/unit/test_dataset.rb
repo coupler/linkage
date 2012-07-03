@@ -86,14 +86,4 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     @dataset.expects(:filter).with(:foo => 'baz').returns(filtered_dataset)
     assert_equal filtered_dataset, ds.dataset_for_group(group)
   end
-
-  test "add match expression with cast, then each_group" do
-    ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
-    @dataset.expects(:clone).returns(@dataset)
-    ds_2 = ds_1.match(:foo, nil, :binary)
-    @dataset.expects(:group_and_count).with(:foo.cast(:binary)).returns(@dataset)
-    @dataset.expects(:having).returns(@dataset)
-    @dataset.expects(:each).yields({:foo => 123, :count => 1})
-    ds_2.each_group { |g| }
-  end
 end

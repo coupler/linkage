@@ -26,7 +26,6 @@ module Linkage
           else
             :strftime.sql_function(@values[0], @values[1])
           end
-        options[:binary] ? expr.cast(:binary) : expr
       end
     end
     Function.register(Strftime)

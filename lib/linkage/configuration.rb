@@ -85,12 +85,12 @@ module Linkage
               raise "Wonky filter"
             end
 
-            arg1 = target.to_expr(@side, @exact_match)
+            arg1 = target.to_expr(@side)
             arg2 =
               if other.is_a?(DataWrapper)
-                other.to_expr(@side, @exact_match)
+                other.to_expr(@side)
               else
-                @exact_match ? Sequel.cast(other, :binary) : other
+                other
               end
             @filter_expr =
               case @operator
@@ -125,7 +125,7 @@ module Linkage
             raise "Wonky expectation"
           end
 
-          expr = target.to_expr(side, @exact_match)
+          expr = target.to_expr(side)
           aliaz = nil
           if expr != merged_field.name
             aliaz = merged_field.name
@@ -139,7 +139,12 @@ module Linkage
         end
 
         def exactly
-          @exact_match = true
+          if !@exact_match
+            @exact_match = true
+            klass = Function["binary"]
+            @lhs = FunctionWrapper.new(@dsl, klass, [@lhs])
+            @rhs = FunctionWrapper.new(@dsl, klass, [@rhs])
+          end
         end
 
         def display_warnings
@@ -198,8 +203,8 @@ module Linkage
           @dataset.field_set[@name]
         end
 
-        def to_expr(side = nil, binary = false)
-          data.to_expr(nil, :binary => binary)
+        def to_expr(side = nil)
+          data.to_expr(nil)
         end
       end
 
@@ -216,7 +221,10 @@ module Linkage
             if arg.kind_of?(DataWrapper)
               raise "conflicting sides" if @side && @side != arg.side
               @side = arg.side
-              @static &&= arg.static?
+              if !arg.static?
+                @static = false
+                @dataset = arg.dataset
+              end
             end
           end
         end
@@ -225,9 +233,9 @@ module Linkage
           @data ||= @klass.new(*@args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg })
         end
 
-        def to_expr(side, binary = false)
+        def to_expr(side)
           dataset = side == :lhs ? @dsl.lhs : @dsl.rhs
-          data.to_expr(dataset.dataset.database_type, :binary => binary)
+          data.to_expr(dataset.dataset.database_type)
         end
 
         def name
