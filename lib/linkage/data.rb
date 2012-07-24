@@ -17,8 +17,13 @@ module Linkage
       File => nil
     }
 
-    # @return [Symbol] This object's name
+    # @!attribute [r] name
+    #   @return [Symbol] This object's name
     attr_reader :name
+
+    # @!attribute [r] dataset
+    #   @return [Linkage::Dataset, nil] This object's dataset, or nil
+    attr_reader :dataset
 
     def initialize(name)
       @name = name
@@ -32,12 +37,16 @@ module Linkage
       raise NotImplementedError
     end
 
-    # Create a data object that can hold data from two other fields. If the fields
-    # have different types, the resulting type is determined via a
+    def static?
+      raise NotImplementedError
+    end
+
+    # Create a merge field that can hold data from two data sources. If the
+    # fields have different types, the resulting type is determined via a
     # type-conversion tree.
     #
     # @param [Linkage::Data] other
-    # @return [Linkage::Field]
+    # @return [Linkage::MergeField]
     def merge(other, new_name = nil)
       schema_1 = self.ruby_type
       schema_2 = other.ruby_type
@@ -122,7 +131,7 @@ module Linkage
       else
         name = self.name == other.name ? self.name : :"#{self.name}_#{other.name}"
       end
-      Field.new(name, nil, result)
+      MergeField.new(name, result)
     end
 
     private

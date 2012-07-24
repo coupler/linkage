@@ -15,14 +15,16 @@ class UnitTests::TestFieldSet < Test::Unit::TestCase
   end
 
   test "creates fields on initialization" do
+    dataset = mock('dataset', :schema => @schema)
+
     field_1 = stub('id field')
     field_2 = stub('first_name field')
     field_3 = stub('last_name field')
-    Linkage::Field.expects(:new).with(:id, @schema[:id]).returns(field_1)
-    Linkage::Field.expects(:new).with(:first_name, @schema[:first_name]).returns(field_2)
-    Linkage::Field.expects(:new).with(:last_name, @schema[:last_name]).returns(field_3)
+    Linkage::Field.expects(:new).with(dataset, :id, @schema[:id]).returns(field_1)
+    Linkage::Field.expects(:new).with(dataset, :first_name, @schema[:first_name]).returns(field_2)
+    Linkage::Field.expects(:new).with(dataset, :last_name, @schema[:last_name]).returns(field_3)
 
-    fs = Linkage::FieldSet.new(@schema)
+    fs = Linkage::FieldSet.new(dataset)
     assert_equal field_1, fs.primary_key
     assert_equal field_1, fs[:id]
     assert_equal field_2, fs[:first_name]
@@ -30,14 +32,16 @@ class UnitTests::TestFieldSet < Test::Unit::TestCase
   end
 
   test "case-insensitive names" do
+    dataset = stub('dataset', :schema => @schema)
+
     field_1 = stub('id field')
     field_2 = stub('first_name field')
     field_3 = stub('last_name field')
-    Linkage::Field.stubs(:new).with(:id, @schema[:id]).returns(field_1)
-    Linkage::Field.stubs(:new).with(:first_name, @schema[:first_name]).returns(field_2)
-    Linkage::Field.stubs(:new).with(:last_name, @schema[:last_name]).returns(field_3)
+    Linkage::Field.stubs(:new).with(dataset, :id, @schema[:id]).returns(field_1)
+    Linkage::Field.stubs(:new).with(dataset, :first_name, @schema[:first_name]).returns(field_2)
+    Linkage::Field.stubs(:new).with(dataset, :last_name, @schema[:last_name]).returns(field_3)
 
-    fs = Linkage::FieldSet.new(@schema)
+    fs = Linkage::FieldSet.new(dataset)
     assert_equal field_1, fs.primary_key
     assert_equal field_1, fs[:Id]
     assert_equal field_2, fs[:fIrst_name]

@@ -79,7 +79,13 @@ module Linkage
       @args.each_with_index do |arg, i|
         if arg.kind_of?(Data)
           @names << arg.name
-          @static &&= arg.static?
+          if !arg.static?
+            @static = false
+            if !@dataset.nil? && @dataset != arg.dataset
+              raise ArgumentError, "Using dynamic data sources with different datasets is not permitted"
+            end
+            @dataset = arg.dataset
+          end
           type = arg.ruby_type[:type]
           value = arg.to_expr
         else

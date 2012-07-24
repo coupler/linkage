@@ -5,10 +5,10 @@ module Linkage
 
     def initialize(uri, table, options = {})
       @table_name = table.to_sym
-      db = Sequel.connect(uri, options)
-      db.extend(Sequel::Collation)
-      @dataset = db[@table_name]
-      @field_set = FieldSet.new(db.schema(@table_name))
+      @db = Sequel.connect(uri, options)
+      @db.extend(Sequel::Collation)
+      @dataset = @db[@table_name]
+      @field_set = FieldSet.new(self)
       @_match = []
     end
 
@@ -30,7 +30,7 @@ module Linkage
     end
 
     def database_type
-      @dataset.db.database_type
+      @db.database_type
     end
 
     def match(expr, aliaz = nil, cast = nil)
@@ -74,6 +74,10 @@ module Linkage
         filters << {m[:expr] => value}
       end
       filter(*filters)
+    end
+
+    def schema
+      @db.schema(@table_name)
     end
 
     private

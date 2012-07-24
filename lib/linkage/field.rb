@@ -7,13 +7,13 @@ module Linkage
 
     # Create a new instance of Field.
     #
+    # @param [Linkage::Dataset] dataset
     # @param [Symbol] name The field's name
     # @param [Hash] schema The field's schema information
-    # @param [Hash] ruby_type The field's ruby type
-    def initialize(name, schema, ruby_type = nil)
+    def initialize(dataset, name, schema)
+      @dataset = dataset
       @name = name
       @schema = schema
-      @ruby_type = ruby_type
     end
 
     # Convert the column schema information to a hash of column options, one of
@@ -84,6 +84,19 @@ module Linkage
 
     def collation
       schema[:collate]
+    end
+  end
+
+  # A special field used for merging two {Data} objects together. It
+  # has no dataset or schema.
+  class MergeField < Field
+    # Create a new instance of MergeField.
+    #
+    # @param [Symbol] name The field's name
+    # @param [Hash] ruby_type The field's schema information
+    def initialize(name, ruby_type)
+      @name = name
+      @ruby_type = ruby_type
     end
   end
 end

@@ -6,13 +6,14 @@ group :development do
   gem 'bundler'
   gem 'test-unit'
   gem 'mocha'
-  gem 'sqlite3'
   gem 'yard'
   gem 'rake'
   gem 'versionomy'
-  gem 'mysql2'
+  gem 'sqlite3', :platforms => :ruby
+  gem 'mysql2', :platforms => :ruby
+  gem 'jdbc-sqlite3', :platforms => :jruby
+  gem 'jdbc-mysql', :platforms => :jruby
   gem 'rdiscount'
   gem 'guard-test'
-  gem 'guard-yard'
-  gem 'debugger'
+  gem 'guard-yard', :platforms => :ruby_19
 end

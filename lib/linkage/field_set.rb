@@ -2,9 +2,12 @@ module Linkage
   class FieldSet < Hash
     attr_reader :primary_key
 
-    def initialize(schema)
-      schema.each do |(name, column_schema)|
-        f = Field.new(name, column_schema)
+    # Create a new FieldSet.
+    #
+    # @param [Linkage::Dataset] dataset
+    def initialize(dataset)
+      dataset.schema.each do |(name, column_schema)|
+        f = Field.new(dataset, name, column_schema)
         self[name] = f
 
         if @primary_key.nil? && column_schema[:primary_key]

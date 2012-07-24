@@ -18,9 +18,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   test "initialize with uri and table name" do
     Sequel.expects(:connect).with('foo:/bar', {:foo => 'bar'}).returns(@database)
     @database.expects(:extend).with(Sequel::Collation)
-    @database.expects(:schema).with(:foo).returns(@schema)
     @database.expects(:[]).with(:foo).returns(@dataset)
-    Linkage::FieldSet.expects(:new).with(@schema).returns(@field_set)
+    Linkage::FieldSet.expects(:new).with(kind_of(Linkage::Dataset)).returns(@field_set)
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
   end
 

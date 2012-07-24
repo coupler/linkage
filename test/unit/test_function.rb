@@ -55,11 +55,34 @@ class UnitTests::TestFunction < Test::Unit::TestCase
 
   test "function with field" do
     klass = new_function('foo', {:type => String})
-    field = stub_field('field', :name => :bar, :to_expr => :bar, :ruby_type => {:type => String})
+
+    dataset = stub('dataset')
+    field = stub_field('field', {
+      :name => :bar, :to_expr => :bar,
+      :ruby_type => {:type => String}, :dataset => dataset
+    })
     f = klass.new(field)
     assert_equal :foo_bar, f.name
     assert_equal :foo.sql_function(:bar), f.to_expr
+    assert_equal dataset, f.dataset
     assert !f.static?
+  end
+
+  test "creating function with conflicting datasets raises exception" do
+    klass = new_function('foo', {:type => String}, [[String], [String]])
+
+    dataset_1 = stub('dataset')
+    field_1 = stub_field('field 1', {
+      :name => :foo, :to_expr => :foo,
+      :ruby_type => {:type => String}, :dataset => dataset_1
+    })
+    dataset_2 = stub('dataset')
+    field_2 = stub_field('field 2', {
+      :name => :bar, :to_expr => :bar,
+      :ruby_type => {:type => String}, :dataset => dataset_2
+    })
+
+    assert_raises(ArgumentError) { klass.new(field_1, field_2) }
   end
 
   test "function with dynamic function" do
