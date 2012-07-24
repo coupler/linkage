@@ -6,20 +6,21 @@ class UnitTests::TestTrim < Test::Unit::TestCase
   end
 
   test "ruby_type for string literal" do
-    assert_equal({:type => String}, Linkage::Functions::Trim.new("foo").ruby_type)
+    trim = Linkage::Functions::Trim.new("foo", :dataset => stub('dataset'))
+    assert_equal({:type => String}, trim.ruby_type)
   end
 
   test "ruby_type for string field" do
-    field_1 = stub_field('field 1', :name => :bar, :ruby_type => {:type => String})
+    field_1 = stub_field('field 1', :name => :bar, :ruby_type => {:type => String}, :dataset => stub('dataset'))
     assert_equal({:type => String}, Linkage::Functions::Trim.new(field_1).ruby_type)
 
-    field_2 = stub_field('field 2', :name => :bar, :ruby_type => {:type => String, :opts => {:size => 123}})
+    field_2 = stub_field('field 2', :name => :bar, :ruby_type => {:type => String, :opts => {:size => 123}}, :dataset => stub('dataset'))
     assert_equal({:type => String, :opts => {:size => 123}}, Linkage::Functions::Trim.new(field_2).ruby_type)
   end
 
   test "ruby_type for string function" do
     func = new_function('foo', {:type => String, :opts => {:junk => '123'}})
-    assert_equal({:type => String, :opts => {:junk => '123'}}, Linkage::Functions::Trim.new(func.new).ruby_type)
+    assert_equal({:type => String, :opts => {:junk => '123'}}, Linkage::Functions::Trim.new(func.new(:dataset => stub('dataset'))).ruby_type)
   end
 
   test "parameters" do

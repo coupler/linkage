@@ -38,10 +38,17 @@ module Linkage
       nil
     end
 
-    # @param [Linkage::Field, Object] args Function arguments
+    # Creates a new Function object. If the arguments contain only
+    # static objects, you must specify the dataset that this function
+    # belongs to as the last argument like so:
+    #
+    #   Function.new(foo, bar, :dataset => dataset)
+    #
+    # @param [Linkage::Data, Object] args Function arguments
     def initialize(*args)
       @names = [self.class.function_name]
       @args = args
+      @options = args.last.is_a?(Hash) ? args.pop : {}
       process_args
     end
 
@@ -62,7 +69,7 @@ module Linkage
     end
 
     # @return [Sequel::SQL::Function]
-    def to_expr(adapter = nil, options = {})
+    def to_expr(options = {})
       self.class.function_name.to_sym.sql_function(*@values)
     end
 
@@ -79,13 +86,15 @@ module Linkage
       @args.each_with_index do |arg, i|
         if arg.kind_of?(Data)
           @names << arg.name
-          if !arg.static?
-            @static = false
-            if !@dataset.nil? && @dataset != arg.dataset
-              raise ArgumentError, "Using dynamic data sources with different datasets is not permitted"
-            end
+          @static &&= arg.static?
+
+          # possibly set dataset
+          if @dataset.nil?
             @dataset = arg.dataset
+          elsif @dataset != arg.dataset
+            raise ArgumentError, "Using dynamic data sources with different datasets is not permitted"
           end
+
           type = arg.ruby_type[:type]
           value = arg.to_expr
         else
@@ -97,6 +106,14 @@ module Linkage
           raise TypeError, "expected type #{parameters[i].join(" or ")}, got #{type}"
         end
         @values << value
+      end
+
+      if @dataset.nil?
+        if @options[:dataset]
+          @dataset = @options[:dataset]
+        else
+          raise ArgumentError, "You must specify a dataset for static functions"
+        end
       end
     end
   end

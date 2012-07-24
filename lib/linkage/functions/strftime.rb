@@ -14,10 +14,10 @@ module Linkage
         {:type => String}
       end
 
-      def to_expr(adapter = nil, options = {})
+      def to_expr(options = {})
         expr =
-          case adapter
-          when :mysql, :mysql2
+          case dataset.database_type
+          when :mysql
             :date_format.sql_function(*@values)
           when :sqlite
             :strftime.sql_function(@values[1], @values[0])

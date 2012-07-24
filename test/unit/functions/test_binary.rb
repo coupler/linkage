@@ -15,8 +15,8 @@ class UnitTests::TestBinary < Test::Unit::TestCase
 
   test "ruby_type" do
     expected = {:type => File}
-    assert_equal(expected, Linkage::Functions::Binary.new("foo").ruby_type)
-    field = stub_field('field 1', :name => :bar, :ruby_type => {:type => String})
+    assert_equal(expected, Linkage::Functions::Binary.new("foo", :dataset => stub('dataset')).ruby_type)
+    field = stub_field('field 1', :name => :bar, :ruby_type => {:type => String}, :dataset => stub('dataset'))
     assert_equal(expected, Linkage::Functions::Binary.new(field).ruby_type)
   end
 
@@ -33,20 +33,17 @@ class UnitTests::TestBinary < Test::Unit::TestCase
   end
 
   test "to_expr for sqlite" do
-    args = ["foo"]
-    func = Binary.new(*args)
-    assert_equal "foo".cast(:blob), func.to_expr(:sqlite)
+    func = Binary.new("foo", :dataset => stub('dataset', :database_type => :sqlite))
+    assert_equal "foo".cast(:blob), func.to_expr
   end
 
   test "to_expr for mysql" do
-    args = ["foo"]
-    func = Binary.new(*args)
-    assert_equal "foo".cast(:binary), func.to_expr(:mysql)
+    func = Binary.new("foo", :dataset => stub('dataset', :database_type => :mysql))
+    assert_equal "foo".cast(:binary), func.to_expr
   end
 
   test "to_expr for postgresql" do
-    args = ["foo"]
-    func = Binary.new(*args)
-    assert_equal "foo".cast(:bytea), func.to_expr(:postgres)
+    func = Binary.new("foo", :dataset => stub('dataset', :database_type => :postgres))
+    assert_equal "foo".cast(:bytea), func.to_expr
   end
 end

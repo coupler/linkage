@@ -54,6 +54,13 @@ module Linkage
               @side = @lhs.side
               @side = @rhs.side if @side.nil? && @rhs.is_a?(DataWrapper)
               @kind = :filter
+
+              # convoluted way to set dataset for static functions
+              if @rhs.is_a?(DataWrapper) && !@rhs.static? && @lhs.is_a?(FunctionWrapper) && @lhs.dataset.nil?
+                @lhs.dataset = @rhs.dataset
+              elsif @lhs.is_a?(DataWrapper) && !@lhs.static? && @rhs.is_a?(FunctionWrapper) && @rhs.dataset.nil?
+                @rhs.dataset = @lhs.dataset
+              end
             elsif @lhs.dataset == @rhs.dataset
               if @lhs.same_except_side?(@rhs)
                 @kind = :self
@@ -64,6 +71,7 @@ module Linkage
               @kind = :dual
             end
             @operator = @type == :must_not ? OPERATOR_OPPOSITES[operator] : operator
+
             @dsl.add_expectation(self)
             self
           end
@@ -204,12 +212,13 @@ module Linkage
         end
 
         def to_expr(side = nil)
-          data.to_expr(nil)
+          data.to_expr
         end
       end
 
       class FunctionWrapper < DataWrapper
         attr_reader :klass, :args
+        attr_accessor :dataset
 
         def initialize(dsl, klass, args)
           @dsl = dsl
@@ -221,21 +230,23 @@ module Linkage
             if arg.kind_of?(DataWrapper)
               raise "conflicting sides" if @side && @side != arg.side
               @side = arg.side
-              if !arg.static?
-                @static = false
-                @dataset = arg.dataset
-              end
+              @static &&= arg.static?
+              @dataset = arg.dataset
             end
           end
         end
 
         def data
-          @data ||= @klass.new(*@args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg })
+          function_args = @args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg }
+          if @static
+            function_args.push({:dataset => @dataset})
+          end
+          @data ||= @klass.new(*function_args)
         end
 
         def to_expr(side)
           dataset = side == :lhs ? @dsl.lhs : @dsl.rhs
-          data.to_expr(dataset.dataset.database_type)
+          data.to_expr
         end
 
         def name

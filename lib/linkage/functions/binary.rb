@@ -13,9 +13,9 @@ module Linkage
         {:type => File}
       end
 
-      def to_expr(database_type = nil, options = {})
+      def to_expr(options = {})
         expr =
-          case database_type
+          case dataset.database_type
           when :sqlite
             @values[0].cast(:blob)
           when :postgres

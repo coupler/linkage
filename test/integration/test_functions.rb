@@ -62,5 +62,27 @@ module IntegrationTests
         assert_equal 1, db[:groups].count
       end
     end
+
+    test "binary function with static argument" do
+      database do |db|
+        db.create_table(:foo) { primary_key(:id); String(:bar) }
+        db[:foo].import([:id, :bar], [[1, 'foo'], [2, 'foo']])
+      end
+
+      ds = Linkage::Dataset.new(@tmpuri, "foo")
+      tmpuri = @tmpuri
+      conf = ds.link_with(ds) do
+        lhs[:bar].must == rhs[:bar]
+        binary(lhs[:bar]).must == binary('foo')
+        binary(rhs[:bar]).must == binary('foo')
+        save_results_in(tmpuri)
+      end
+      runner = Linkage::SingleThreadedRunner.new(conf)
+      runner.execute
+
+      database do |db|
+        assert_equal 1, db[:groups].count
+      end
+    end
   end
 end

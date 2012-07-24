@@ -33,7 +33,7 @@ module Linkage
       raise NotImplementedError
     end
 
-    def to_expr(adapter = nil)
+    def to_expr
       raise NotImplementedError
     end
 

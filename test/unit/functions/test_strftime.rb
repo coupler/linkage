@@ -16,11 +16,11 @@ class UnitTests::TestStrftime < Test::Unit::TestCase
   test "ruby_type" do
     expected = {:type => String}
     format = "%Y-%m-%d"
-    assert_equal(expected, Linkage::Functions::Strftime.new(Time.now, format).ruby_type)
+    assert_equal(expected, Linkage::Functions::Strftime.new(Time.now, format, :dataset => stub('dataset')).ruby_type)
     field = stub_field('field 1', :name => :bar, :ruby_type => {:type => Time})
-    assert_equal(expected, Linkage::Functions::Strftime.new(field, format).ruby_type)
+    assert_equal(expected, Linkage::Functions::Strftime.new(field, format, :dataset => stub('dataset')).ruby_type)
     func = new_function('foo', {:type => Time, :opts => {:junk => '123'}})
-    assert_equal(expected, Linkage::Functions::Strftime.new(func.new, format).ruby_type)
+    assert_equal(expected, Linkage::Functions::Strftime.new(func.new(:dataset => stub('dataset')), format).ruby_type)
   end
 
   test "parameters" do
@@ -36,21 +36,20 @@ class UnitTests::TestStrftime < Test::Unit::TestCase
   end
 
   test "to_expr for sqlite" do
-    args = [Time.now, "%Y-%m-%d"]
-    func = Strftime.new(*args)
-    assert_equal :strftime.sql_function(args[1], args[0]), func.to_expr(:sqlite)
+    now = Time.now
+    func = Strftime.new(now, "%Y-%m-%d", :dataset => stub('dataset', :database_type => :sqlite))
+    assert_equal :strftime.sql_function("%Y-%m-%d", now), func.to_expr
   end
 
   test "to_expr for mysql" do
-    args = [Time.now, "%Y-%m-%d"]
-    func = Strftime.new(*args)
-    assert_equal :date_format.sql_function(*args), func.to_expr(:mysql)
-    assert_equal :date_format.sql_function(*args), func.to_expr(:mysql2)
+    now = Time.now
+    func = Strftime.new(now, "%Y-%m-%d", :dataset => stub('dataset', :database_type => :mysql))
+    assert_equal :date_format.sql_function(now, "%Y-%m-%d"), func.to_expr
   end
 
   test "to_expr for postgresql" do
-    args = [Time.now, "%Y-%m-%d"]
-    func = Strftime.new(*args)
-    assert_equal :to_char.sql_function(*args), func.to_expr(:postgres)
+    now = Time.now
+    func = Strftime.new(now, "%Y-%m-%d", :dataset => stub('dataset', :database_type => :postgres))
+    assert_equal :to_char.sql_function(now, "%Y-%m-%d"), func.to_expr
   end
 end

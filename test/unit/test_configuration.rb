@@ -104,23 +104,20 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "static database function" do
-    dataset_1 = stub('dataset', :database_type => :sqlite)
-    field_1 = stub('field 1', :to_expr => :foo)
-    dataset_1.stubs(:field_set).returns({:foo => field_1})
-    dataset_2 = stub('dataset', :database_type => :mysql)
-    field_2 = stub('field 2')
-    dataset_2.stubs(:field_set).returns({:foo => field_2})
+    dataset = stub('dataset', :database_type => :sqlite)
+    field = stub('field', :to_expr => :foo, :dataset => dataset)
+    dataset.stubs(:field_set).returns({:foo => field})
 
     func_expr = stub('function expression')
     func = stub('function', :static? => true, :to_expr => func_expr)
-    Linkage::Functions::Trim.expects(:new).with("foo").returns(func)
+    Linkage::Functions::Trim.expects(:new).with("foo", :dataset => dataset).returns(func)
 
-    c = Linkage::Configuration.new(dataset_1, dataset_2)
+    c = Linkage::Configuration.new(dataset, dataset)
     c.configure do
       lhs[:foo].must == trim("foo")
     end
-    dataset_1.expects(:filter).with({:foo => func_expr}).returns(dataset_1)
-    c.expectations[0].apply_to(dataset_1, :lhs)
+    dataset.expects(:filter).with({:foo => func_expr}).returns(dataset)
+    c.expectations[0].apply_to(dataset, :lhs)
   end
 
   test "save_results_in" do
