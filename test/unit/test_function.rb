@@ -86,9 +86,10 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     assert_raises(ArgumentError) { klass.new(field_1, field_2) }
   end
 
-  test "creating static function without dataset raises exception" do
+  test "assert_dataset for a static function without dataset raises exception" do
     klass = new_function('foo', {:type => String})
-    assert_raises(ArgumentError) { klass.new }
+    func = klass.new
+    assert_raises(RuntimeError) { func.send(:assert_dataset) }
   end
 
   test "function with dynamic function" do

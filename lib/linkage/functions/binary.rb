@@ -14,6 +14,7 @@ module Linkage
       end
 
       def to_expr(options = {})
+        assert_dataset
         expr =
           case dataset.database_type
           when :sqlite

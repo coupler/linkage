@@ -35,6 +35,11 @@ class UnitTests::TestStrftime < Test::Unit::TestCase
     assert_equal Linkage::Function["strftime"], Linkage::Functions::Strftime
   end
 
+  test "requires dataset" do
+    func = Strftime.new(Time.now, "%Y-%m-%d")
+    assert_raises(RuntimeError) { func.to_expr }
+  end
+
   test "to_expr for sqlite" do
     now = Time.now
     func = Strftime.new(now, "%Y-%m-%d", :dataset => stub('dataset', :database_type => :sqlite))

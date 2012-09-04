@@ -39,10 +39,14 @@ module Linkage
     end
 
     # Creates a new Function object. If the arguments contain only
-    # static objects, you must specify the dataset that this function
+    # static objects, you should specify the dataset that this function
     # belongs to as the last argument like so:
     #
     #   Function.new(foo, bar, :dataset => dataset)
+    #
+    # Optionally, you can use the `dataset=` setter to do it later. Many
+    # functions require a dataset to work properly. If you try to use
+    # such a function without setting a  dataset, it will raise a RuntimeError.
     #
     # @param [Linkage::Data, Object] args Function arguments
     def initialize(*args)
@@ -54,6 +58,10 @@ module Linkage
 
     def name
       @name ||= @names.join("_").to_sym
+    end
+
+    def dataset=(dataset)
+      @dataset = dataset
     end
 
     def static?
@@ -71,6 +79,14 @@ module Linkage
     # @return [Sequel::SQL::Function]
     def to_expr(options = {})
       self.class.function_name.to_sym.sql_function(*@values)
+    end
+
+    protected
+
+    def assert_dataset
+      if @dataset.nil?
+        raise RuntimeError, "You must specify a dataset for static functions"
+      end
     end
 
     private
@@ -108,12 +124,9 @@ module Linkage
         @values << value
       end
 
-      if @dataset.nil?
-        if @options[:dataset]
-          @dataset = @options[:dataset]
-        else
-          raise ArgumentError, "You must specify a dataset for static functions"
-        end
+      if @dataset.nil? && @options[:dataset]
+        # Set dataset for static functions manually
+        @dataset = @options[:dataset]
       end
     end
   end

@@ -32,6 +32,11 @@ class UnitTests::TestBinary < Test::Unit::TestCase
     assert_equal Linkage::Function["binary"], Linkage::Functions::Binary
   end
 
+  test "requires dataset" do
+    func = Binary.new("foo")
+    assert_raises(RuntimeError) { func.to_expr }
+  end
+
   test "to_expr for sqlite" do
     func = Binary.new("foo", :dataset => stub('dataset', :database_type => :sqlite))
     assert_equal "foo".cast(:blob), func.to_expr
