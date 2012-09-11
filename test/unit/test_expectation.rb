@@ -187,4 +187,51 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     dataset_2.expects(:match).with(:foo).returns(dataset_2)
     assert_equal dataset_2, exp.apply_to(dataset_2, :rhs)
   end
+
+  test "exactly! wraps each side inside the binary function" do
+    dataset_1 = stub('dataset 1')
+    field_1 = stub_field('field 1', :dataset => dataset_1)
+    meta_object_1 = stub('meta object 1', :static? => false, :side => :lhs,
+                         :object => field_1, :dataset => dataset_1)
+
+    dataset_2 = stub('dataset 2')
+    field_2 = stub_field('field 2', :dataset => dataset_2)
+    meta_object_2 = stub('meta object 2', :static? => false, :side => :rhs,
+                         :object => field_2, :dataset => dataset_2)
+    meta_object_1.stubs(:objects_equal?).with(meta_object_2).returns(true)
+
+    exp = Linkage::Expectation.create(meta_object_1, meta_object_2, :==)
+
+    klass = Linkage::Functions::Binary
+    func_1 = stub('binary function 1')
+    klass.expects(:new).with(field_1, :dataset => dataset_1).returns(func_1)
+    func_2 = stub('binary function 2')
+    klass.expects(:new).with(field_2, :dataset => dataset_2).returns(func_2)
+
+    new_meta_object_1 = stub('new meta object 1')
+    Linkage::MetaObject.expects(:new).with(func_1, :lhs).returns(new_meta_object_1)
+    new_meta_object_2 = stub('new meta object 2')
+    Linkage::MetaObject.expects(:new).with(func_2, :rhs).returns(new_meta_object_2)
+
+    exp.exactly!
+    # LAZY: assume the expectation set its meta objects appropriately
+  end
+
+  test "#same_except_side with two filter expectations" do
+    field = stub_field('foo')
+    meta_object_1 = stub('meta field 1', {
+      :static? => false, :side => :lhs, :object => field
+    })
+    meta_object_2 = stub('meta object', :static? => true)
+    meta_object_3 = stub('meta field 2', {
+      :static? => false, :side => :rhs, :object => field
+    })
+
+    exp_1 = Linkage::Expectation.create(meta_object_1, meta_object_2, :==)
+    exp_2 = Linkage::Expectation.create(meta_object_3, meta_object_2, :==)
+
+    meta_object_1.expects(:objects_equal?).with(meta_object_3).returns(true)
+    meta_object_2.expects(:objects_equal?).with(meta_object_2).returns(true)
+    assert exp_1.same_except_side?(exp_2)
+  end
 end

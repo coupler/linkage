@@ -38,6 +38,8 @@ module Linkage
       nil
     end
 
+    attr_reader :args
+
     # Creates a new Function object. If the arguments contain only
     # static objects, you should specify the dataset that this function
     # belongs to as the last argument like so:
@@ -60,12 +62,23 @@ module Linkage
       @name ||= @names.join("_").to_sym
     end
 
+    def dataset
+      if @dataset.nil?
+        raise RuntimeError, "You must specify a dataset for static functions"
+      end
+      @dataset
+    end
+
     def dataset=(dataset)
       @dataset = dataset
     end
 
     def static?
       @static
+    end
+
+    def ==(other)
+      equal?(other) || (other.is_a?(Function) && name == other.name && args == other.args && dataset == other.dataset)
     end
 
     # Subclasses must define this. The return value should be a Hash with
@@ -79,14 +92,6 @@ module Linkage
     # @return [Sequel::SQL::Function]
     def to_expr(options = {})
       self.class.function_name.to_sym.sql_function(*@values)
-    end
-
-    protected
-
-    def assert_dataset
-      if @dataset.nil?
-        raise RuntimeError, "You must specify a dataset for static functions"
-      end
     end
 
     private

@@ -24,9 +24,33 @@ class UnitTests::TestMetaObject < Test::Unit::TestCase
     assert_equal :lhs, meta_object.side
   end
 
-  test "requires side for dynamic object" do
+  test "getting side for dynamic object without setting it raises error" do
+    meta_object = Linkage::MetaObject.new(stub_field('foo'))
+    assert_raises(RuntimeError) { meta_object.side }
+  end
+
+  test "getting dataset calls #dataset on object" do
     field = stub_field('foo')
-    assert_raises(ArgumentError) { Linkage::MetaObject.new(field) }
+    meta_object = Linkage::MetaObject.new(field)
+
+    dataset = stub('dataset')
+    field.expects(:dataset).returns(dataset)
+    assert_equal dataset, meta_object.dataset
+  end
+
+  test "setting dataset sets object's dataset" do
+    func = stub_function('foo')
+    meta_object = Linkage::MetaObject.new(func)
+
+    dataset = stub('dataset')
+    func.expects(:dataset=).with(dataset)
+    meta_object.dataset = dataset
+  end
+
+  test "setting dataset on non-data object raises exception" do
+    meta_object = Linkage::MetaObject.new(123)
+    dataset = stub('dataset')
+    assert_raises(RuntimeError) { meta_object.dataset = dataset }
   end
 
   test "objects_equal? compares only objects, not sides" do

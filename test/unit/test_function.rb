@@ -86,10 +86,10 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     assert_raises(ArgumentError) { klass.new(field_1, field_2) }
   end
 
-  test "assert_dataset for a static function without dataset raises exception" do
+  test "getting dataset for a static function without dataset raises exception" do
     klass = new_function('foo', {:type => String})
     func = klass.new
-    assert_raises(RuntimeError) { func.send(:assert_dataset) }
+    assert_raises(RuntimeError) { func.dataset }
   end
 
   test "function with dynamic function" do
@@ -196,5 +196,23 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     assert_raises(ArgumentError) do
       func.new
     end
+  end
+
+  test "two functions with the same name and arguments and datasets are equal" do
+    klass = new_function('foo', {:type => String}, [[String]])
+    dataset = stub('dataset')
+    field = stub_field('field', :dataset => dataset, :ruby_type => {:type => String})
+
+    func_1 = klass.new(field)
+    func_2 = klass.new(field)
+    assert func_1 == func_2
+  end
+
+  test "#== with two static functions" do
+    klass = new_function('foo', {:type => String}, [[String]])
+    dataset = stub('dataset')
+    func_1 = klass.new('foo', :dataset => dataset)
+    func_2 = klass.new('foo', :dataset => dataset)
+    assert func_1 == func_2
   end
 end

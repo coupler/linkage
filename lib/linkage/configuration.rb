@@ -33,146 +33,47 @@ module Linkage
           :>=   => :<
         }
 
-        attr_reader :kind, :side, :lhs, :rhs, :exact_match
-
         def initialize(dsl, type, lhs)
           @dsl = dsl
           @type = type
           @lhs = lhs
-          @rhs = nil
-          @side = nil
-          @kind = nil
-          @exact_match = false
         end
 
         VALID_OPERATORS.each do |operator|
           define_method(operator) do |rhs|
             # NOTE: lhs is always a DataWrapper
 
-            @rhs = rhs
-            if !@rhs.is_a?(DataWrapper) || @lhs.static? || @rhs.static? || @lhs.side == @rhs.side
-              @side = @lhs.side
-              @side = @rhs.side if @side.nil? && @rhs.is_a?(DataWrapper)
-              @kind = :filter
+            if !rhs.is_a?(DataWrapper) || @lhs.static? || rhs.static? || @lhs.side == rhs.side
+              @side = !@lhs.static? ? @lhs.side : rhs.side
 
-              # convoluted way to set dataset for static functions
-              if @rhs.is_a?(DataWrapper) && !@rhs.static? && @lhs.is_a?(FunctionWrapper) && @lhs.dataset.nil?
-                @lhs.dataset = @rhs.dataset
-              elsif @lhs.is_a?(DataWrapper) && !@lhs.static? && @rhs.is_a?(FunctionWrapper) && @rhs.dataset.nil?
-                @rhs.dataset = @lhs.dataset
+              # If one of the objects in this comparison is a static function, we need to set the side
+              # and the dataset based on the other object
+              if rhs.is_a?(DataWrapper) && !rhs.static? && @lhs.is_a?(FunctionWrapper) && @lhs.static?
+                @lhs.dataset = rhs.dataset
+                @lhs.side = @side
+              elsif @lhs.is_a?(DataWrapper) && !@lhs.static? && rhs.is_a?(FunctionWrapper) && rhs.static?
+                rhs.dataset = @lhs.dataset
+                rhs.side = @side
               end
-            elsif @lhs.dataset == @rhs.dataset
-              if @lhs.same_except_side?(@rhs)
-                @kind = :self
-              else
-                @kind = :cross
-              end
-            else
-              @kind = :dual
             end
-            @operator = @type == :must_not ? OPERATOR_OPPOSITES[operator] : operator
+            exp_operator = @type == :must_not ? OPERATOR_OPPOSITES[operator] : operator
 
-            @dsl.add_expectation(self)
+            rhs_meta_object = rhs.is_a?(DataWrapper) ? rhs.meta_object : MetaObject.new(rhs)
+            @expectation = Expectation.create(@lhs.meta_object, rhs_meta_object, exp_operator)
+            @dsl.add_expectation(@expectation)
             self
           end
         end
 
-        def merged_field
-          @merged_field ||= @lhs.data.merge(@rhs.data)
-        end
-
-        def filter_expr
-          if @filter_expr.nil? && @kind == :filter
-            if @lhs.is_a?(DataWrapper) && !@lhs.static?
-              target = @lhs
-              other = @rhs
-            elsif @rhs.is_a?(DataWrapper) && !@rhs.static?
-              target = @rhs
-              other = @lhs
-            else
-              raise "Wonky filter"
-            end
-
-            arg1 = target.to_expr(@side)
-            arg2 =
-              if other.is_a?(DataWrapper)
-                other.to_expr(@side)
-              else
-                other
-              end
-            @filter_expr =
-              case @operator
-              when :==
-                { arg1 => arg2 }
-              when :'!='
-                ~{ arg1 => arg2 }
-              else
-                arg1 = Sequel::SQL::Identifier.new(arg1)
-                arg2 = arg2.is_a?(Symbol) ? Sequel::SQL::Identifier.new(arg2) : arg2
-                Sequel::SQL::BooleanExpression.new(@operator, arg1, arg2)
-              end
-          end
-          @filter_expr
-        end
-
-        def apply_to(dataset, side)
-          if @kind == :filter
-            if @side == side
-              return dataset.filter(filter_expr)
-            else
-              # Doesn't apply
-              return dataset
-            end
-          end
-
-          if @lhs.is_a?(DataWrapper) && @lhs.side == side
-            target = @lhs
-          elsif @rhs.is_a?(DataWrapper) && @rhs.side == side
-            target = @rhs
-          else
-            raise "Wonky expectation"
-          end
-
-          expr = target.to_expr(side)
-          aliaz = nil
-          if expr != merged_field.name
-            aliaz = merged_field.name
-          end
-
-          dataset.match(expr, aliaz)
-        end
-
-        def same_filter?(other)
-          kind == :filter && other.kind == :filter && filter_expr == other.filter_expr
-        end
-
         def exactly
           if !@exact_match
-            @exact_match = true
-            klass = Function["binary"]
-            @lhs = FunctionWrapper.new(@dsl, klass, [@lhs])
-            @rhs = FunctionWrapper.new(@dsl, klass, [@rhs])
-          end
-        end
-
-        def display_warnings
-          return if @kind == :filter || @kind == :self || @exact_match
-          ldata = @lhs.data
-          rdata = @rhs.data
-          if ldata.ruby_type[:type] == String && rdata.ruby_type[:type] == String
-            if @lhs.dataset.database_type != @rhs.dataset.database_type
-              warn "NOTE: You are comparing two string fields (#{@lhs.name} and #{@rhs.name}) from different databases. This may result in unexpected results, as different databases compare strings differently. Consider using the =exactly= method."
-            elsif ldata.respond_to?(:collation) && rdata.respond_to?(:collation)
-              if ldata.collation != rdata.collation
-                warn "NOTE: The two string fields you are comparing (#{@lhs.name} and #{@rhs.name}) have different collations (#{ldata.collation} vs. #{rdata.collation}). This may result in unexpected results, as the database may compare them differently. Consider using the =exactly= method."
-              end
-            end
+            @expectation.exactly!
           end
         end
       end
 
       class DataWrapper
-        attr_reader :side, :dataset
+        attr_reader :meta_object
 
         def initialize
           raise NotImplementedError
@@ -187,6 +88,14 @@ module Linkage
         def compare_with(other)
           VisualComparisonWrapper.new(@dsl, self, other)
         end
+
+        def method_missing(m, *args, &block)
+          if meta_object.respond_to?(m)
+            meta_object.send(m, *args, &block)
+          else
+            super(m, *args, &block)
+          end
+        end
       end
 
       class FieldWrapper < DataWrapper
@@ -194,86 +103,29 @@ module Linkage
 
         def initialize(dsl, side, dataset, name)
           @dsl = dsl
-          @side = side
-          @dataset = dataset
-          @name = name
-        end
-
-        def static?
-          false
-        end
-
-        def same_except_side?(other)
-          other.is_a?(FieldWrapper) && name == other.name
-        end
-
-        def data
-          @dataset.field_set[@name]
-        end
-
-        def to_expr(side = nil)
-          data.to_expr
+          @meta_object = MetaObject.new(dataset.field_set[name], side)
         end
       end
 
       class FunctionWrapper < DataWrapper
-        attr_reader :klass, :args
-        attr_accessor :dataset
-
         def initialize(dsl, klass, args)
           @dsl = dsl
-          @klass = klass
-          @args = args
-          @side = nil
-          @static = true
+
+          side = dataset = nil
+          static = true
+          function_args = []
           args.each do |arg|
             if arg.kind_of?(DataWrapper)
-              raise "conflicting sides" if @side && @side != arg.side
-              @side = arg.side
-              @static &&= arg.static?
-              @dataset = arg.dataset
+              raise "conflicting sides" if side && side != arg.side
+              side = arg.side
+              static &&= arg.static?
+              dataset = arg.dataset
+              function_args << arg.object
+            else
+              function_args << arg
             end
           end
-        end
-
-        def data
-          function_args = @args.collect { |arg| arg.kind_of?(DataWrapper) ? arg.data : arg }
-          if @static
-            function_args.push({:dataset => @dataset})
-          end
-          @data ||= @klass.new(*function_args)
-        end
-
-        def to_expr(side)
-          dataset = side == :lhs ? @dsl.lhs : @dsl.rhs
-          data.to_expr
-        end
-
-        def name
-          data.name
-        end
-
-        def static?
-          @static
-        end
-
-        def same_except_side?(other)
-          if other.is_a?(FunctionWrapper) && klass == other.klass
-            args.each_with_index do |arg, i|
-              other_arg = other.args[i]
-              if arg.is_a?(DataWrapper) && other_arg.is_a?(DataWrapper)
-                if !arg.same_except_side?(other_arg)
-                  return false
-                end
-              else
-                if arg != other_arg
-                  return false
-                end
-              end
-            end
-            return true
-          end
-          false
+          @meta_object = MetaObject.new(klass.new(*function_args), side)
         end
       end
 
@@ -335,7 +187,7 @@ module Linkage
 
             these_filters << expectation
             other_filters.each do |other|
-              if !expectation.same_filter?(other)
+              if !expectation.same_except_side?(other)
                 @config.linkage_type = :cross
                 break
               end
@@ -380,7 +232,6 @@ module Linkage
         if !results_database_warning_shown &&
             expectation.kind != :filter &&
             expectation.merged_field.ruby_type[:type] == String &&
-            !expectation.exact_match &&
             @dataset_1.database_type == @dataset_2.database_type
 
           result_set.database do |db|
@@ -405,7 +256,12 @@ module Linkage
 
         merged_field = exp.merged_field
         merged_type = merged_field.ruby_type
-        schema << [merged_field.name, merged_type[:type], merged_type[:opts] || {}]
+        col = [merged_field.name, merged_type[:type], merged_type[:opts] || {}]
+        schema << col
+
+        #if merged_type[:type] == String
+          #schema << ([:"#{merged_field.name}_orig"] + col[1..2])
+        #end
       end
 
       schema

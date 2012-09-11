@@ -1,29 +1,43 @@
 module Linkage
   class MetaObject
-    attr_reader :object, :side, :dataset
+    attr_reader :object
+    attr_writer :side
 
     # Creates a new MetaObject.
     #
     # @param [Object] object This can be a {Field}, {Function} or a regular
     #   Ruby object (Fixnum, String, etc). If `object` is not static (a {Field}
-    #   or a {Function} that contains one or more {Field} objects), you must
+    #   or a {Function} that contains one or more {Field} objects), you should
     #   specify which "side" of the linkage the object belongs to (left-hand
     #   side or right-hand side) in the `side` argument.
     # @param [Symbol] side `:lhs` for left-hand side or `:rhs` for right-hand
     #   side
     def initialize(object, side = nil)
       @object = object
-      @static = true
-      if object.kind_of?(Linkage::Data)
-        @static = object.static?
-        if !@static
-          if side != :lhs && side != :rhs
-            raise ArgumentError, "invalid `side` argument, must be :lhs or :rhs"
-          end
-          @dataset = object.dataset
-        end
+      @static = object.kind_of?(Linkage::Data) ? object.static? : true
+      if !side.nil? && side != :lhs && side != :rhs
+        raise ArgumentError, "invalid `side` argument, must be :lhs or :rhs"
       end
       @side = side
+    end
+
+    def side
+      if !@static && @side.nil?
+        raise RuntimeError, "Object is dynamic and side is not set"
+      end
+      @side
+    end
+
+    def dataset
+      @object.kind_of?(Linkage::Data) ? @object.dataset : nil
+    end
+
+    def dataset=(dataset)
+      if @object.kind_of?(Linkage::Data)
+        @object.dataset = dataset
+      else
+        raise RuntimeError, "You can't set the dataset of a non-data object."
+      end
     end
 
     def static?

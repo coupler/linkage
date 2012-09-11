@@ -33,6 +33,8 @@ module Linkage
     #   @return [Symbol] the dataset this expectation applies to: `:lhs` or `:rhs`
     attr_reader :side
 
+    attr_reader :meta_object_1, :meta_object_2, :operator
+
     # Creates a new Expectation.
     #
     # @param [Linkage::MetaObject] meta_object_1
@@ -50,6 +52,24 @@ module Linkage
       after_initialize
     end
 
+    def same_except_side?(other)
+      other.is_a?(Expectation) &&
+        operator == other.operator &&
+        meta_object_1.objects_equal?(other.meta_object_1) &&
+        meta_object_2.objects_equal?(other.meta_object_2)
+    end
+
+    def kind
+      raise NotImplementedError
+    end
+
+    def exactly!
+      function_1 = Function['binary'].new(@meta_object_1.object, :dataset => @meta_object_1.dataset)
+      function_2 = Function['binary'].new(@meta_object_2.object, :dataset => @meta_object_2.dataset)
+      @meta_object_1 = MetaObject.new(function_1, @meta_object_1.side)
+      @meta_object_2 = MetaObject.new(function_2, @meta_object_2.side)
+    end
+
     # Display any warnings about this expectation.
     def display_warnings
     end
@@ -61,6 +81,8 @@ module Linkage
   end
 
   class FilterExpectation < Expectation
+    def kind; :filter; end
+
     def to_expr
       case @operator
       when :==, :'!='
@@ -73,7 +95,7 @@ module Linkage
     end
 
     def apply_to(dataset, side)
-      if side == @side
+      if side != @side
         return dataset
       end
 
@@ -125,11 +147,14 @@ module Linkage
   end
 
   class SelfExpectation < MatchExpectation
+    def kind; :self; end
   end
 
   class CrossExpectation < MatchExpectation
+    def kind; :cross; end
   end
 
   class DualExpectation < MatchExpectation
+    def kind; :dual; end
   end
 end
