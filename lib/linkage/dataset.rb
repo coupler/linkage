@@ -33,8 +33,13 @@ module Linkage
       @db.database_type
     end
 
-    def match(expr, aliaz = nil, cast = nil)
-      clone(:match => {:expr => expr, :alias => aliaz, :cast => cast})
+    # Add an object to use for matching.
+    #
+    # @param [Linkage::MetaObject] meta_object
+    # @param [Symbol, nil] aliaz Alias to use in the SQL query for this object
+    # @param [Symbol, nil] cast Data type to cast this object to
+    def match(meta_object, aliaz = nil, cast = nil)
+      clone(:match => {:meta_object => meta_object, :alias => aliaz, :cast => cast})
     end
 
     def clone(new_opts={})
@@ -69,9 +74,18 @@ module Linkage
       filters = []
       group.values.each_pair do |key, value|
         # find a matched expression with this alias
-        m = @_match.detect { |h| h[:alias] ? h[:alias] == key : h[:expr] == key }
-        raise "this dataset isn't compatible with the given group" if !m
-        filters << {m[:expr] => value}
+        found = false
+        @_match.each do |m|
+          expr = m[:meta_object].to_expr
+          if (m[:alias] && m[:alias] == key) || expr == key
+            found = true
+            filters << {expr => value}
+            break
+          end
+        end
+        if !found
+          raise "this dataset isn't compatible with the given group"
+        end
       end
       filter(*filters)
     end
@@ -89,12 +103,12 @@ module Linkage
     end
 
     def raw_match_expressions
-      @_match.collect { |m| m[:expr] }
+      @_match.collect { |m| m[:meta_object].to_expr }
     end
 
     def match_expressions
       @_match.collect do |m|
-        expr = m[:expr]
+        expr = m[:meta_object].to_expr
         expr = expr.as(m[:alias]) if m[:alias]
         expr = expr.cast(m[:cast]) if m[:cast]
         expr

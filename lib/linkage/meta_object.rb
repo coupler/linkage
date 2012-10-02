@@ -91,5 +91,18 @@ module Linkage
         raise ArgumentError, "Cannot merge a non-data object"
       end
     end
+
+    # Returns the Ruby type of the underlying object.
+    #
+    # @return [Hash]
+    # @see Linkage::Field#ruby_type
+    # @see Linkage::Function#ruby_type
+    def ruby_type
+      if @object.kind_of?(Linkage::Data)
+        @object.ruby_type
+      else
+        {:type => @object.class}
+      end
+    end
   end
 end

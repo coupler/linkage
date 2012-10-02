@@ -35,10 +35,11 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert_equal :foo, ds.database_type
   end
 
-  test "add match expression" do
+  test "add match object" do
     ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     @dataset.expects(:clone).returns(@dataset)
-    ds_2 = ds_1.match(:foo)
+    meta_object = stub('meta object')
+    ds_2 = ds_1.match(meta_object)
     assert_not_same ds_1, ds_2
     assert_not_equal ds_1.instance_variable_get(:@_match),
       ds_2.instance_variable_get(:@_match)
@@ -47,7 +48,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   test "add match expression with alias, then each_group" do
     ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     @dataset.expects(:clone).returns(@dataset)
-    ds_2 = ds_1.match(:foo, :aliased_foo)
+    meta_object = stub('meta_object', :to_expr => :foo)
+    ds_2 = ds_1.match(meta_object, :aliased_foo)
     @dataset.expects(:group_and_count).with(:foo.as(:aliased_foo)).returns(@dataset)
     @dataset.expects(:having).returns(@dataset)
     @dataset.expects(:each).yields({:aliased_foo => 123, :count => 1})
@@ -58,7 +60,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
 
     @dataset.expects(:clone).returns(@dataset)
-    ds = ds.match(:foo)
+    meta_object = stub('meta object', :to_expr => :foo)
+    ds = ds.match(meta_object)
     @dataset.expects(:group).with(:foo).returns(@dataset)
 
     ds.group_by_matches
@@ -67,7 +70,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   test "dataset_for_group" do
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     @dataset.expects(:clone).returns(@dataset)
-    ds = ds.match(:foo, :foo_bar)
+    meta_object = stub('meta object', :to_expr => :foo)
+    ds = ds.match(meta_object, :foo_bar)
 
     group = stub("group", :values => {:foo_bar => 'baz'})
     filtered_dataset = stub('filtered dataset')
@@ -78,7 +82,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   test "dataset_for_group without aliases" do
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     @dataset.expects(:clone).returns(@dataset)
-    ds = ds.match(:foo)
+    meta_object = stub('meta object', :to_expr => :foo)
+    ds = ds.match(meta_object)
 
     group = stub("group", :values => {:foo => 'baz'})
     filtered_dataset = stub('filtered dataset')

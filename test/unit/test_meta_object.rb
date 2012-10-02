@@ -144,4 +144,23 @@ class UnitTests::TestMetaObject < Test::Unit::TestCase
     assert_raises(ArgumentError) { object_1.merge(object_2) }
     assert_raises(ArgumentError) { object_2.merge(object_1) }
   end
+
+  test "ruby_type calls Field#ruby_type" do
+    field = stub_field('field')
+    object = Linkage::MetaObject.new(field, :lhs)
+    field.expects(:ruby_type).returns(:type => String)
+    assert_equal({:type => String}, object.ruby_type)
+  end
+
+  test "ruby_type calls Function#ruby_type" do
+    function = stub_function("foo")
+    object = Linkage::MetaObject.new(function, :lhs)
+    function.expects(:ruby_type).returns(:type => String)
+    assert_equal({:type => String}, object.ruby_type)
+  end
+
+  test "ruby_type returns object class for non-data object" do
+    object = Linkage::MetaObject.new(123)
+    assert_equal({:type => Fixnum}, object.ruby_type)
+  end
 end

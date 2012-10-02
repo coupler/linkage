@@ -17,6 +17,10 @@ module Linkage
     def create_tables!
       database do |db|
         schema = @config.groups_table_schema
+        db.create_table(:original_groups) do
+          schema.each { |col| column(*col) }
+        end
+
         db.create_table(:groups) do
           schema.each { |col| column(*col) }
         end
@@ -35,9 +39,12 @@ module Linkage
       if !@groups_buffer
         groups_headers = [:id] + group.values.keys
         @groups_buffer = ImportBuffer.new(@config.results_uri, :groups, groups_headers, @config.results_uri_options)
+        @original_groups_buffer = ImportBuffer.new(@config.results_uri, :original_groups, groups_headers, @config.results_uri_options)
       end
       group_id = next_group_id
-      @groups_buffer.add([group_id] + group.values.values)
+      row = [group_id] + group.values.values
+      @groups_buffer.add(row)
+      @original_groups_buffer.add(row)
     end
 
     def flush!

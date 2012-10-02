@@ -56,7 +56,7 @@ module Linkage
       groups_dataset.field_set.values.each do |field|
         # Sort on all fields
         if !field.primary_key?
-          groups_dataset = groups_dataset.match(field.to_expr)
+          groups_dataset = groups_dataset.match(field)
         end
       end
 

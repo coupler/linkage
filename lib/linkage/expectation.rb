@@ -121,12 +121,7 @@ module Linkage
           raise ArgumentError, "Invalid `side` argument: #{side}"
         end
 
-      expr = target.to_expr
-      if merged_field.name != expr
-        dataset.match(expr, merged_field.name)
-      else
-        dataset.match(expr)
-      end
+      dataset.match(target, merged_field.name)
     end
 
     def merged_field

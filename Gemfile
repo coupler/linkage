@@ -16,4 +16,5 @@ group :development do
   gem 'rdiscount'
   gem 'guard-test'
   gem 'guard-yard', :platforms => :ruby_19
+  gem 'debugger'
 end

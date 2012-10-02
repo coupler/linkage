@@ -134,10 +134,10 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
 
     merged_field = stub('merged field', :name => :foo)
     object_1.expects(:merge).with(object_2).returns(merged_field)
-    dataset.expects(:match).with(:foo).returns(dataset)
+    dataset.expects(:match).with(object_1, :foo).returns(dataset)
     assert_equal dataset, exp.apply_to(dataset, :lhs)
 
-    dataset.expects(:match).with(:foo).returns(dataset)
+    dataset.expects(:match).with(object_2, :foo).returns(dataset)
     assert_equal dataset, exp.apply_to(dataset, :rhs)
   end
 
@@ -157,10 +157,10 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
 
     merged_field = stub('merged field', :name => :foo_bar)
     object_1.expects(:merge).with(object_2).returns(merged_field)
-    dataset.expects(:match).with(:foo, :foo_bar).returns(dataset)
+    dataset.expects(:match).with(object_1, :foo_bar).returns(dataset)
     assert_equal dataset, exp.apply_to(dataset, :lhs)
 
-    dataset.expects(:match).with(:bar, :foo_bar).returns(dataset)
+    dataset.expects(:match).with(object_2, :foo_bar).returns(dataset)
     assert_equal dataset, exp.apply_to(dataset, :rhs)
   end
 
@@ -181,10 +181,10 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
 
     merged_field = stub('merged field', :name => :foo)
     object_1.expects(:merge).with(object_2).returns(merged_field)
-    dataset_1.expects(:match).with(:foo).returns(dataset_1)
+    dataset_1.expects(:match).with(object_1, :foo).returns(dataset_1)
     assert_equal dataset_1, exp.apply_to(dataset_1, :lhs)
 
-    dataset_2.expects(:match).with(:foo).returns(dataset_2)
+    dataset_2.expects(:match).with(object_2, :foo).returns(dataset_2)
     assert_equal dataset_2, exp.apply_to(dataset_2, :rhs)
   end
 

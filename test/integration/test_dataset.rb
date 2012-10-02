@@ -38,7 +38,7 @@ class IntegrationTests::TestDataset < Test::Unit::TestCase
     end
 
     ds = Linkage::Dataset.new(@tmpuri, "foo")
-    ds = ds.match(:bar)
+    ds = ds.match(ds.field_set[:bar])
     ds.each_group do |group|
       assert_equal({:bar => "foo"}, group.values)
       assert_equal(2, group.count)
@@ -62,7 +62,7 @@ class IntegrationTests::TestDataset < Test::Unit::TestCase
     end
 
     ds = Linkage::Dataset.new(@tmpuri, "foo")
-    ds = ds.match(:bar)
+    ds = ds.match(ds.field_set[:bar])
     ds = ds.filter { baz >= 3 }
     groups = []
     ds.each_group(1) do |group|
