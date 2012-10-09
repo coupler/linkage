@@ -40,6 +40,11 @@ module Linkage
       end
     end
 
+    def database_type
+      ds = dataset
+      ds ? ds.database_type : nil
+    end
+
     def static?
       @static
     end

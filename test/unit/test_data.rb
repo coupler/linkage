@@ -24,6 +24,13 @@ class UnitTests::TestData < Test::Unit::TestCase
     assert_raises(NotImplementedError) { d.to_expr }
   end
 
+  test "database_type" do
+    dataset = mock('dataset')
+    data_1 = new_data(:foo, {}, dataset)
+    dataset.expects(:database_type).returns(:mysql)
+    assert_equal :mysql, data_1.database_type
+  end
+
   test "merge two identical fields" do
     data_1 = new_data(:id, {:type =>Integer})
     data_2 = new_data(:id, {:type =>Integer})
@@ -397,5 +404,36 @@ class UnitTests::TestData < Test::Unit::TestCase
     data_1 = new_data(:foo, {:type => String})
     data_2 = new_data(:foo, {:type => Date})
     assert_raises { data_1.merge(data_2).ruby_type }
+  end
+
+  test "merging two string fields with different collations strips the collation" do
+    dataset_1 = stub('dataset 1', :database_type => :mysql)
+    data_1 = new_data(:foo, {:type => String, :opts => {:collate => :foo}}, dataset_1)
+    dataset_2 = stub('dataset 2', :database_type => :mysql)
+    data_2 = new_data(:foo, {:type => String, :opts => {:collate => :bar}}, dataset_2)
+
+    result_data = data_1.merge(data_2)
+    result_opts = result_data.ruby_type[:opts] || {}
+    assert_nil result_opts[:collate]
+  end
+
+  test "merging two string fields with different database types strips the collation" do
+    dataset_1 = stub('dataset 1', :database_type => :mysql)
+    data_1 = new_data(:foo, {:type => String, :opts => {:collate => :foo}}, dataset_1)
+    dataset_2 = stub('dataset 2', :database_type => :sqlite)
+    data_2 = new_data(:foo, {:type => String, :opts => {:collate => :foo}}, dataset_2)
+
+    result_data = data_1.merge(data_2)
+    result_opts = result_data.ruby_type[:opts] || {}
+    assert_nil result_opts[:collate]
+  end
+
+  test "merged field has database type if they're the same" do
+    dataset_1 = stub('dataset 1', :database_type => :mysql)
+    data_1 = new_data(:foo, {:type => String}, dataset_1)
+    dataset_2 = stub('dataset 2', :database_type => :mysql)
+    data_2 = new_data(:foo, {:type => String}, dataset_2)
+    result_data = data_1.merge(data_2)
+    assert_equal :mysql, result_data.database_type
   end
 end

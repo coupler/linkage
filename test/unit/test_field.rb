@@ -50,8 +50,9 @@ class UnitTests::TestField < Test::Unit::TestCase
 
   test "collation" do
     dataset = stub('dataset')
-    field = Linkage::Field.new(dataset, :foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(255)", :type=>:string, :collate=>"latin1_general_cs", :ruby_default=>nil})
+    field = Linkage::Field.new(dataset, :foo, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(255)", :type=>:string, :collation=>"latin1_general_cs", :ruby_default=>nil})
     assert_equal "latin1_general_cs", field.collation
+    assert_equal "latin1_general_cs", field.ruby_type[:opts][:collate]
   end
 
   test "initialize MergeField with ruby type" do
@@ -61,5 +62,13 @@ class UnitTests::TestField < Test::Unit::TestCase
     assert_equal info, field.ruby_type
     assert_nil field.schema
     assert_nil field.dataset
+  end
+
+  test "MergeField#database_type accessor" do
+    field_1 = Linkage::MergeField.new(:id, {:type => Integer})
+    assert_nil field_1.database_type
+
+    field_2 = Linkage::MergeField.new(:id, {:type => Integer}, :mysql)
+    assert_equal :mysql, field_2.database_type
   end
 end

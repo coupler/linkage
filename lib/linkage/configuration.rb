@@ -256,6 +256,17 @@ module Linkage
 
         merged_field = exp.merged_field
         merged_type = merged_field.ruby_type
+
+        # if the merged field's database type is different than the result
+        # database, strip collation information
+        result_db_type = nil
+        result_set.database do |db|
+          result_db_type = db.database_type
+        end
+        if merged_field.database_type != result_db_type && merged_type.has_key?(:opts)
+          merged_type[:opts].delete(:collate)
+        end
+
         col = [merged_field.name, merged_type[:type], merged_type[:opts] || {}]
         schema << col
 

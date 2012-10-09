@@ -163,4 +163,12 @@ class UnitTests::TestMetaObject < Test::Unit::TestCase
     object = Linkage::MetaObject.new(123)
     assert_equal({:type => Fixnum}, object.ruby_type)
   end
+
+  test "database_type" do
+    dataset = mock('dataset')
+    field = stub_field('field', :dataset => dataset)
+    object = Linkage::MetaObject.new(field, :lhs)
+    dataset.expects(:database_type).returns(:mysql)
+    assert_equal :mysql, object.database_type
+  end
 end

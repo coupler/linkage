@@ -37,6 +37,11 @@ module Linkage
       raise NotImplementedError
     end
 
+    def database_type
+      ds = dataset
+      ds ? ds.database_type : nil
+    end
+
     def static?
       raise NotImplementedError
     end
@@ -49,8 +54,10 @@ module Linkage
     # @return [Linkage::MergeField]
     def merge(other, new_name = nil)
       schema_1 = self.ruby_type
+      db_type_1 = self.database_type
       schema_2 = other.ruby_type
-      if schema_1 == schema_2
+      db_type_2 = other.database_type
+      if schema_1 == schema_2 && db_type_1 == db_type_2
         result = schema_1
       else
         type_1 = schema_1[:type]
@@ -122,6 +129,11 @@ module Linkage
           result_opts[:fixed] = true
         end
 
+        # collation
+        if opts_1[:collate] != opts_2[:collate] || db_type_1 != db_type_2
+          result_opts.delete(:collate)
+        end
+
         result = {:type => result_type}
         result[:opts] = result_opts  unless result_opts.empty?
       end
@@ -131,7 +143,7 @@ module Linkage
       else
         name = self.name == other.name ? self.name : :"#{self.name}_#{other.name}"
       end
-      MergeField.new(name, result)
+      MergeField.new(name, result, db_type_1 == db_type_2 ? db_type_1 : nil)
     end
 
     private

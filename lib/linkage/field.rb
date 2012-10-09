@@ -63,6 +63,8 @@ module Linkage
           else
             {:type=>String}
           end
+        hsh[:collate] = collation
+
         hsh.delete_if { |k, v| v.nil? }
         @ruby_type = {:type => hsh.delete(:type)}
         @ruby_type[:opts] = hsh if !hsh.empty?
@@ -83,20 +85,23 @@ module Linkage
     end
 
     def collation
-      schema[:collate]
+      schema[:collation]
     end
   end
 
   # A special field used for merging two {Data} objects together. It
   # has no dataset or schema.
   class MergeField < Field
+    attr_reader :database_type
+
     # Create a new instance of MergeField.
     #
     # @param [Symbol] name The field's name
     # @param [Hash] ruby_type The field's schema information
-    def initialize(name, ruby_type)
+    def initialize(name, ruby_type, database_type = nil)
       @name = name
       @ruby_type = ruby_type
+      @database_type = database_type
     end
   end
 end
