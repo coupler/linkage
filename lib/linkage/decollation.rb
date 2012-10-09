@@ -1,10 +1,12 @@
 # encoding: utf-8
 module Linkage
   module Decollation
-    def decollate(string, adapter, collation)
-      case adapter
+    def decollate(string, database_type, collation)
+      case database_type
       when :mysql
         decollate_mysql(string, collation)
+      else
+        string
       end
     end
 
@@ -12,6 +14,8 @@ module Linkage
       case collation
       when :latin1_swedish_ci
         decollate_mysql_latin1_swedish_ci(string)
+      else
+        string
       end
     end
 

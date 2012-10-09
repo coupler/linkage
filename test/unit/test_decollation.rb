@@ -194,4 +194,8 @@ class UnitTests::TestDecollation < Test::Unit::TestCase
   test "mysql's latin1_swedish_ci ignores trailing spaces" do
     assert_equal "FOO", decollate("foo ", :mysql, :latin1_swedish_ci)
   end
+
+  test "unknown collation" do
+    assert_equal "fOo", decollate("fOo", :foo, :bar)
+  end
 end
