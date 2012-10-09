@@ -12,7 +12,7 @@ module Linkage
 
     def decollate_mysql(string, collation)
       case collation
-      when :latin1_swedish_ci
+      when "latin1_swedish_ci"
         decollate_mysql_latin1_swedish_ci(string)
       else
         string

@@ -51,6 +51,23 @@ class IntegrationTests::TestDataset < Test::Unit::TestCase
     assert_equal 3, groups.length
   end
 
+  test "each_group with alias" do
+    database do |db|
+      db.create_table(:foo) do
+        primary_key :id
+        String :bar
+      end
+      db[:foo].import([:id, :bar], [[1, 'foo'], [2, 'foo'], [3, 'bar'], [4, 'baz']])
+    end
+
+    ds = Linkage::Dataset.new(@tmpuri, "foo")
+    ds = ds.match(ds.field_set[:bar], :bar_baz)
+    ds.each_group do |group|
+      assert_equal({:bar_baz => "foo"}, group.values)
+      assert_equal(2, group.count)
+    end
+  end
+
   test "each_group with filters" do
     database do |db|
       db.create_table(:foo) do
@@ -69,5 +86,28 @@ class IntegrationTests::TestDataset < Test::Unit::TestCase
       groups << group
     end
     assert_equal 2, groups.length
+  end
+
+  test "each_group with collation" do
+    database_for('mysql') do |db|
+      db.create_table!(:foo) do
+        primary_key :id
+        String :bar, :collate => :latin1_swedish_ci
+      end
+      db[:foo].import([:id, :bar], [[1, 'fOo'], [2, 'foO'], [3, 'bar'], [4, 'baz']])
+    end
+
+    ds = Linkage::Dataset.new(database_options_for('mysql'), "foo")
+    ds = ds.match(ds.field_set[:bar])
+    groups = []
+    ds.each_group(1) do |group|
+      groups << group
+    end
+    expected = [
+      {:bar => 'BAR'},
+      {:bar => 'BAZ'},
+      {:bar => 'FOO'}
+    ]
+    assert_equal expected, groups.collect(&:decollated_values)
   end
 end

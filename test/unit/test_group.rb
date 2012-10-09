@@ -9,7 +9,7 @@ class UnitTests::TestGroup < Test::Unit::TestCase
   end
 
   test "decollate strings" do
-    test_ruby_type = { :type => String, :opts => { :collate => :latin1_swedish_ci } }
+    test_ruby_type = { :type => String, :opts => { :collate => "latin1_swedish_ci" } }
     group = Linkage::Group.new({:test => 'TeSt '}, {
       :count => 1, :id => 456, :ruby_types => { :test => test_ruby_type },
       :database_type => :mysql
@@ -20,7 +20,7 @@ class UnitTests::TestGroup < Test::Unit::TestCase
   test "don't decollate non-strings or strings without collation information" do
     ruby_types = {
       :foo => {
-        :type => String, :opts => { :collate => :latin1_swedish_ci }
+        :type => String, :opts => { :collate => "latin1_swedish_ci" }
       },
       :bar => {
         :type => Fixnum

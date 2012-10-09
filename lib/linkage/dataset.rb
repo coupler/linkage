@@ -59,9 +59,15 @@ module Linkage
     end
 
     def each_group(min = 2)
+      ruby_types = @_match.inject({}) do |hsh, m|
+        key = m[:alias] || m[:meta_object].to_expr
+        hsh[key] = m[:meta_object].ruby_type
+        hsh
+      end
+      options = {:database_type => database_type, :ruby_types => ruby_types }
       @dataset.group_and_count(*match_expressions).having{count >= min}.each do |row|
         count = row.delete(:count)
-        yield Group.new(row, {:count => count})
+        yield Group.new(row, options.merge(:count => count))
       end
     end
 
