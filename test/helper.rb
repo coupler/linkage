@@ -80,12 +80,12 @@ class Test::Unit::TestCase
     end
   end
 
-  def database_for(adapter, &block)
+  def database_for(adapter, options = {}, &block)
     config = database_options_for(adapter)
     if block
-      Sequel.connect(config, &block)
+      Sequel.connect(config, options, &block)
     else
-      Sequel.connect(config)
+      Sequel.connect(config, options)
     end
   end
 

@@ -264,15 +264,12 @@ module Linkage
           result_db_type = db.database_type
         end
         if merged_field.database_type != result_db_type && merged_type.has_key?(:opts)
-          merged_type[:opts].delete(:collate)
+          new_opts = merged_type[:opts].reject { |k, v| k == :collate }
+          merged_type = merged_type.merge(:opts => new_opts)
         end
 
         col = [merged_field.name, merged_type[:type], merged_type[:opts] || {}]
         schema << col
-
-        #if merged_type[:type] == String
-          #schema << ([:"#{merged_field.name}_orig"] + col[1..2])
-        #end
       end
 
       schema

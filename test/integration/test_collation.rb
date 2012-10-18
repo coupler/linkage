@@ -28,12 +28,11 @@ module IntegrationTests
           ["bar", "bar "],
         ])
       end
-      dataset = Linkage::Dataset.new(options, :foo, :logger => prefixed_logger("DATASET"))
+      dataset = Linkage::Dataset.new(options, :foo)
       tmpuri = @tmpuri
-      results_logger = prefixed_logger("RESULTS")
       conf = dataset.link_with(dataset) do
         (lhs[:foo].must == rhs[:bar]).exactly
-        save_results_in(tmpuri, :logger => results_logger)
+        save_results_in(tmpuri)
       end
       runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute

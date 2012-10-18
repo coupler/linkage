@@ -36,15 +36,19 @@ module Linkage
     end
 
     def add_group(group, dataset_id = nil)
+      original_values = group.values
+      values = group.decollated_values
       if !@groups_buffer
-        groups_headers = [:id] + group.values.keys
+        groups_headers = [:id] + values.keys
         @groups_buffer = ImportBuffer.new(@config.results_uri, :groups, groups_headers, @config.results_uri_options)
-        @original_groups_buffer = ImportBuffer.new(@config.results_uri, :original_groups, groups_headers, @config.results_uri_options)
+
+        original_groups_headers = [:id] + original_values.keys
+        @original_groups_buffer = ImportBuffer.new(@config.results_uri, :original_groups, original_groups_headers, @config.results_uri_options)
       end
+
       group_id = next_group_id
-      row = [group_id] + group.values.values
-      @groups_buffer.add(row)
-      @original_groups_buffer.add(row)
+      @groups_buffer.add([group_id] + values.values)
+      @original_groups_buffer.add([group_id] + original_values.values)
     end
 
     def flush!

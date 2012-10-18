@@ -89,29 +89,52 @@ module IntegrationTests
     end
 
     test "reacts properly when using two databases with different string equality methods" do
-      options = database_options_for('mysql')
-      database_for('mysql') do |db|
-        db.create_table!(:foo) { primary_key(:id); String(:one); String(:two) }
-        db[:foo].import([:id, :one, :two], [[1, "", "test"], [2, "", "test"], [3, " ", "test "], [4, "", "test"], [5, "", "junk"]])
+      foo_logger = nil #prefixed_logger("FOO")
+      bar_logger = nil #prefixed_logger("BAR")
 
-        db.create_table!(:bar) { primary_key(:id); String(:one); String(:two) }
-        db[:bar].import([:id, :one, :two], [[1, "", "junk"]])
+      database_for('mysql', :logger => foo_logger) do |db|
+        db.create_table!(:foo) do
+          primary_key(:id)
+          String :baz, :collate => "latin1_swedish_ci"
+        end
+        db[:foo].import([:id, :baz], [
+          [1, "tEst"],
+          [2, "teSt"],
+          [3, "tesT "],
+          [4, "TEST"],
+          [5, "junk"]
+        ])
       end
 
-      ds_1 = Linkage::Dataset.new(options, "foo", :single_threaded => true)
-      ds_2 = Linkage::Dataset.new(options, "bar", :single_threaded => true)
+      database_for('mysql', :logger => bar_logger) do |db|
+        db.create_table!(:bar) do
+          primary_key(:id)
+          String :baz, :collate => "latin1_swedish_ci"
+        end
+        db[:bar].import([:id, :baz], [
+          [1, "Test  "],
+          [2, "tEst "],
+          [3, "teSt"],
+          [4, "TEST"],
+          [5, "junk"]
+        ])
+      end
+
+      options = database_options_for('mysql')
+      ds_1 = Linkage::Dataset.new(options, "foo", :logger => foo_logger)
+      ds_2 = Linkage::Dataset.new(options, "bar", :logger => bar_logger)
       tmpuri = @tmpuri
+      results_logger = nil #prefixed_logger("RESULTS")
       conf = ds_1.link_with(ds_2) do
-        lhs[:one].must == rhs[:one]
-        lhs[:two].must == rhs[:two]
-        save_results_in(tmpuri)
+        lhs[:baz].must == rhs[:baz]
+        save_results_in(tmpuri, :logger => results_logger)
       end
 
       runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
       database do |db|
-        assert_equal 1, db[:groups].count
+        assert_equal 2, db[:groups].count
       end
     end
   end

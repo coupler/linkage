@@ -55,6 +55,7 @@ module Linkage
       else
         result.obj = obj.clone(new_opts)
       end
+
       result
     end
 
@@ -67,7 +68,8 @@ module Linkage
       options = {:database_type => database_type, :ruby_types => ruby_types }
       @dataset.group_and_count(*match_expressions).having{count >= min}.each do |row|
         count = row.delete(:count)
-        yield Group.new(row, options.merge(:count => count))
+        group = Group.new(row, options.merge(:count => count))
+        yield group
       end
     end
 
