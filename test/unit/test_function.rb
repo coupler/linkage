@@ -222,4 +222,12 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     func = klass.new('foo', :dataset => dataset)
     assert_nil func.collation
   end
+
+  test "special :any parameter" do
+    klass = new_function('foo', {:type => String}, [[:any]])
+    dataset = stub('dataset')
+    assert_nothing_raised do
+      klass.new('foo', :dataset => dataset)
+    end
+  end
 end

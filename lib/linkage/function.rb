@@ -129,7 +129,7 @@ module Linkage
           type = arg.class
           value = arg
         end
-        if parameters && !parameters[i].include?(type)
+        if parameters && parameters[i] != [:any] && !parameters[i].include?(type)
           raise TypeError, "expected type #{parameters[i].join(" or ")}, got #{type}"
         end
         @values << value
