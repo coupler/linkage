@@ -1,7 +1,6 @@
 module Linkage
   class Configuration
     class DSL
-
       # Class for visually comparing matched records
       class VisualComparisonWrapper
         attr_reader :dsl, :lhs, :rhs
@@ -168,7 +167,7 @@ module Linkage
       end
 
       def add_expectation(expectation)
-        @config.expectations << expectation
+        @config.add_expectation(expectation)
 
         if @config.linkage_type == :self
           case expectation.kind
@@ -220,28 +219,29 @@ module Linkage
       @linkage_type = dataset_1 == dataset_2 ? :self : :dual
       @expectations = []
       @visual_comparisons = []
+      @results_uri_options = {}
+      @decollation_needed = false
     end
 
     def configure(&block)
       DSL.new(self, &block)
+    end
 
-      # display warnings
-      results_database_warning_shown = false
-      @expectations.each do |expectation|
-        expectation.display_warnings
-        if !results_database_warning_shown &&
-            expectation.kind != :filter &&
-            expectation.merged_field.ruby_type[:type] == String &&
-            @dataset_1.database_type == @dataset_2.database_type
-
-          result_set.database do |db|
-            if db.database_type != @dataset_1.database_type
-              warn "NOTE: Your results database (#{db.database_type}) differs from the database type of your dataset(s) (#{@dataset_1.database_type}). Because you are comparing strings, you may encounter unexpected results, as different databases compare strings differently."
-              results_database_warning_shown = true
-            end
+    def results_uri=(uri)
+      @results_uri = uri
+      if !@decollation_needed
+        @expectations.each do |expectation|
+          if decollation_needed_for_expectation?(expectation)
+            @decollation_needed = true
+            break
           end
         end
       end
+      uri
+    end
+
+    def decollation_needed?
+      @decollation_needed
     end
 
     def groups_table_schema
@@ -275,6 +275,12 @@ module Linkage
       schema
     end
 
+    def add_expectation(expectation)
+      @expectations << expectation
+      @decollation_needed ||= decollation_needed_for_expectation?(expectation)
+      expectation
+    end
+
     def result_set
       @result_set ||= ResultSet.new(self)
     end
@@ -287,6 +293,25 @@ module Linkage
         dataset_2 = exp.apply_to(dataset_2, :rhs) if @linkage_type != :self
       end
       @linkage_type == :self ? [dataset_1, dataset_1] : [dataset_1, dataset_2]
+    end
+
+    private
+
+    def decollation_needed_for_expectation?(expectation)
+      if expectation.decollation_needed?
+        true
+      elsif results_uri && !expectation.is_a?(FilterExpectation)
+        result_set_database_type = ResultSet.new(self).database.database_type
+        database_types_differ =
+          result_set_database_type != dataset_1.database_type ||
+          result_set_database_type != dataset_2.database_type
+
+        merged_field = expectation.merged_field
+        merged_field.ruby_type[:type] == String &&
+          !merged_field.collation.nil? && database_types_differ
+      else
+        false
+      end
     end
   end
 end

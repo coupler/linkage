@@ -171,4 +171,16 @@ class UnitTests::TestMetaObject < Test::Unit::TestCase
     dataset.expects(:database_type).returns(:mysql)
     assert_equal :mysql, object.database_type
   end
+
+  test "#collation returns Data#collation" do
+    dataset = mock('dataset')
+    field = stub_field('field', :dataset => dataset, :collation => 'foo')
+    object = Linkage::MetaObject.new(field, :lhs)
+    assert_equal 'foo', object.collation
+  end
+
+  test "#collation returns nil when underlying object is not a Data object" do
+    object = Linkage::MetaObject.new(123, :lhs)
+    assert_nil object.collation
+  end
 end

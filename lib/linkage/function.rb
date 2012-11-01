@@ -89,6 +89,12 @@ module Linkage
       raise NotImplementedError
     end
 
+    # Returns `nil` by default. Subclasses should redefine this if
+    # there is a collation.
+    def collation
+      nil
+    end
+
     # @return [Sequel::SQL::Function]
     def to_expr(options = {})
       self.class.function_name.to_sym.sql_function(*@values)

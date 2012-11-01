@@ -215,4 +215,11 @@ class UnitTests::TestFunction < Test::Unit::TestCase
     func_2 = klass.new('foo', :dataset => dataset)
     assert func_1 == func_2
   end
+
+  test "collation returns nil by default" do
+    klass = new_function('foo', {:type => String}, [[String]])
+    dataset = stub('dataset')
+    func = klass.new('foo', :dataset => dataset)
+    assert_nil func.collation
+  end
 end

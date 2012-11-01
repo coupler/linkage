@@ -109,5 +109,16 @@ module Linkage
         {:type => @object.class}
       end
     end
+
+    # Returns the collation of the underlying object.
+    #
+    # @return [Symbol]
+    def collation
+      if @object.kind_of?(Linkage::Data)
+        @object.collation
+      else
+        nil
+      end
+    end
   end
 end

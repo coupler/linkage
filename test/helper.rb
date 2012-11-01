@@ -72,7 +72,14 @@ class Test::Unit::TestCase
   end
 
   def database_options_for(adapter)
-    config = database_config[adapter]
+    config =
+      if adapter == 'sqlite'
+        @tmpdir ||= Dir.mktmpdir('linkage')
+        { 'adapter' => 'sqlite', 'database' => File.join(@tmpdir, "foo") }
+      else
+        database_config[adapter]
+      end
+
     if config
       return config
     else
@@ -82,6 +89,7 @@ class Test::Unit::TestCase
 
   def database_for(adapter, options = {}, &block)
     config = database_options_for(adapter)
+
     if block
       Sequel.connect(config, options, &block)
     else
@@ -97,6 +105,12 @@ class Test::Unit::TestCase
       "[#{prefix}] #{result}"
     }
     logger
+  end
+
+  def teardown
+    if @tmpdir && File.exist?(@tmpdir)
+      FileUtils.remove_entry_secure(@tmpdir)
+    end
   end
 end
 

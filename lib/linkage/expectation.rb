@@ -74,6 +74,13 @@ module Linkage
     def display_warnings
     end
 
+    def decollation_needed?
+      merged_field.ruby_type[:type] == String && (
+        @meta_object_1.collation != @meta_object_2.collation ||
+        @meta_object_1.database_type != @meta_object_2.database_type
+      )
+    end
+
     protected
 
     def after_initialize
@@ -100,6 +107,10 @@ module Linkage
       end
 
       dataset.filter(self.to_expr)
+    end
+
+    def decollation_needed?
+      false
     end
 
     private

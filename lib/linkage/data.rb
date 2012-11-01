@@ -37,6 +37,10 @@ module Linkage
       raise NotImplementedError
     end
 
+    def collation
+      nil
+    end
+
     def database_type
       ds = dataset
       ds ? ds.database_type : nil

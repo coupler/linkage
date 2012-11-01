@@ -34,4 +34,10 @@ class UnitTests::TestTrim < Test::Unit::TestCase
   test "registers itself" do
     assert_equal Linkage::Function["trim"], Linkage::Functions::Trim
   end
+
+  test "collation returns argument collation if it exists" do
+    field_1 = stub_field('field 1', :name => :bar, :ruby_type => {:type => String}, :collation => 'foo', :dataset => stub('dataset'))
+    trim = Linkage::Functions::Trim.new(field_1)
+    assert_equal 'foo', trim.collation
+  end
 end

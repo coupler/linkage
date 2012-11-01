@@ -2,47 +2,34 @@ require 'helper'
 
 module IntegrationTests
   class TestConfiguration < Test::Unit::TestCase
-    def setup
-      @tmpdir = Dir.mktmpdir('linkage')
-      @tmpuri = "sqlite://" + File.join(@tmpdir, "foo")
-    end
-
-    def database(options = {}, &block)
-      Sequel.connect(@tmpuri, options, &block)
-    end
-
-    def teardown
-      FileUtils.remove_entry_secure(@tmpdir)
-    end
-
     test "linkage_type is self when the two datasets are the same" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
       end
 
-      dataset = Linkage::Dataset.new(@tmpuri, "foo")
+      dataset = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
       conf = Linkage::Configuration.new(dataset, dataset)
       assert_equal :self, conf.linkage_type
     end
 
     test "linkage_type is dual when the two datasets are different" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
         db.create_table(:bar) { primary_key(:id); String(:foo); String(:bar) }
       end
 
-      dataset_1 = Linkage::Dataset.new(@tmpuri, "foo")
-      dataset_2 = Linkage::Dataset.new(@tmpuri, "bar")
+      dataset_1 = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
+      dataset_2 = Linkage::Dataset.new(database_options_for('sqlite'), "bar")
       conf = Linkage::Configuration.new(dataset_1, dataset_2)
       assert_equal :dual, conf.linkage_type
     end
 
     test "linkage_type is cross when there's different filters on both sides" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
       end
 
-      dataset = Linkage::Dataset.new(@tmpuri, "foo")
+      dataset = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
       conf = Linkage::Configuration.new(dataset, dataset)
       conf.configure do
         lhs[:foo].must == "foo"
@@ -52,11 +39,11 @@ module IntegrationTests
     end
 
     test "linkage_type is self when there's identical static filters on each side" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
       end
 
-      dataset = Linkage::Dataset.new(@tmpuri, "foo")
+      dataset = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
       conf = Linkage::Configuration.new(dataset, dataset)
       conf.configure do
         lhs[:foo].must == "foo"
@@ -66,11 +53,11 @@ module IntegrationTests
     end
 
     test "static expectation" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
       end
 
-      dataset_1 = Linkage::Dataset.new(@tmpuri, "foo")
+      dataset_1 = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
       conf = Linkage::Configuration.new(dataset_1, dataset_1)
       conf.configure do
         lhs[:foo].must == "foo"
@@ -81,11 +68,11 @@ module IntegrationTests
     end
 
     test "complain if an invalid field is accessed" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
       end
 
-      dataset = Linkage::Dataset.new(@tmpuri, "foo")
+      dataset = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
       conf = Linkage::Configuration.new(dataset, dataset)
       assert_raises(ArgumentError) do
         conf.configure do
@@ -97,11 +84,11 @@ module IntegrationTests
     operators = [:>, :<, :>=, :<=]
     operators.each do |operator|
       test "DSL #{operator} filter operator" do
-        database do |db|
+        database_for('sqlite') do |db|
           db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
         end
 
-        dataset_1 = Linkage::Dataset.new(@tmpuri, "foo")
+        dataset_1 = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
         conf = Linkage::Configuration.new(dataset_1, dataset_1)
         conf.configure do
           lhs[:foo].must.send(operator, 123)
@@ -114,11 +101,11 @@ module IntegrationTests
     end
 
     test "must_not expectation" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
       end
 
-      dataset_1 = Linkage::Dataset.new(@tmpuri, "foo")
+      dataset_1 = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
       conf = Linkage::Configuration.new(dataset_1, dataset_1)
       conf.configure do
         lhs[:foo].must_not == "foo"
@@ -129,11 +116,11 @@ module IntegrationTests
     end
 
     test "static database function" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
       end
 
-      dataset_1 = Linkage::Dataset.new(@tmpuri, "foo")
+      dataset_1 = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
       conf = Linkage::Configuration.new(dataset_1, dataset_1)
       conf.configure do
         lhs[:foo].must == trim("foo")
@@ -144,11 +131,11 @@ module IntegrationTests
     end
 
     test "save_results_in" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
       end
 
-      dataset_1 = Linkage::Dataset.new(@tmpuri, "foo")
+      dataset_1 = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
       conf = Linkage::Configuration.new(dataset_1, dataset_1)
       conf.configure do
         save_results_in("mysql://localhost/results", {:foo => 'bar'})
@@ -158,18 +145,84 @@ module IntegrationTests
     end
 
     test "case insensitive field names" do
-      database do |db|
+      database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }
       end
 
       assert_nothing_raised do
-        dataset = Linkage::Dataset.new(@tmpuri, "foo")
-        tmpuri = @tmpuri
+        dataset = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
+        results_uri = database_options_for('sqlite')
         conf = dataset.link_with(dataset) do
           lhs[:Foo].must == rhs[:baR]
-          save_results_in(tmpuri)
+          save_results_in(results_uri)
         end
       end
+    end
+
+    test "decollation_needed? is false when the datasets and results dataset all have the same database and collations" do
+      database_for('mysql') do |db|
+        db.create_table!(:foo) { primary_key(:id); String(:foo, :collate => :latin1_swedish_ci) }
+        db.create_table!(:bar) { primary_key(:id); String(:foo, :collate => :latin1_swedish_ci) }
+      end
+
+      dataset_1 = Linkage::Dataset.new(database_options_for('mysql'), 'foo')
+      dataset_2 = Linkage::Dataset.new(database_options_for('mysql'), 'bar')
+      conf = dataset_1.link_with(dataset_2) do
+        lhs[:foo].must == rhs[:foo]
+      end
+      conf.results_uri = database_options_for('mysql')
+      assert !conf.decollation_needed?
+    end
+
+    test "decollation_needed? is true when the datasets have different database types" do
+      database_for('mysql') do |db|
+        db.create_table!(:foo) { primary_key(:id); String(:foo) }
+      end
+
+      database_for('sqlite') do |db|
+        db.create_table!(:foo) { primary_key(:id); String(:foo) }
+      end
+
+      dataset_1 = Linkage::Dataset.new(database_options_for('mysql'), 'foo')
+      dataset_2 = Linkage::Dataset.new(database_options_for('sqlite'), 'foo')
+      conf = dataset_1.link_with(dataset_2) do
+        lhs[:foo].must == rhs[:foo]
+      end
+      conf.results_uri = database_options_for('mysql')
+      assert conf.decollation_needed?
+    end
+
+    test "decollation_needed? is true when the result dataset has different database type than the datasets" do
+      database_for('mysql') do |db|
+        db.create_table!(:foo) { primary_key(:id); String(:foo) }
+        db.create_table!(:bar) { primary_key(:id); String(:foo) }
+      end
+
+      dataset_1 = Linkage::Dataset.new(database_options_for('mysql'), 'foo')
+      dataset_2 = Linkage::Dataset.new(database_options_for('mysql'), 'bar')
+      conf = dataset_1.link_with(dataset_2) do
+        lhs[:foo].must == rhs[:foo]
+      end
+      conf.results_uri = database_options_for('sqlite')
+      assert conf.decollation_needed?
+    end
+
+    test "decollation_needed? is false when not comparing string columns" do
+      database_for('mysql') do |db|
+        db.create_table!(:foo) { primary_key(:id); Fixnum(:foo) }
+      end
+
+      database_for('sqlite') do |db|
+        db.create_table!(:foo) { primary_key(:id); Fixnum(:foo) }
+      end
+
+      dataset_1 = Linkage::Dataset.new(database_options_for('mysql'), 'foo')
+      dataset_2 = Linkage::Dataset.new(database_options_for('sqlite'), 'foo')
+      conf = dataset_1.link_with(dataset_2) do
+        lhs[:foo].must == rhs[:foo]
+      end
+      conf.results_uri = database_options_for('mysql')
+      assert !conf.decollation_needed?
     end
   end
 end

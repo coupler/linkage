@@ -436,4 +436,10 @@ class UnitTests::TestData < Test::Unit::TestCase
     result_data = data_1.merge(data_2)
     assert_equal :mysql, result_data.database_type
   end
+
+  test "collation returns nil by default" do
+    dataset = stub('dataset')
+    data = new_data(:foo, {:type => String}, dataset)
+    assert_nil data.collation
+  end
 end

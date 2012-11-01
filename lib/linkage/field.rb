@@ -103,5 +103,9 @@ module Linkage
       @ruby_type = ruby_type
       @database_type = database_type
     end
+
+    def collation
+      @ruby_type.has_key?(:opts) ? @ruby_type[:opts][:collate] : nil
+    end
   end
 end

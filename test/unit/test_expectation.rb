@@ -234,4 +234,70 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     meta_object_2.expects(:objects_equal?).with(meta_object_2).returns(true)
     assert exp_1.same_except_side?(exp_2)
   end
+
+  test "#decollation_needed? is false when comparing non-string objects" do
+    dataset_1 = stub('dataset 1')
+    object_1 = stub('meta object 1', {
+      :static? => false, :side => :lhs, :dataset => dataset_1,
+    })
+    dataset_2 = stub('dataset 2')
+    object_2 = stub('meta object 2', {
+      :static? => false, :side => :rhs, :dataset => dataset_2,
+    })
+    merged_field = stub('merged field', :ruby_type => {:type => Fixnum})
+    object_1.stubs(:merge).with(object_2).returns(merged_field)
+    exp = Linkage::DualExpectation.new(object_1, object_2, :==)
+    assert !exp.decollation_needed?
+  end
+
+  test "#decollation_needed? is false when comparing two dynamic string objects with the same database type and same collation" do
+    dataset_1 = stub('dataset 1')
+    object_1 = stub('meta object 1', {
+      :static? => false, :side => :lhs, :dataset => dataset_1,
+      :collation => 'foo', :database_type => :mysql
+    })
+    dataset_2 = stub('dataset 2')
+    object_2 = stub('meta object 2', {
+      :static? => false, :side => :rhs, :dataset => dataset_2,
+      :collation => 'foo', :database_type => :mysql
+    })
+    merged_field = stub('merged field', :ruby_type => {:type => String})
+    object_1.stubs(:merge).with(object_2).returns(merged_field)
+    exp = Linkage::DualExpectation.new(object_1, object_2, :==)
+    assert !exp.decollation_needed?
+  end
+
+  test "#decollation_needed? is true when comparing two dynamic string objects with the same database type but different collations" do
+    dataset_1 = stub('dataset 1')
+    object_1 = stub('meta object 1', {
+      :static? => false, :side => :lhs, :dataset => dataset_1,
+      :collation => 'foo', :database_type => :mysql
+    })
+    dataset_2 = stub('dataset 2')
+    object_2 = stub('meta object 2', {
+      :static? => false, :side => :rhs, :dataset => dataset_2,
+      :collation => 'bar', :database_type => :mysql
+    })
+    merged_field = stub('merged field', :ruby_type => {:type => String})
+    object_1.stubs(:merge).with(object_2).returns(merged_field)
+    exp = Linkage::DualExpectation.new(object_1, object_2, :==)
+    assert exp.decollation_needed?
+  end
+
+  test "#decollation_needed? is true when comparing two dynamic string objects with same collation but different database types" do
+    dataset_1 = stub('dataset 1')
+    object_1 = stub('meta object 1', {
+      :static? => false, :side => :lhs, :dataset => dataset_1,
+      :collation => 'foo', :database_type => :foo
+    })
+    dataset_2 = stub('dataset 2')
+    object_2 = stub('meta object 2', {
+      :static? => false, :side => :rhs, :dataset => dataset_2,
+      :collation => 'foo', :database_type => :bar
+    })
+    merged_field = stub('merged field', :ruby_type => {:type => String})
+    object_1.stubs(:merge).with(object_2).returns(merged_field)
+    exp = Linkage::DualExpectation.new(object_1, object_2, :==)
+    assert exp.decollation_needed?
+  end
 end

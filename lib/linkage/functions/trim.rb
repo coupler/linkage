@@ -16,6 +16,14 @@ module Linkage
           {:type => String}
         end
       end
+
+      def collation
+        if @args[0].kind_of?(Data)
+          @args[0].collation
+        else
+          super
+        end
+      end
     end
     Function.register(Trim)
   end
