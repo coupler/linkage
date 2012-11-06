@@ -132,7 +132,10 @@ module Linkage
           raise ArgumentError, "Invalid `side` argument: #{side}"
         end
 
-      dataset.match(target, merged_field.name)
+      dataset.group_match_more({
+        :meta_object => target,
+        :alias => merged_field.name
+      })
     end
 
     def merged_field

@@ -55,6 +55,15 @@ class Test::Unit::TestCase
     f
   end
 
+  def stub_instance(klass, options = {}, &block)
+    f = klass.allocate
+    f.stubs(options)
+    if block
+      f.send(:instance_eval, &block)
+    end
+    f
+  end
+
   def new_function(name, ruby_type = nil, params = nil, &block)
     klass = Class.new(Linkage::Function)
     klass.send(:define_singleton_method, :function_name) { name }

@@ -38,7 +38,7 @@ class IntegrationTests::TestDataset < Test::Unit::TestCase
     end
 
     ds = Linkage::Dataset.new(@tmpuri, "foo")
-    ds = ds.match(ds.field_set[:bar])
+    ds = ds.group_match(Linkage::MetaObject.new(ds.field_set[:bar]))
     ds.each_group do |group|
       assert_equal({:bar => "foo"}, group.values)
       assert_equal(2, group.count)
@@ -61,7 +61,10 @@ class IntegrationTests::TestDataset < Test::Unit::TestCase
     end
 
     ds = Linkage::Dataset.new(@tmpuri, "foo")
-    ds = ds.match(ds.field_set[:bar], :bar_baz)
+    ds = ds.group_match({
+      :meta_object => Linkage::MetaObject.new(ds.field_set[:bar]),
+      :alias => :bar_baz
+    })
     ds.each_group do |group|
       assert_equal({:bar_baz => "foo"}, group.values)
       assert_equal(2, group.count)
@@ -79,7 +82,7 @@ class IntegrationTests::TestDataset < Test::Unit::TestCase
     end
 
     ds = Linkage::Dataset.new(@tmpuri, "foo")
-    ds = ds.match(ds.field_set[:bar])
+    ds = ds.group_match(Linkage::MetaObject.new(ds.field_set[:bar]))
     ds = ds.filter { baz >= 3 }
     groups = []
     ds.each_group(1) do |group|
@@ -98,7 +101,7 @@ class IntegrationTests::TestDataset < Test::Unit::TestCase
     end
 
     ds = Linkage::Dataset.new(database_options_for('mysql'), "foo")
-    ds = ds.match(ds.field_set[:bar])
+    ds = ds.group_match(Linkage::MetaObject.new(ds.field_set[:bar]))
     groups = []
     ds.each_group(1) do |group|
       groups << group

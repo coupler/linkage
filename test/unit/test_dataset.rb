@@ -35,22 +35,46 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     assert_equal :foo, ds.database_type
   end
 
-  test "add match object" do
+  test "set group_match" do
     ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     @dataset.expects(:clone).returns(@dataset)
-    meta_object = stub('meta object')
-    ds_2 = ds_1.match(meta_object)
+    meta_object = stub_instance(Linkage::MetaObject)
+    ds_2 = ds_1.group_match(meta_object)
     assert_not_same ds_1, ds_2
-    assert_not_equal ds_1.instance_variable_get(:@_match),
-      ds_2.instance_variable_get(:@_match)
+    assert_not_equal ds_1.instance_variable_get(:@linkage_options),
+      ds_2.instance_variable_get(:@linkage_options)
+  end
+
+  test "subsequent group_match replaces old options" do
+    ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    @dataset.expects(:clone).at_least_once.returns(@dataset)
+    meta_object_1 = stub_instance(Linkage::MetaObject)
+    ds_2 = ds_1.group_match(meta_object_1)
+    assert_equal([{:meta_object => meta_object_1}], ds_2.linkage_options[:group_match])
+
+    meta_object_2 = stub_instance(Linkage::MetaObject)
+    ds_3 = ds_2.group_match(meta_object_2)
+    assert_equal([{:meta_object => meta_object_2}], ds_3.linkage_options[:group_match])
+  end
+
+  test "group_match_more appends to group_match options" do
+    ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    @dataset.expects(:clone).at_least_once.returns(@dataset)
+    meta_object_1 = stub_instance(Linkage::MetaObject)
+    ds_2 = ds_1.group_match(meta_object_1)
+    assert_equal([{:meta_object => meta_object_1}], ds_2.linkage_options[:group_match])
+
+    meta_object_2 = stub_instance(Linkage::MetaObject)
+    ds_3 = ds_2.group_match_more(meta_object_2)
+    assert_equal([{:meta_object => meta_object_1}, {:meta_object => meta_object_2}], ds_3.linkage_options[:group_match])
   end
 
   test "group_by_matches" do
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
 
     @dataset.expects(:clone).returns(@dataset)
-    meta_object = stub('meta object', :to_expr => :foo)
-    ds = ds.match(meta_object)
+    meta_object = stub_instance(Linkage::MetaObject, :to_expr => :foo)
+    ds = ds.group_match(meta_object)
     @dataset.expects(:group).with(:foo).returns(@dataset)
 
     ds.group_by_matches
@@ -59,8 +83,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   test "dataset_for_group" do
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     @dataset.expects(:clone).returns(@dataset)
-    meta_object = stub('meta object', :to_expr => :foo)
-    ds = ds.match(meta_object, :foo_bar)
+    meta_object = stub_instance(Linkage::MetaObject, :to_expr => :foo)
+    ds = ds.group_match({:meta_object => meta_object, :alias => :foo_bar})
 
     group = stub("group", :values => {:foo_bar => 'baz'})
     filtered_dataset = stub('filtered dataset')
@@ -71,8 +95,8 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   test "dataset_for_group without aliases" do
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     @dataset.expects(:clone).returns(@dataset)
-    meta_object = stub('meta object', :to_expr => :foo)
-    ds = ds.match(meta_object)
+    meta_object = stub_instance(Linkage::MetaObject, :to_expr => :foo)
+    ds = ds.group_match(meta_object)
 
     group = stub("group", :values => {:foo => 'baz'})
     filtered_dataset = stub('filtered dataset')

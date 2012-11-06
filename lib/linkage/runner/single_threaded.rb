@@ -56,7 +56,8 @@ module Linkage
       groups_dataset.field_set.values.each do |field|
         # Sort on all fields
         if !field.primary_key?
-          groups_dataset = groups_dataset.match(field)
+          meta_object = MetaObject.new(field)
+          groups_dataset = groups_dataset.group_match_more(meta_object)
         end
       end
 
