@@ -8,7 +8,7 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 require 'test/unit'
-require 'mocha'
+require 'mocha/setup'
 require 'tmpdir'
 require 'logger'
 require 'pp'
@@ -72,6 +72,19 @@ class Test::Unit::TestCase
     end
     if params
       klass.send(:define_singleton_method, :parameters) { params }
+    end
+    klass
+  end
+
+  def new_comparator(name, params = nil, &block)
+    klass = Class.new(Linkage::Comparator)
+    klass.send(:define_singleton_method, :comparator_name) { name }
+    if params
+      klass.send(:define_singleton_method, :parameters) { params }
+    end
+    klass.send(:define_method, :score) { |record_1, record_2| 100 }
+    if block_given?
+      klass.class_eval(&block)
     end
     klass
   end

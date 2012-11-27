@@ -7,3 +7,4 @@ pkg
 test.rb
 results.db
 .rbenv-version
+bin

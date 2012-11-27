@@ -22,6 +22,7 @@ require path + 'expectation'
 require path + 'configuration'
 require path + 'result_set'
 require path + 'field_set'
+require path + 'comparator'
 
 Sequel.extension :collation
 if Sequel::Collation.respond_to?(:suppress_warnings=)
