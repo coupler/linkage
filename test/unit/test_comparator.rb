@@ -70,10 +70,20 @@ class UnitTests::TestComparator < Test::Unit::TestCase
     assert_raises(ArgumentError) { klass.new(meta_object, meta_object) }
   end
 
-  test "requires first argument to be non-static" do
-    klass = new_comparator('foo', [[String]])
+  test "requiring argument to be non-static" do
+    klass = new_comparator('foo', [[String, :static => false]])
     meta_object = stub('meta_object', :ruby_type => { :type => String }, :static? => true)
-    assert_raises(TypeError) { klass.new(meta_object) }
+    assert_raise_message("argument 1 was expected to not be static") do
+      klass.new(meta_object)
+    end
+  end
+
+  test "requiring argument to be static" do
+    klass = new_comparator('foo', [[String, :static => true]])
+    meta_object = stub('meta_object', :ruby_type => { :type => String }, :static? => false)
+    assert_raise_message("argument 1 was expected to be static") do
+      klass.new(meta_object)
+    end
   end
 
   test "special :any parameter" do

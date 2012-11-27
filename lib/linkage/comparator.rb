@@ -71,17 +71,28 @@ module Linkage
 
     def process_args
       parameters = self.class.parameters
-      if parameters && parameters.length != @args.length
+      if parameters.length != @args.length
         raise ArgumentError, "wrong number of arguments (#{@args.length} for #{parameters.length})"
       end
 
       @args.each_with_index do |arg, i|
         type = arg.ruby_type[:type]
-        if parameters && parameters[i] != [:any] && !parameters[i].include?(type)
+
+        parameter_types = parameters[i]
+        if parameter_types.last.is_a?(Hash)
+          parameter_options = parameter_types[-1]
+          parameter_types = parameter_types[0..-2]
+        else
+          parameter_options = {}
+        end
+
+        if parameter_types[0] != :any && !parameter_types.include?(type)
           raise TypeError, "expected type #{parameters[i].join(" or ")}, got #{type}"
         end
-        if i == 0 && arg.static?
-          raise TypeError, "first argument must not be static"
+
+        if parameter_options.has_key?(:static) &&
+              parameter_options[:static] != arg.static?
+          raise TypeError, "argument #{i + 1} was expected to #{arg.static? ? "not be" : "be"} static"
         end
       end
     end
