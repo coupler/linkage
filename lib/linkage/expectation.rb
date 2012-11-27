@@ -1,4 +1,11 @@
 module Linkage
+  # The Expectation class contains information about how two datasets
+  # should be linked.
+  #
+  # @!attribute side
+  #   The dataset this expectation applies to: `:lhs` or `:rhs`. This
+  #   only applies to filter expectations.
+  #   @return [Symbol]
   class Expectation
     VALID_OPERATORS = [:==, :'!=', :>, :<, :>=, :<=]
 
@@ -29,11 +36,7 @@ module Linkage
       klass.new(meta_object_1, meta_object_2, operator)
     end
 
-    # @!attribute [r] side
-    #   @return [Symbol] the dataset this expectation applies to: `:lhs` or `:rhs`
-    attr_reader :side
-
-    attr_reader :meta_object_1, :meta_object_2, :operator
+    attr_reader :meta_object_1, :meta_object_2, :operator, :side
 
     # Creates a new Expectation.
     #
