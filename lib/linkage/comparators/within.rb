@@ -1,6 +1,6 @@
 module Linkage
   module Comparators
-    class Within < Comparator
+    class Within < Binary
       @@parameters = [[Fixnum], [Fixnum], [Fixnum]]
       def self.parameters
         @@parameters
@@ -14,11 +14,7 @@ module Linkage
       end
 
       def score(record_1, record_2)
-        if (record_1[@name_1] - record_2[@name_2]).abs <= @value
-          100
-        else
-          0
-        end
+        (record_1[@name_1] - record_2[@name_2]).abs <= @value ? 1 : 0
       end
     end
   end

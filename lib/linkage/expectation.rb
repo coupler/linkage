@@ -2,6 +2,9 @@ module Linkage
   # The Expectation class contains information about how two datasets
   # should be linked.
   class Expectation
+    def kind
+      raise NotImplementedError
+    end
   end
 end
 

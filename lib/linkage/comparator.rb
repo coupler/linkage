@@ -1,7 +1,5 @@
 module Linkage
-  # Abstract class to represent record comparators.
-  #
-  # @abstract
+  # @abstract Abstract class to represent record comparators.
   class Comparator
     # Register a new comparator.
     #
@@ -28,28 +26,47 @@ module Linkage
       rescue NotImplementedError
         raise ArgumentError, "parameters class method must be defined"
       end
+
+      begin
+        range = klass.score_range
+        if !range.is_a?(Range) || !range.first.is_a?(Numeric) ||
+              !range.last.is_a?(Numeric)
+          raise ArgumentError, "score_range must be a Range of two numbers"
+        end
+      rescue NotImplementedError
+        raise ArgumentError, "score_range class method must be defined"
+      end
     end
 
     def self.[](name)
       @comparators ? @comparators[name] : nil
     end
 
-    # Subclasses must define this.
+    # @abstract Override this to return the name of the comparator.
+    # @return [String]
     def self.comparator_name
       raise NotImplementedError
     end
 
-    # Subclasses must define this to require a specific number of arguments
-    # of a certain class. To require two parameters of either String or
-    # Integer, do something like this:
+    # @abstract Override this to require a specific number of arguments of a
+    #   certain class. To require two parameters of either String or Integer,
+    #   do something like this:
     #
-    #   @@parameters = [[String, Integer], [String, Integer]]
-    #   def self.parameters
-    #     @@parameters
-    #   end
+    #     @@parameters = [[String, Integer], [String, Integer]]
+    #     def self.parameters
+    #       @@parameters
+    #     end
     #
-    # At least one argument must be defined.
+    #   At least one argument must be defined.
+    # @return [Array]
     def self.parameters
+      raise NotImplementedError
+    end
+
+    # @abstract Override this to return a Range of the possible scores for the
+    #   comparator.
+    # @return [Range]
+    def self.score_range
       raise NotImplementedError
     end
 
@@ -63,6 +80,9 @@ module Linkage
       process_args
     end
 
+    # @abstract Override this to return the score of the linkage strength of
+    #   two records.
+    # @return [Numeric]
     def score(record_1, record_2)
       raise NotImplementedError
     end

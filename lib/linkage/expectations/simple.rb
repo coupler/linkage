@@ -61,10 +61,6 @@ module Linkage
           meta_object_2.objects_equal?(other.meta_object_2)
       end
 
-      def kind
-        raise NotImplementedError
-      end
-
       def exactly!
         function_1 = Function['binary'].new(@meta_object_1.object, :dataset => @meta_object_1.dataset)
         function_2 = Function['binary'].new(@meta_object_2.object, :dataset => @meta_object_2.dataset)

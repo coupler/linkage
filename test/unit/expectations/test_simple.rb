@@ -1,6 +1,6 @@
 require 'helper'
 
-class UnitTests::TestExpectation < Test::Unit::TestCase
+class UnitTests::TestSimple < Test::Unit::TestCase
   test "initialize with invalid operator" do
     assert_raises(ArgumentError) do
       Linkage::Expectations::Simple.new(stub(), stub(), :foo)

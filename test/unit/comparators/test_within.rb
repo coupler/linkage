@@ -9,8 +9,8 @@ class UnitTests::TestWithin < Test::Unit::TestCase
     end
   end
 
-  test "subclass of Comparator" do
-    assert_equal Linkage::Comparator, Within.superclass
+  test "subclass of Binary" do
+    assert_equal Linkage::Comparators::Binary, Within.superclass
   end
 
   test "valid parameters" do
@@ -27,9 +27,9 @@ class UnitTests::TestWithin < Test::Unit::TestCase
     meta_object_2 = stub('meta object', :object => 123, :ruby_type => { :type => Fixnum }, :static? => true, :object => 123)
     meta_object_3 = stub('meta object', :name => :bar, :ruby_type => { :type => Fixnum }, :static? => false)
     comp = Within.new(meta_object_1, meta_object_2, meta_object_3)
-    assert_equal 100, comp.score({:foo => 123}, {:bar => 124})
-    assert_equal 100, comp.score({:foo => 124}, {:bar => 123})
-    assert_equal 100, comp.score({:foo => 0}, {:bar => 123})
+    assert_equal 1, comp.score({:foo => 123}, {:bar => 124})
+    assert_equal 1, comp.score({:foo => 124}, {:bar => 123})
+    assert_equal 1, comp.score({:foo => 0}, {:bar => 123})
     assert_equal 0, comp.score({:foo => 0}, {:bar => 124})
   end
 end
