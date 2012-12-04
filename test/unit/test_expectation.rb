@@ -3,15 +3,15 @@ require 'helper'
 class UnitTests::TestExpectation < Test::Unit::TestCase
   test "initialize with invalid operator" do
     assert_raises(ArgumentError) do
-      Linkage::Expectation.new(stub(), stub(), :foo)
+      Linkage::Expectations::Simple.new(stub(), stub(), :foo)
     end
   end
 
   test "creating filter expectation from a dynamic object and a static object" do
     field = stub('meta field', :static? => false, :side => :lhs)
     object = stub('meta object', :static? => true)
-    exp = Linkage::Expectation.create(field, object, :==)
-    assert_kind_of Linkage::FilterExpectation, exp
+    exp = Linkage::Expectations::Simple.create(field, object, :==)
+    assert_kind_of Linkage::Expectations::Filter, exp
     assert_equal :lhs, exp.side
   end
 
@@ -19,7 +19,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     object_1 = stub('meta object 1', :static? => true)
     object_2 = stub('meta object 2', :static? => true)
     assert_raises(ArgumentError) do
-      Linkage::Expectation.create(object_1, object_2, :==)
+      Linkage::Expectations::Simple.create(object_1, object_2, :==)
     end
   end
 
@@ -27,8 +27,8 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     field_1 = stub('meta field 1', :static? => false, :side => :lhs)
     field_2 = stub('meta field 2', :static? => false, :side => :lhs)
     field_1.expects(:datasets_equal?).with(field_2).returns(true)
-    exp = Linkage::Expectation.create(field_1, field_2, :==)
-    assert_kind_of Linkage::FilterExpectation, exp
+    exp = Linkage::Expectations::Simple.create(field_1, field_2, :==)
+    assert_kind_of Linkage::Expectations::Filter, exp
     assert_equal :lhs, exp.side
   end
 
@@ -37,7 +37,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     field_2 = stub('meta field 2', :static? => false, :side => :lhs)
     field_1.expects(:datasets_equal?).with(field_2).returns(false)
     assert_raises(ArgumentError) do
-      Linkage::Expectation.create(field_1, field_2, :==)
+      Linkage::Expectations::Simple.create(field_1, field_2, :==)
     end
   end
 
@@ -45,8 +45,8 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     object_1 = stub('meta object 1', :static? => false, :side => :lhs)
     object_2 = stub('meta object 2', :static? => false, :side => :rhs)
     object_1.expects(:objects_equal?).with(object_2).returns(true)
-    exp = Linkage::Expectation.create(object_1, object_2, :==)
-    assert_kind_of Linkage::SelfExpectation, exp
+    exp = Linkage::Expectations::Simple.create(object_1, object_2, :==)
+    assert_kind_of Linkage::Expectations::Self, exp
   end
 
   test "creating cross expectation from two dynamic objects with different sides but same dataset" do
@@ -54,8 +54,8 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     object_2 = stub('meta object 2', :static? => false, :side => :rhs)
     object_1.expects(:objects_equal?).with(object_2).returns(false)
     object_1.expects(:datasets_equal?).with(object_2).returns(true)
-    exp = Linkage::Expectation.create(object_1, object_2, :==)
-    assert_kind_of Linkage::CrossExpectation, exp
+    exp = Linkage::Expectations::Simple.create(object_1, object_2, :==)
+    assert_kind_of Linkage::Expectations::Cross, exp
   end
 
   test "creating dual expectation from two dynamic objects with different sides and datasets" do
@@ -63,8 +63,8 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     object_2 = stub('meta object 2', :static? => false, :side => :rhs)
     object_1.expects(:objects_equal?).with(object_2).returns(false)
     object_1.expects(:datasets_equal?).with(object_2).returns(false)
-    exp = Linkage::Expectation.create(object_1, object_2, :==)
-    assert_kind_of Linkage::DualExpectation, exp
+    exp = Linkage::Expectations::Simple.create(object_1, object_2, :==)
+    assert_kind_of Linkage::Expectations::Dual, exp
   end
 
   test "apply_to with filter expectation (== operator)" do
@@ -73,7 +73,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     meta_field_2 = stub('meta field 2', :static? => false, :side => :lhs)
     meta_field_1.stubs(:datasets_equal?).with(meta_field_2).returns(true)
 
-    exp = Linkage::Expectation.create(meta_field_1, meta_field_2, :==)
+    exp = Linkage::Expectations::Simple.create(meta_field_1, meta_field_2, :==)
     meta_field_1.expects(:to_expr).returns(:foo)
     meta_field_2.expects(:to_expr).returns(:bar)
     dataset.expects(:filter).with({:foo => :bar}).returns(dataset)
@@ -89,7 +89,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     meta_field_2 = stub('meta field 2', :static? => false, :side => :lhs)
     meta_field_1.stubs(:datasets_equal?).with(meta_field_2).returns(true)
 
-    exp = Linkage::Expectation.create(meta_field_1, meta_field_2, :'!=')
+    exp = Linkage::Expectations::Simple.create(meta_field_1, meta_field_2, :'!=')
     meta_field_1.expects(:to_expr).returns(:foo)
     meta_field_2.expects(:to_expr).returns(:bar)
     dataset.expects(:filter).with(~{:foo => :bar}).returns(dataset)
@@ -104,7 +104,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     meta_field_1 = stub('meta field 1', :static? => false, :side => :lhs)
     meta_field_2 = stub('meta field 2', :static? => false, :side => :lhs)
     meta_field_1.stubs(:datasets_equal?).with(meta_field_2).returns(true)
-    exp = Linkage::Expectation.create(meta_field_1, meta_field_2, :>)
+    exp = Linkage::Expectations::Simple.create(meta_field_1, meta_field_2, :>)
 
     identifier_1 = Sequel::SQL::Identifier.new(:foo)
     meta_field_1.expects(:to_identifier).returns(identifier_1)
@@ -130,7 +130,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
       :to_expr => :foo
     })
     object_1.expects(:objects_equal?).with(object_2).returns(true)
-    exp = Linkage::Expectation.create(object_1, object_2, :==)
+    exp = Linkage::Expectations::Simple.create(object_1, object_2, :==)
 
     merged_field = stub('merged field', :name => :foo)
     object_1.expects(:merge).with(object_2).returns(merged_field)
@@ -153,7 +153,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     })
     object_1.stubs(:objects_equal?).with(object_2).returns(false)
     object_1.stubs(:datasets_equal?).with(object_2).returns(true)
-    exp = Linkage::Expectation.create(object_1, object_2, :==)
+    exp = Linkage::Expectations::Simple.create(object_1, object_2, :==)
 
     merged_field = stub('merged field', :name => :foo_bar)
     object_1.expects(:merge).with(object_2).returns(merged_field)
@@ -177,7 +177,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     })
     object_1.stubs(:objects_equal?).with(object_2).returns(false)
     object_1.stubs(:datasets_equal?).with(object_2).returns(false)
-    exp = Linkage::Expectation.create(object_1, object_2, :==)
+    exp = Linkage::Expectations::Simple.create(object_1, object_2, :==)
 
     merged_field = stub('merged field', :name => :foo)
     object_1.expects(:merge).with(object_2).returns(merged_field)
@@ -200,7 +200,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
                          :object => field_2, :dataset => dataset_2)
     meta_object_1.stubs(:objects_equal?).with(meta_object_2).returns(true)
 
-    exp = Linkage::Expectation.create(meta_object_1, meta_object_2, :==)
+    exp = Linkage::Expectations::Simple.create(meta_object_1, meta_object_2, :==)
 
     klass = Linkage::Functions::Binary
     func_1 = stub('binary function 1')
@@ -227,8 +227,8 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
       :static? => false, :side => :rhs, :object => field
     })
 
-    exp_1 = Linkage::Expectation.create(meta_object_1, meta_object_2, :==)
-    exp_2 = Linkage::Expectation.create(meta_object_3, meta_object_2, :==)
+    exp_1 = Linkage::Expectations::Simple.create(meta_object_1, meta_object_2, :==)
+    exp_2 = Linkage::Expectations::Simple.create(meta_object_3, meta_object_2, :==)
 
     meta_object_1.expects(:objects_equal?).with(meta_object_3).returns(true)
     meta_object_2.expects(:objects_equal?).with(meta_object_2).returns(true)
@@ -246,7 +246,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     })
     merged_field = stub('merged field', :ruby_type => {:type => Fixnum})
     object_1.stubs(:merge).with(object_2).returns(merged_field)
-    exp = Linkage::DualExpectation.new(object_1, object_2, :==)
+    exp = Linkage::Expectations::Dual.new(object_1, object_2, :==)
     assert !exp.decollation_needed?
   end
 
@@ -263,7 +263,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     })
     merged_field = stub('merged field', :ruby_type => {:type => String})
     object_1.stubs(:merge).with(object_2).returns(merged_field)
-    exp = Linkage::DualExpectation.new(object_1, object_2, :==)
+    exp = Linkage::Expectations::Dual.new(object_1, object_2, :==)
     assert !exp.decollation_needed?
   end
 
@@ -280,7 +280,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     })
     merged_field = stub('merged field', :ruby_type => {:type => String})
     object_1.stubs(:merge).with(object_2).returns(merged_field)
-    exp = Linkage::DualExpectation.new(object_1, object_2, :==)
+    exp = Linkage::Expectations::Dual.new(object_1, object_2, :==)
     assert exp.decollation_needed?
   end
 
@@ -297,7 +297,7 @@ class UnitTests::TestExpectation < Test::Unit::TestCase
     })
     merged_field = stub('merged field', :ruby_type => {:type => String})
     object_1.stubs(:merge).with(object_2).returns(merged_field)
-    exp = Linkage::DualExpectation.new(object_1, object_2, :==)
+    exp = Linkage::Expectations::Dual.new(object_1, object_2, :==)
     assert exp.decollation_needed?
   end
 end

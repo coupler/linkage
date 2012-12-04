@@ -58,7 +58,8 @@ module Linkage
             exp_operator = @type == :must_not ? OPERATOR_OPPOSITES[operator] : operator
 
             rhs_meta_object = rhs.is_a?(DataWrapper) ? rhs.meta_object : MetaObject.new(rhs)
-            @expectation = Expectation.create(@lhs.meta_object, rhs_meta_object, exp_operator)
+            @expectation = Expectations::Simple.create(@lhs.meta_object,
+              rhs_meta_object, exp_operator)
             @dsl.add_expectation(@expectation)
             self
           end
@@ -300,7 +301,7 @@ module Linkage
     def decollation_needed_for_expectation?(expectation)
       if expectation.decollation_needed?
         true
-      elsif results_uri && !expectation.is_a?(FilterExpectation)
+      elsif results_uri && !expectation.is_a?(Expectations::Filter)
         result_set_database_type = ResultSet.new(self).database.database_type
         database_types_differ =
           result_set_database_type != dataset_1.database_type ||
