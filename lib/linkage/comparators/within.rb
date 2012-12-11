@@ -1,9 +1,14 @@
 module Linkage
   module Comparators
     class Within < Binary
-      @@parameters = [[Fixnum], [Fixnum], [Fixnum]]
+      @@parameters = [[Integer], [Fixnum], [Integer]]
       def self.parameters
         @@parameters
+      end
+
+      @@comparator_name = 'within'
+      def self.comparator_name
+        @@comparator_name
       end
 
       def initialize(*args)
@@ -17,5 +22,7 @@ module Linkage
         (record_1[@name_1] - record_2[@name_2]).abs <= @value ? 1 : 0
       end
     end
+
+    Comparator.register(Within)
   end
 end

@@ -22,7 +22,7 @@ module Linkage
         end
       end
 
-      class ExpectationWrapper
+      class SimpleExpectationWrapper
         VALID_OPERATORS = [:==, :>, :<, :>=, :<=]
         OPERATOR_OPPOSITES = {
           :==   => :'!=',
@@ -32,36 +32,40 @@ module Linkage
           :>=   => :<
         }
 
-        def initialize(dsl, type, lhs)
+        def initialize(dsl, type, lhs, *args)
           @dsl = dsl
           @type = type
           @lhs = lhs
         end
 
+        def compare_with(operator, rhs)
+          # NOTE: lhs is always a DataWrapper
+
+          if !rhs.is_a?(DataWrapper) || @lhs.static? || rhs.static? || @lhs.side == rhs.side
+            @side = !@lhs.static? ? @lhs.side : rhs.side
+
+            # If one of the objects in this comparison is a static function, we need to set the side
+            # and the dataset based on the other object
+            if rhs.is_a?(DataWrapper) && !rhs.static? && @lhs.is_a?(FunctionWrapper) && @lhs.static?
+              @lhs.dataset = rhs.dataset
+              @lhs.side = @side
+            elsif @lhs.is_a?(DataWrapper) && !@lhs.static? && rhs.is_a?(FunctionWrapper) && rhs.static?
+              rhs.dataset = @lhs.dataset
+              rhs.side = @side
+            end
+          end
+          exp_operator = @type == :must_not ? OPERATOR_OPPOSITES[operator] : operator
+
+          rhs_meta_object = rhs.is_a?(DataWrapper) ? rhs.meta_object : MetaObject.new(rhs)
+          @expectation = Expectations::Simple.create(@lhs.meta_object,
+            rhs_meta_object, exp_operator)
+          @dsl.add_expectation(@expectation)
+          self
+        end
+
         VALID_OPERATORS.each do |operator|
           define_method(operator) do |rhs|
-            # NOTE: lhs is always a DataWrapper
-
-            if !rhs.is_a?(DataWrapper) || @lhs.static? || rhs.static? || @lhs.side == rhs.side
-              @side = !@lhs.static? ? @lhs.side : rhs.side
-
-              # If one of the objects in this comparison is a static function, we need to set the side
-              # and the dataset based on the other object
-              if rhs.is_a?(DataWrapper) && !rhs.static? && @lhs.is_a?(FunctionWrapper) && @lhs.static?
-                @lhs.dataset = rhs.dataset
-                @lhs.side = @side
-              elsif @lhs.is_a?(DataWrapper) && !@lhs.static? && rhs.is_a?(FunctionWrapper) && rhs.static?
-                rhs.dataset = @lhs.dataset
-                rhs.side = @side
-              end
-            end
-            exp_operator = @type == :must_not ? OPERATOR_OPPOSITES[operator] : operator
-
-            rhs_meta_object = rhs.is_a?(DataWrapper) ? rhs.meta_object : MetaObject.new(rhs)
-            @expectation = Expectations::Simple.create(@lhs.meta_object,
-              rhs_meta_object, exp_operator)
-            @dsl.add_expectation(@expectation)
-            self
+            compare_with(operator, rhs)
           end
         end
 
@@ -80,8 +84,19 @@ module Linkage
         end
 
         [:must, :must_not].each do |type|
-          define_method(type) do
-            ExpectationWrapper.new(@dsl, type, self)
+          define_method(type) do |*args|
+            if args.length > 0
+              wrapper = args[0]
+              comparator = wrapper.to_comparator(self)
+
+              score_range = wrapper.klass.score_range
+              threshold = type == :must ? score_range.last : score_range.first
+
+              expectation = Expectations::Exhaustive.new(comparator, threshold, :equal)
+              @dsl.add_expectation(expectation)
+            else
+              SimpleExpectationWrapper.new(@dsl, type, self)
+            end
           end
         end
 
@@ -126,6 +141,28 @@ module Linkage
             end
           end
           @meta_object = MetaObject.new(klass.new(*function_args), side)
+        end
+      end
+
+      class ComparatorWrapper
+        attr_reader :klass, :args
+
+        def initialize(dsl, klass, args)
+          @dsl = dsl
+          @klass = klass
+          @args = args
+        end
+
+        def of(*args)
+          @args.push(*args)
+          self
+        end
+
+        def to_comparator(receiver)
+          comparator_args = ([receiver] + @args).collect do |arg|
+            arg.is_a?(DataWrapper) ? arg.meta_object : MetaObject.new(arg)
+          end
+          comparator = klass.new(*comparator_args)
         end
       end
 
@@ -200,13 +237,24 @@ module Linkage
         @config.visual_comparisons << visual_comparison
       end
 
-      # For handling functions
       def method_missing(name, *args, &block)
-        klass = Function[name.to_s]
-        if klass
-          FunctionWrapper.new(self, klass, args)
+        # check for comparators
+        md = name.to_s.match(/^be_(.+)$/)
+        if md
+          klass = Comparator[md[1]]
+          if klass
+            ComparatorWrapper.new(self, klass, args)
+          else
+            super
+          end
         else
-          super
+          # check for functions
+          klass = Function[name.to_s]
+          if klass
+            FunctionWrapper.new(self, klass, args)
+          else
+            super
+          end
         end
       end
     end

@@ -224,5 +224,16 @@ module IntegrationTests
       conf.results_uri = database_options_for('mysql')
       assert !conf.decollation_needed?
     end
+
+    test "creating comparator expectation for within" do
+      database_for('mysql') do |db|
+        db.create_table!(:foo) { primary_key(:id); Integer(:foo) }
+      end
+      dataset = Linkage::Dataset.new(database_options_for('mysql'), 'foo')
+
+      conf = dataset.link_with(dataset) do
+        lhs[:foo].must be_within(5).of(rhs[:foo])
+      end
+    end
   end
 end

@@ -183,4 +183,15 @@ class UnitTests::TestMetaObject < Test::Unit::TestCase
     object = Linkage::MetaObject.new(123, :lhs)
     assert_nil object.collation
   end
+
+  test "#name for data object" do
+    field = stub_field('foo', :name => :foo)
+    object = Linkage::MetaObject.new(field, :lhs)
+    assert_equal :foo, object.name
+  end
+
+  test "#name for non-data object returns nil" do
+    object = Linkage::MetaObject.new(123)
+    assert_nil object.name
+  end
 end

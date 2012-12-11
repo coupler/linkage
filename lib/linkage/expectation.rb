@@ -5,6 +5,10 @@ module Linkage
     def kind
       raise NotImplementedError
     end
+
+    def decollation_needed?
+      false
+    end
   end
 end
 

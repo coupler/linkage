@@ -85,6 +85,16 @@ module Linkage
       end
     end
 
+    # Return the name of the object for {Data} objects, nil for others.
+    # @return [Symbol, nil]
+    def name
+      if @object.kind_of?(Linkage::Data)
+        @object.name
+      else
+        nil
+      end
+    end
+
     # Returns a {MergeField} if both objects are {Data} objects, otherwise,
     # raises an exception.
     #
