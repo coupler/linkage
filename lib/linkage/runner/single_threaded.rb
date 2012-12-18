@@ -14,7 +14,7 @@ module Linkage
     private
 
     def setup_datasets
-      @dataset_1, @dataset_2 = config.datasets_with_applied_expectations
+      @dataset_1, @dataset_2 = config.datasets_with_applied_simple_expectations
 
       pk = @dataset_1.field_set.primary_key
       @dataset_1 = @dataset_1.select(pk.to_expr)

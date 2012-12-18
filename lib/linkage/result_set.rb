@@ -74,7 +74,7 @@ module Linkage
     end
 
     def groups_records_datasets(group)
-      datasets = @config.datasets_with_applied_expectations
+      datasets = @config.datasets_with_applied_simple_expectations
       datasets.collect! { |ds| ds.dataset_for_group(group) }
     end
 

@@ -59,7 +59,7 @@ module Linkage
           rhs_meta_object = rhs.is_a?(DataWrapper) ? rhs.meta_object : MetaObject.new(rhs)
           @expectation = Expectations::Simple.create(@lhs.meta_object,
             rhs_meta_object, exp_operator)
-          @dsl.add_expectation(@expectation)
+          @dsl.add_simple_expectation(@expectation)
           self
         end
 
@@ -93,7 +93,7 @@ module Linkage
               threshold = type == :must ? score_range.last : score_range.first
 
               expectation = Expectations::Exhaustive.new(comparator, threshold, :equal)
-              @dsl.add_expectation(expectation)
+              @dsl.add_exhaustive_expectation(expectation)
             else
               SimpleExpectationWrapper.new(@dsl, type, self)
             end
@@ -204,8 +204,8 @@ module Linkage
         @config.results_uri_options = options
       end
 
-      def add_expectation(expectation)
-        @config.add_expectation(expectation)
+      def add_simple_expectation(expectation)
+        @config.add_simple_expectation(expectation)
 
         if @config.linkage_type == :self
           case expectation.kind
@@ -231,6 +231,10 @@ module Linkage
             end
           end
         end
+      end
+
+      def add_exhaustive_expectation(expectation)
+        @config.add_exhaustive_expectation(expectation)
       end
 
       def add_visual_comparison(visual_comparison)
@@ -259,14 +263,16 @@ module Linkage
       end
     end
 
-    attr_reader :dataset_1, :dataset_2, :expectations, :visual_comparisons
+    attr_reader :dataset_1, :dataset_2, :simple_expectations,
+      :exhaustive_expectations, :visual_comparisons
     attr_accessor :linkage_type, :results_uri, :results_uri_options
 
     def initialize(dataset_1, dataset_2)
       @dataset_1 = dataset_1
       @dataset_2 = dataset_2
       @linkage_type = dataset_1 == dataset_2 ? :self : :dual
-      @expectations = []
+      @simple_expectations = []
+      @exhaustive_expectations = []
       @visual_comparisons = []
       @results_uri_options = {}
       @decollation_needed = false
@@ -279,8 +285,8 @@ module Linkage
     def results_uri=(uri)
       @results_uri = uri
       if !@decollation_needed
-        @expectations.each do |expectation|
-          if decollation_needed_for_expectation?(expectation)
+        @simple_expectations.each do |expectation|
+          if decollation_needed_for_simple_expectation?(expectation)
             @decollation_needed = true
             break
           end
@@ -300,7 +306,7 @@ module Linkage
       schema << [:id, Integer, {:primary_key => true}]
 
       # add values
-      @expectations.each do |exp|
+      @simple_expectations.each do |exp|
         next  if exp.kind == :filter
 
         merged_field = exp.merged_field
@@ -324,9 +330,14 @@ module Linkage
       schema
     end
 
-    def add_expectation(expectation)
-      @expectations << expectation
-      @decollation_needed ||= decollation_needed_for_expectation?(expectation)
+    def add_simple_expectation(expectation)
+      @simple_expectations << expectation
+      @decollation_needed ||= decollation_needed_for_simple_expectation?(expectation)
+      expectation
+    end
+
+    def add_exhaustive_expectation(expectation)
+      @exhaustive_expectations << expectation
       expectation
     end
 
@@ -334,10 +345,10 @@ module Linkage
       @result_set ||= ResultSet.new(self)
     end
 
-    def datasets_with_applied_expectations
+    def datasets_with_applied_simple_expectations
       dataset_1 = @dataset_1
       dataset_2 = @dataset_2
-      @expectations.each do |exp|
+      @simple_expectations.each do |exp|
         dataset_1 = exp.apply_to(dataset_1, :lhs)
         dataset_2 = exp.apply_to(dataset_2, :rhs) if @linkage_type != :self
       end
@@ -346,10 +357,10 @@ module Linkage
 
     private
 
-    def decollation_needed_for_expectation?(expectation)
+    def decollation_needed_for_simple_expectation?(expectation)
       if expectation.decollation_needed?
         true
-      elsif results_uri && !expectation.is_a?(Expectations::Filter)
+      elsif results_uri && expectation.kind != :filter
         result_set_database_type = ResultSet.new(self).database.database_type
         database_types_differ =
           result_set_database_type != dataset_1.database_type ||

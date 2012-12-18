@@ -63,7 +63,7 @@ module IntegrationTests
         lhs[:foo].must == "foo"
       end
 
-      dataset_2, _ = conf.datasets_with_applied_expectations
+      dataset_2, _ = conf.datasets_with_applied_simple_expectations
       assert_equal dataset_2.obj, dataset_1.filter(:foo => "foo").obj
     end
 
@@ -95,7 +95,7 @@ module IntegrationTests
         end
 
         expr = Sequel::SQL::BooleanExpression.new(operator, Sequel::SQL::Identifier.new(:foo), 123)
-        dataset_2, _ = conf.datasets_with_applied_expectations
+        dataset_2, _ = conf.datasets_with_applied_simple_expectations
         assert_equal dataset_2.obj, dataset_1.filter(expr).obj
       end
     end
@@ -111,7 +111,7 @@ module IntegrationTests
         lhs[:foo].must_not == "foo"
       end
 
-      dataset_2, _ = conf.datasets_with_applied_expectations
+      dataset_2, _ = conf.datasets_with_applied_simple_expectations
       assert_equal dataset_2.obj, dataset_1.filter(~{:foo => "foo"}).obj
     end
 
@@ -126,7 +126,7 @@ module IntegrationTests
         lhs[:foo].must == trim("foo")
       end
 
-      dataset_2, _ = conf.datasets_with_applied_expectations
+      dataset_2, _ = conf.datasets_with_applied_simple_expectations
       assert_equal dataset_1.filter({:foo => :trim.sql_function("foo")}).obj, dataset_2.obj
     end
 
