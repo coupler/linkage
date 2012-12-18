@@ -36,5 +36,50 @@ module IntegrationTests
       conf.result_set.create_tables!
       assert_not_include conf.result_set.database.tables, :original_groups
     end
+
+    test "#create_tables! doesn't create groups table when not needed" do
+      database_for('sqlite') do |db|
+        db.create_table!(:foo) { primary_key(:id); Integer(:foo) }
+      end
+
+      dataset = Linkage::Dataset.new(database_options_for('sqlite'), 'foo')
+      results_uri = database_options_for('sqlite')
+      conf = dataset.link_with(dataset) do
+        lhs[:foo].must be_within(5).of(rhs[:foo])
+        save_results_in(results_uri)
+      end
+      conf.result_set.create_tables!
+      assert_not_include conf.result_set.database.tables, :groups
+    end
+
+    test "#create_tables! creates scores table when there are exhaustive expectations" do
+      database_for('sqlite') do |db|
+        db.create_table!(:foo) { primary_key(:id); Integer(:foo) }
+      end
+
+      dataset = Linkage::Dataset.new(database_options_for('sqlite'), 'foo')
+      results_uri = database_options_for('sqlite')
+      conf = dataset.link_with(dataset) do
+        lhs[:foo].must be_within(5).of(rhs[:foo])
+        save_results_in(results_uri)
+      end
+      conf.result_set.create_tables!
+      assert_include conf.result_set.database.tables, :scores
+    end
+
+    test "#create_tables! doesn't create scores table when not needed" do
+      database_for('sqlite') do |db|
+        db.create_table!(:foo) { primary_key(:id); Integer(:foo) }
+      end
+
+      dataset = Linkage::Dataset.new(database_options_for('sqlite'), 'foo')
+      results_uri = database_options_for('sqlite')
+      conf = dataset.link_with(dataset) do
+        lhs[:foo].must == rhs[:foo]
+        save_results_in(results_uri)
+      end
+      conf.result_set.create_tables!
+      assert_not_include conf.result_set.database.tables, :scores
+    end
   end
 end

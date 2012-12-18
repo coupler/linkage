@@ -16,15 +16,24 @@ module Linkage
 
     def create_tables!
       database do |db|
-        schema = @config.groups_table_schema
-        if @config.decollation_needed?
-          db.create_table(:original_groups) do
+        if @config.groups_table_needed?
+          schema = @config.groups_table_schema
+          if @config.decollation_needed?
+            db.create_table(:original_groups) do
+              schema.each { |col| column(*col) }
+            end
+          end
+
+          db.create_table(:groups) do
             schema.each { |col| column(*col) }
           end
         end
 
-        db.create_table(:groups) do
-          schema.each { |col| column(*col) }
+        if @config.scores_table_needed?
+          schema = @config.scores_table_schema
+          db.create_table(:scores) do
+            schema.each { |col| column(*col) }
+          end
         end
 
         pk_type = @config.dataset_1.field_set.primary_key.merge(@config.dataset_2.field_set.primary_key).ruby_type

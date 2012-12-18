@@ -330,6 +330,29 @@ module Linkage
       schema
     end
 
+    def scores_table_schema
+      schema = []
+
+      # add id
+      schema << [:id, Integer, {:primary_key => true}]
+
+      # add record ids
+      pk = dataset_1.field_set.primary_key
+      ruby_type = pk.ruby_type
+      schema << [:record_1_id, ruby_type[:type], ruby_type[:opts] || {}]
+
+      pk = dataset_2.field_set.primary_key
+      ruby_type = pk.ruby_type
+      schema << [:record_2_id, ruby_type[:type], ruby_type[:opts] || {}]
+
+      # add values
+      1.upto(@exhaustive_expectations.length) do |i|
+        schema << [:"score_#{i}", Integer, {}]
+      end
+
+      schema
+    end
+
     def add_simple_expectation(expectation)
       @simple_expectations << expectation
       @decollation_needed ||= decollation_needed_for_simple_expectation?(expectation)
@@ -353,6 +376,14 @@ module Linkage
         dataset_2 = exp.apply_to(dataset_2, :rhs) if @linkage_type != :self
       end
       @linkage_type == :self ? [dataset_1, dataset_1] : [dataset_1, dataset_2]
+    end
+
+    def groups_table_needed?
+      !@simple_expectations.empty?
+    end
+
+    def scores_table_needed?
+      !@exhaustive_expectations.empty?
     end
 
     private
