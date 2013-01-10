@@ -52,10 +52,10 @@ module Linkage
         values = group.decollated_values
         if !@groups_buffer
           groups_headers = [:id] + values.keys
-          @groups_buffer = ImportBuffer.new(@config.results_uri, :groups, groups_headers, @config.results_uri_options)
+          @groups_buffer = ImportBuffer.new(database[:groups], groups_headers)
 
           original_groups_headers = [:id] + original_values.keys
-          @original_groups_buffer = ImportBuffer.new(@config.results_uri, :original_groups, original_groups_headers, @config.results_uri_options)
+          @original_groups_buffer = ImportBuffer.new(database[:original_groups], original_groups_headers)
         end
 
         group_id = next_group_id
@@ -66,7 +66,7 @@ module Linkage
         values = group.values
         if !@groups_buffer
           groups_headers = [:id] + values.keys
-          @groups_buffer = ImportBuffer.new(@config.results_uri, :groups, groups_headers, @config.results_uri_options)
+          @groups_buffer = ImportBuffer.new(database[:groups], groups_headers)
         end
         group_id = next_group_id
         @groups_buffer.add([group_id] + values.values)
@@ -76,7 +76,7 @@ module Linkage
     def add_score(comparator_id, record_1_id, record_2_id, score)
       if !@scores_buffer
         scores_headers = [:comparator_id, :record_1_id, :record_2_id, :score]
-        @scores_buffer = ImportBuffer.new(@config.results_uri, :scores, scores_headers, @config.results_uri_options)
+        @scores_buffer = ImportBuffer.new(database[:scores], scores_headers)
       end
       @scores_buffer.add([comparator_id, record_1_id, record_2_id, score])
     end
