@@ -45,4 +45,13 @@ class UnitTests::TestWithin < Test::Unit::TestCase
       Within.new(meta_object_1, meta_object_2, meta_object_3)
     end
   end
+
+  test "requires that 3rd argument has the same type as the first argument" do
+    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
+    meta_object_2 = stub('meta object', :object => 123, :ruby_type => { :type => Fixnum }, :static? => true, :object => 123)
+    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Date }, :static? => false)
+    assert_raises do
+      Within.new(meta_object_1, meta_object_2, meta_object_3)
+    end
+  end
 end

@@ -114,6 +114,14 @@ module Linkage
           raise TypeError, "expected type #{parameters[i].join(" or ")}, got #{type}"
         end
 
+        if parameter_options.has_key?(:same_type_as)
+          arg_index = parameter_options[:same_type_as]
+          other_type = @args[arg_index].ruby_type[:type]
+          if type != other_type
+            raise TypeError, "argument #{i + 1} (#{type}) was expected to have the same type as argument #{arg_index + 1} (#{other_type})"
+          end
+        end
+
         if parameter_options.has_key?(:static) &&
               parameter_options[:static] != arg.static?
           raise TypeError, "argument #{i + 1} was expected to #{arg.static? ? "not be" : "be"} static"
