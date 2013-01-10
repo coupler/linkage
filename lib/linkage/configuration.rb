@@ -336,6 +336,9 @@ module Linkage
       # add id
       schema << [:id, Integer, {:primary_key => true}]
 
+      # add comparator id
+      schema << [:comparator_id, Integer, {}]
+
       # add record ids
       pk = dataset_1.field_set.primary_key
       ruby_type = pk.ruby_type
@@ -345,10 +348,8 @@ module Linkage
       ruby_type = pk.ruby_type
       schema << [:record_2_id, ruby_type[:type], ruby_type[:opts] || {}]
 
-      # add values
-      1.upto(@exhaustive_expectations.length) do |i|
-        schema << [:"score_#{i}", Integer, {}]
-      end
+      # add score
+      schema << [:score, Integer, {}]
 
       schema
     end
@@ -376,6 +377,16 @@ module Linkage
         dataset_2 = exp.apply_to(dataset_2, :rhs) if @linkage_type != :self
       end
       @linkage_type == :self ? [dataset_1, dataset_1] : [dataset_1, dataset_2]
+    end
+
+    def datasets_with_applied_exhaustive_expectations
+      dataset_1 = @dataset_1.select(@dataset_1.field_set.primary_key.to_expr)
+      dataset_2 = @dataset_2.select(@dataset_2.field_set.primary_key.to_expr)
+      @exhaustive_expectations.each do |exp|
+        dataset_1 = exp.apply_to(dataset_1, :lhs)
+        dataset_2 = exp.apply_to(dataset_2, :rhs)
+      end
+      [dataset_1, dataset_2]
     end
 
     def groups_table_needed?

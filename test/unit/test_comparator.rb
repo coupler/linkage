@@ -59,7 +59,7 @@ class UnitTests::TestComparator < Test::Unit::TestCase
 
   test "comparator with one valid argument" do
     klass = new_comparator('foo', [[String]])
-    meta_object = stub('meta_object', :ruby_type => { :type => String }, :static? => false)
+    meta_object = stub('meta object', :side => :lhs, :ruby_type => { :type => String }, :static? => false)
     f = klass.new(meta_object)
   end
 
@@ -98,11 +98,27 @@ class UnitTests::TestComparator < Test::Unit::TestCase
 
   test "special :any parameter" do
     klass = new_comparator('foo', [[:any]])
-    meta_object_1 = stub('meta_object', :ruby_type => { :type => String }, :static? => false)
-    meta_object_2 = stub('meta_object', :ruby_type => { :type => Fixnum }, :static? => false)
+    meta_object_1 = stub('meta_object', :side => :lhs, :ruby_type => { :type => String }, :static? => false)
+    meta_object_2 = stub('meta_object', :side => :rhs, :ruby_type => { :type => Fixnum }, :static? => false)
     assert_nothing_raised do
       klass.new(meta_object_1)
       klass.new(meta_object_2)
     end
+  end
+
+  test "lhs_args" do
+    klass = new_comparator('foo', [[String], [String]])
+    meta_object_1 = stub('meta object 1', :side => :lhs, :ruby_type => { :type => String }, :static? => false)
+    meta_object_2 = stub('meta object 2', :side => :rhs, :ruby_type => { :type => String }, :static? => false)
+    obj = klass.new(meta_object_1, meta_object_2)
+    assert_equal [meta_object_1], obj.lhs_args
+  end
+
+  test "rhs_args" do
+    klass = new_comparator('foo', [[String], [String]])
+    meta_object_1 = stub('meta object 1', :side => :lhs, :ruby_type => { :type => String }, :static? => false)
+    meta_object_2 = stub('meta object 2', :side => :rhs, :ruby_type => { :type => String }, :static? => false)
+    obj = klass.new(meta_object_1, meta_object_2)
+    assert_equal [meta_object_2], obj.rhs_args
   end
 end

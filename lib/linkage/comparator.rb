@@ -70,12 +70,14 @@ module Linkage
       raise NotImplementedError
     end
 
-    attr_reader :args
+    attr_reader :args, :lhs_args, :rhs_args
 
     # Create a new Comparator object.
     # @param [Linkage::MetaObject, Hash] args Comparator arguments
     def initialize(*args)
       @args = args
+      @lhs_args = []
+      @rhs_args = []
       @options = args.last.is_a?(Hash) ? args.pop : {}
       process_args
     end
@@ -95,6 +97,8 @@ module Linkage
         raise ArgumentError, "wrong number of arguments (#{@args.length} for #{parameters.length})"
       end
 
+      first_side = nil
+      second_side = nil
       @args.each_with_index do |arg, i|
         type = arg.ruby_type[:type]
 
@@ -113,6 +117,37 @@ module Linkage
         if parameter_options.has_key?(:static) &&
               parameter_options[:static] != arg.static?
           raise TypeError, "argument #{i + 1} was expected to #{arg.static? ? "not be" : "be"} static"
+        end
+
+        if !arg.static?
+          if first_side.nil?
+            first_side = arg.side
+          elsif arg.side != first_side && second_side.nil?
+            second_side = arg.side
+          end
+
+          valid_side = true
+          case parameter_options[:side]
+          when :first
+            if arg.side != first_side
+              valid_side = false
+            end
+          when :second
+            if second_side.nil? || arg.side != second_side
+              valid_side = false
+            end
+          end
+
+          if !valid_side
+            raise TypeError, "argument #{i + 1} was expected to have a different side value"
+          end
+
+          case arg.side
+          when :lhs
+            @lhs_args << arg
+          when :rhs
+            @rhs_args << arg
+          end
         end
       end
     end

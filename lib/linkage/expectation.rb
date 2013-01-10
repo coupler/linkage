@@ -6,6 +6,10 @@ module Linkage
       raise NotImplementedError
     end
 
+    def apply_to(*args)
+      raise NotImplementedError
+    end
+
     def decollation_needed?
       false
     end

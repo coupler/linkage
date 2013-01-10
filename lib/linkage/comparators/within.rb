@@ -1,7 +1,11 @@
 module Linkage
   module Comparators
     class Within < Binary
-      @@parameters = [[Integer], [Fixnum], [Integer]]
+      @@parameters = [
+        [Integer, :static => false, :side => :first],
+        [Fixnum],
+        [Integer, :static => false, :side => :second]
+      ]
       def self.parameters
         @@parameters
       end

@@ -66,11 +66,49 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
     expected = [
       [:id, Integer, {:primary_key => true}],
+      [:comparator_id, Integer, {}],
       [:record_1_id, Integer, {}],
       [:record_2_id, String, {:size => 10}],
-      [:score_1, Integer, {}],
-      [:score_2, Integer, {}]
+      [:score, Integer, {}],
     ]
     assert_equal expected, conf.scores_table_schema
+  end
+
+  test "datasets_with_applied_exhaustive_expectations" do
+    dataset_1 = stub('dataset 1', {
+      :field_set => stub('field set 1', {
+        :primary_key => stub('primary key 1', {
+          :to_expr => :foo_id
+        })
+      })
+    })
+    dataset_2 = stub('dataset 2', {
+      :field_set => stub('field set 2', {
+        :primary_key => stub('primary key 2', {
+          :to_expr => :bar_id
+        })
+      })
+    })
+    dataset_1a = stub('dataset 1a')
+    dataset_2a = stub('dataset 2a')
+    dataset_1b = stub('dataset 1b')
+    dataset_2b = stub('dataset 2b')
+    dataset_1c = stub('dataset 1c')
+    dataset_2c = stub('dataset 2c')
+    exp_1 = stub('exhaustive expectation 1')
+    exp_2 = stub('exhaustive expectation 2')
+
+    conf = Linkage::Configuration.new(dataset_1, dataset_2)
+    conf.add_exhaustive_expectation(exp_1)
+    conf.add_exhaustive_expectation(exp_2)
+
+    dataset_1.expects(:select).with(:foo_id).returns(dataset_1a)
+    dataset_2.expects(:select).with(:bar_id).returns(dataset_2a)
+    exp_1.expects(:apply_to).with(dataset_1a, :lhs).returns(dataset_1b)
+    exp_1.expects(:apply_to).with(dataset_2a, :rhs).returns(dataset_2b)
+    exp_2.expects(:apply_to).with(dataset_1b, :lhs).returns(dataset_1c)
+    exp_2.expects(:apply_to).with(dataset_2b, :rhs).returns(dataset_2c)
+
+    assert_equal [dataset_1c, dataset_2c], conf.datasets_with_applied_exhaustive_expectations
   end
 end

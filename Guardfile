@@ -9,5 +9,3 @@ end
 guard 'yard' do
   watch(%r{lib/[^.].*\.rb$})
 end
-
-notification :notifysend, :u => :normal

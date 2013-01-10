@@ -73,8 +73,17 @@ module Linkage
       end
     end
 
+    def add_score(comparator_id, record_1_id, record_2_id, score)
+      if !@scores_buffer
+        scores_headers = [:comparator_id, :record_1_id, :record_2_id, :score]
+        @scores_buffer = ImportBuffer.new(@config.results_uri, :scores, scores_headers, @config.results_uri_options)
+      end
+      @scores_buffer.add([comparator_id, record_1_id, record_2_id, score])
+    end
+
     def flush!
       @groups_buffer.flush if @groups_buffer
+      @scores_buffer.flush if @scores_buffer
     end
 
     def get_group(index)

@@ -5,9 +5,18 @@ module Linkage
   class SingleThreadedRunner < Runner
     # @return [Linkage::ResultSet]
     def execute
-      setup_datasets
-      group_records
+      result_set.create_tables!
 
+      if !config.simple_expectations.empty?
+        setup_datasets
+        group_records
+        score_records_with_groups
+      else
+        dataset_1, dataset_2 = config.datasets_with_applied_exhaustive_expectations
+        score_records_without_groups(dataset_1, dataset_2)
+      end
+
+      result_set.flush!
       return result_set
     end
 
@@ -25,8 +34,6 @@ module Linkage
     end
 
     def group_records
-      result_set.create_tables!
-
       if config.linkage_type == :self
         group_records_for(@dataset_1, 1)
       else
@@ -68,6 +75,31 @@ module Linkage
       # Delete duplicate groups
       sub_dataset = groups_dataset.select(:max.sql_function(:id).as(:id)).group_by_matches
       groups_dataset.filter(:id => sub_dataset.obj).delete
+    end
+
+    def score_records_with_groups
+      result_set.groups_dataset.each do |group_record|
+        group = Group.from_row(group_record)
+        dataset_1, dataset_2 = result_set.groups_records_datasets(group)
+        score_records_without_groups(dataset_1, dataset_2)
+      end
+    end
+
+    def score_records_without_groups(dataset_1, dataset_2)
+      pk_1 = dataset_1.field_set.primary_key.to_expr
+      pk_2 = dataset_2.field_set.primary_key.to_expr
+
+      config.exhaustive_expectations.each_with_index do |expectation, comparator_id|
+        comparator = expectation.comparator
+
+        dataset_1.each do |record_1|
+          dataset_2.each do |record_2|
+            score = comparator.score(record_1, record_2)
+            result_set.add_score(comparator_id, record_1[pk_1], record_2[pk_2],
+              score)
+          end
+        end
+      end
     end
   end
 end
