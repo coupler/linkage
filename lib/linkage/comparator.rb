@@ -162,6 +162,6 @@ module Linkage
   end
 end
 
-Dir.glob(File.expand_path(File.join(File.dirname(__FILE__), "comparators", "*.rb"))).each do |filename|
-  require filename
-end
+path = File.expand_path(File.join(File.dirname(__FILE__), "comparators"))
+require File.join(path, "binary")
+require File.join(path, "within")
