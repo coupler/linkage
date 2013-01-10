@@ -380,8 +380,12 @@ module Linkage
     end
 
     def datasets_with_applied_exhaustive_expectations
-      dataset_1 = @dataset_1.select(@dataset_1.field_set.primary_key.to_expr)
-      dataset_2 = @dataset_2.select(@dataset_2.field_set.primary_key.to_expr)
+      apply_exhaustive_expectations(@dataset_1, @dataset_2)
+    end
+
+    def apply_exhaustive_expectations(dataset_1, dataset_2)
+      dataset_1 = dataset_1.select(dataset_1.field_set.primary_key.to_expr)
+      dataset_2 = dataset_2.select(dataset_2.field_set.primary_key.to_expr)
       @exhaustive_expectations.each do |exp|
         dataset_1 = exp.apply_to(dataset_1, :lhs)
         dataset_2 = exp.apply_to(dataset_2, :rhs)

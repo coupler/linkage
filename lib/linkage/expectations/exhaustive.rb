@@ -17,9 +17,9 @@ module Linkage
         exprs =
           case side
           when :lhs
-            comparator.lhs_args.collect(&:to_expr)
+            comparator.lhs_args.collect { |arg| arg.to_expr.as(arg.name) }
           when :rhs
-            comparator.rhs_args.collect(&:to_expr)
+            comparator.rhs_args.collect { |arg| arg.to_expr.as(arg.name) }
           end
         dataset.select_more(*exprs)
       end

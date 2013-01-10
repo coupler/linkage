@@ -80,7 +80,8 @@ module Linkage
     def score_records_with_groups
       result_set.groups_dataset.each do |group_record|
         group = Group.from_row(group_record)
-        dataset_1, dataset_2 = result_set.groups_records_datasets(group)
+        dataset_1, dataset_2 = config.apply_exhaustive_expectations(
+          *result_set.groups_records_datasets(group))
         score_records_without_groups(dataset_1, dataset_2)
       end
     end

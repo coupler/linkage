@@ -18,22 +18,22 @@ class UnitTests::TestExhaustive < Test::Unit::TestCase
   test "apply_to lhs dataset" do
     dataset = stub('dataset')
     new_dataset = stub('new dataset')
-    meta_object_1 = stub('meta object 1', :to_expr => :foo)
-    meta_object_2 = stub('meta object 2', :to_expr => :bar)
+    meta_object_1 = stub('meta object 1', :name => :foo, :to_expr => :foo)
+    meta_object_2 = stub('meta object 2', :name => :bar, :to_expr => :bar)
     comparator = stub('comparator', :lhs_args => [meta_object_1], :rhs_args => [meta_object_2])
     exp = Linkage::Expectations::Exhaustive.new(comparator, 100, :min)
-    dataset.expects(:select_more).with(:foo).returns(new_dataset)
+    dataset.expects(:select_more).with(:foo.as(:foo)).returns(new_dataset)
     assert_equal new_dataset, exp.apply_to(dataset, :lhs)
   end
 
   test "apply_to rhs dataset" do
     dataset = stub('dataset')
     new_dataset = stub('new dataset')
-    meta_object_1 = stub('meta object 1', :to_expr => :foo)
-    meta_object_2 = stub('meta object 2', :to_expr => :bar)
+    meta_object_1 = stub('meta object 1', :name => :foo, :to_expr => :foo)
+    meta_object_2 = stub('meta object 2', :name => :bar, :to_expr => :bar)
     comparator = stub('comparator', :lhs_args => [meta_object_1], :rhs_args => [meta_object_2])
     exp = Linkage::Expectations::Exhaustive.new(comparator, 100, :min)
-    dataset.expects(:select_more).with(:bar).returns(new_dataset)
+    dataset.expects(:select_more).with(:bar.as(:bar)).returns(new_dataset)
     assert_equal new_dataset, exp.apply_to(dataset, :rhs)
   end
 end
