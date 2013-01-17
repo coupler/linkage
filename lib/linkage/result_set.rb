@@ -7,42 +7,44 @@ module Linkage
     end
 
     def groups_dataset
-      @groups_dataset ||= Dataset.new(@config.results_uri, :groups, @config.results_uri_options)
+      @groups_dataset ||= Dataset.new(database[:groups])
     end
 
-    def database(&block)
-      Sequel.connect(@config.results_uri, @config.results_uri_options, &block)
+    def database
+      # FIXME: If the results database is the same as one of the datasets
+      # being linked, there will be two connections to said database. This
+      # could result in unexpected locking for non-concurrent databases (like
+      # SQLite).
+      @database ||= Sequel.connect(@config.results_uri, @config.results_uri_options)
     end
 
     def create_tables!
-      database do |db|
-        if @config.groups_table_needed?
-          schema = @config.groups_table_schema
-          if @config.decollation_needed?
-            db.create_table(:original_groups) do
-              schema.each { |col| column(*col) }
-            end
-          end
-
-          db.create_table(:groups) do
+      if @config.groups_table_needed?
+        schema = @config.groups_table_schema
+        if @config.decollation_needed?
+          database.create_table(:original_groups) do
             schema.each { |col| column(*col) }
           end
         end
 
-        if @config.scores_table_needed?
-          schema = @config.scores_table_schema
-          db.create_table(:scores) do
-            schema.each { |col| column(*col) }
-          end
+        database.create_table(:groups) do
+          schema.each { |col| column(*col) }
         end
+      end
 
-        pk_type = @config.dataset_1.field_set.primary_key.merge(@config.dataset_2.field_set.primary_key).ruby_type
-        db.create_table(:groups_records) do
-          column(:record_id, pk_type[:type], pk_type[:opts] || {})
-          Integer :group_id
-          Integer :dataset
-          index :group_id
+      if @config.scores_table_needed?
+        schema = @config.scores_table_schema
+        database.create_table(:scores) do
+          schema.each { |col| column(*col) }
         end
+      end
+
+      pk_type = @config.dataset_1.field_set.primary_key.merge(@config.dataset_2.field_set.primary_key).ruby_type
+      database.create_table(:groups_records) do
+        column(:record_id, pk_type[:type], pk_type[:opts] || {})
+        Integer :group_id
+        Integer :dataset
+        index :group_id
       end
     end
 

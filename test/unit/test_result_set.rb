@@ -47,12 +47,12 @@ class TestResultSet < Test::Unit::TestCase
     group = stub('group', :values => {:foo => 'bar '})
 
     groups_import_buffer = stub('groups import buffer')
-    groups_dataset = stub('groups dataset')
+    groups_dataset = stub('groups dataset', :first_source_table => :groups, :db => @database)
     @database.stubs(:[]).with(:groups).returns(groups_dataset)
     Linkage::ImportBuffer.stubs(:new).with(groups_dataset, [:id, :foo]).
       returns(groups_import_buffer)
 
-    original_groups_dataset = stub('original groups dataset')
+    original_groups_dataset = stub('original groups dataset', :first_source_table => :original_groups, :db => @database)
     @database.stubs(:[]).with(:original_groups).returns(original_groups_dataset)
     Linkage::ImportBuffer.expects(:new).with(original_groups_dataset, [:id, :foo]).never
 
