@@ -8,8 +8,9 @@ class UnitTests::TestDataset < Test::Unit::TestCase
       [:first_name, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(255)", :type=>:string, :ruby_default=>nil}],
       [:last_name, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(255)", :type=>:string, :ruby_default=>nil}]
     ]
-    @dataset = stub('Sequel dataset')
+    @dataset = stub('Sequel dataset', :first_source_table => :foo)
     @database = stub('database', :schema => @schema, :[] => @dataset, :extend => nil)
+    @dataset.stubs(:db).returns(@database)
     Sequel.stubs(:connect).returns(@database)
     @field_set = stub("field set")
     Linkage::FieldSet.stubs(:new).returns(@field_set)
@@ -23,9 +24,42 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
   end
 
+  test "initialize with sequel dataset" do
+    Linkage::Dataset.new(@dataset)
+  end
+
+  test "extend Sequel::Collation when initializing with sequel dataset" do
+    @database.stubs(:kind_of?).with(Sequel::Collation).returns(false)
+    @database.expects(:extend).with(Sequel::Collation)
+    ds = Linkage::Dataset.new(@dataset)
+  end
+
+  test "don't extend already extended database" do
+    @database.stubs(:kind_of?).with(Sequel::Collation).returns(true)
+    @database.expects(:extend).with(Sequel::Collation).never
+    ds = Linkage::Dataset.new(@dataset)
+  end
+
   test "table_name" do
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     assert_equal :foo, ds.table_name
+  end
+
+  test "table_name when initialized from sequel dataset" do
+    ds = Linkage::Dataset.new(@dataset)
+    assert_equal :foo, ds.table_name
+  end
+
+  test "schema" do
+    ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    @database.expects(:schema).with(:foo).returns(@schema)
+    assert_equal @schema, ds.schema
+  end
+
+  test "schema when initialized from sequel dataset" do
+    ds = Linkage::Dataset.new(@dataset)
+    @database.expects(:schema).with(:foo).returns(@schema)
+    assert_equal @schema, ds.schema
   end
 
   test "database_type" do
