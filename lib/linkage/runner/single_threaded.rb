@@ -90,14 +90,27 @@ module Linkage
       pk_1 = dataset_1.field_set.primary_key.to_expr
       pk_2 = dataset_2.field_set.primary_key.to_expr
 
-      config.exhaustive_expectations.each_with_index do |expectation, comparator_id|
-        comparator = expectation.comparator
+      keys_1 = dataset_1.select_map(pk_1)
+      keys_2 = dataset_2.select_map(pk_2)
+      cache_1 = Hashery::LRUHash.new(config.record_cache_size) do |h, k|
+        h[k] = dataset_1.filter(pk_1 => k).first
+      end
+      cache_2 = Hashery::LRUHash.new(config.record_cache_size) do |h, k|
+        h[k] = dataset_2.filter(pk_2 => k).first
+      end
 
-        dataset_1.each do |record_1|
-          dataset_2.each do |record_2|
+      keys_1.each do |key_1|
+        record_1 = cache_1[key_1]
+        keys_2.each do |key_2|
+          record_2 = cache_2[key_2]
+          config.exhaustive_expectations.each_with_index do |expectation, comparator_id|
+            comparator = expectation.comparator
+
             score = comparator.score(record_1, record_2)
             result_set.add_score(comparator_id, record_1[pk_1], record_2[pk_2],
               score)
+
+            break if score < expectation.threshold
           end
         end
       end

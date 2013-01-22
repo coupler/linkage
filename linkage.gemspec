@@ -17,4 +17,5 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "sequel"
   gem.add_dependency "sequel-collation"
+  gem.add_dependency "hashery"
 end

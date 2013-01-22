@@ -204,6 +204,10 @@ module Linkage
         @config.results_uri_options = options
       end
 
+      def set_record_cache_size(num)
+        @config.record_cache_size = num
+      end
+
       def add_simple_expectation(expectation)
         @config.add_simple_expectation(expectation)
 
@@ -265,7 +269,8 @@ module Linkage
 
     attr_reader :dataset_1, :dataset_2, :simple_expectations,
       :exhaustive_expectations, :visual_comparisons
-    attr_accessor :linkage_type, :results_uri, :results_uri_options
+    attr_accessor :linkage_type, :results_uri, :results_uri_options,
+      :record_cache_size
 
     def initialize(dataset_1, dataset_2)
       @dataset_1 = dataset_1
@@ -276,6 +281,7 @@ module Linkage
       @visual_comparisons = []
       @results_uri_options = {}
       @decollation_needed = false
+      @record_cache_size = 10_000
     end
 
     def configure(&block)

@@ -1,6 +1,7 @@
 require 'pathname'
 require 'delegate'
 require 'sequel'
+require 'hashery'
 
 module Linkage
 end
