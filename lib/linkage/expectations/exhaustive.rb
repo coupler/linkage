@@ -23,6 +23,15 @@ module Linkage
           end
         dataset.select_more(*exprs)
       end
+
+      def satisfied?(score)
+        case mode
+        when :equal
+          score == threshold
+        when :min
+          score >= threshold
+        end
+      end
     end
   end
 end

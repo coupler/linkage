@@ -92,11 +92,14 @@ module Linkage
 
       keys_1 = dataset_1.select_map(pk_1)
       keys_2 = dataset_2.select_map(pk_2)
+      unfiltered_dataset_1 = dataset_1.unfiltered
+      unfiltered_dataset_2 = dataset_2.unfiltered
+
       cache_1 = Hashery::LRUHash.new(config.record_cache_size) do |h, k|
-        h[k] = dataset_1.filter(pk_1 => k).first
+        h[k] = unfiltered_dataset_1.filter(pk_1 => k).first
       end
       cache_2 = Hashery::LRUHash.new(config.record_cache_size) do |h, k|
-        h[k] = dataset_2.filter(pk_2 => k).first
+        h[k] = unfiltered_dataset_2.filter(pk_2 => k).first
       end
 
       keys_1.each do |key_1|
@@ -110,7 +113,7 @@ module Linkage
             result_set.add_score(comparator_id, record_1[pk_1], record_2[pk_2],
               score)
 
-            break if score < expectation.threshold
+            break unless expectation.satisfied?(score)
           end
         end
       end

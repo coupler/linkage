@@ -14,7 +14,7 @@ module IntegrationTests
       dataset_1 = Linkage::Dataset.new(db_opts, "foo")
       dataset_2 = Linkage::Dataset.new(db_opts, "bar")
       conf = dataset_1.link_with(dataset_2) do
-        lhs[:num].must be_within(2).of(rhs[:num])
+        lhs[:num].must_not be_within(5).of(rhs[:num])
         lhs[:num].must be_within(5).of(rhs[:num])
         save_results_in(db_opts)
       end
@@ -25,7 +25,7 @@ module IntegrationTests
       database_for('sqlite') do |db|
         assert_equal db[:scores].count, 1
         record = db[:scores].first
-        assert_equal 0, record[:score]
+        assert_equal 1, record[:score]
       end
     end
   end

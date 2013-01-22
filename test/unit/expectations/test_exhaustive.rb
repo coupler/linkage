@@ -36,4 +36,23 @@ class UnitTests::TestExhaustive < Test::Unit::TestCase
     dataset.expects(:select_more).with(:bar.as(:bar)).returns(new_dataset)
     assert_equal new_dataset, exp.apply_to(dataset, :rhs)
   end
+
+  test "satisfied? with :equal mode" do
+    meta_object_1 = stub('meta object 1')
+    meta_object_2 = stub('meta object 2')
+    comparator = stub('comparator', :lhs_args => [meta_object_1], :rhs_args => [meta_object_2])
+    exp = Linkage::Expectations::Exhaustive.new(comparator, 50, :equal)
+    assert exp.satisfied?(50)
+    assert !exp.satisfied?(123)
+  end
+
+  test "satisfied? with :min mode" do
+    meta_object_1 = stub('meta object 1')
+    meta_object_2 = stub('meta object 2')
+    comparator = stub('comparator', :lhs_args => [meta_object_1], :rhs_args => [meta_object_2])
+    exp = Linkage::Expectations::Exhaustive.new(comparator, 50, :min)
+    assert exp.satisfied?(50)
+    assert exp.satisfied?(55)
+    assert !exp.satisfied?(45)
+  end
 end
