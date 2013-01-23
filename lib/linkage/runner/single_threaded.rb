@@ -7,6 +7,8 @@ module Linkage
     def execute
       result_set.create_tables!
 
+      @pk_1 = config.dataset_1.field_set.primary_key.to_expr
+      @pk_2 = config.dataset_2.field_set.primary_key.to_expr
       if !config.simple_expectations.empty?
         setup_datasets
         group_records
@@ -25,11 +27,9 @@ module Linkage
     def setup_datasets
       @dataset_1, @dataset_2 = config.datasets_with_applied_simple_expectations
 
-      pk = @dataset_1.field_set.primary_key
-      @dataset_1 = @dataset_1.select(pk.to_expr)
+      @dataset_1 = @dataset_1.select(@pk_1)
       if @config.linkage_type != :self
-        pk = @dataset_2.field_set.primary_key
-        @dataset_2 = @dataset_2.select(pk.to_expr)
+        @dataset_2 = @dataset_2.select(@pk_2)
       end
     end
 
@@ -87,32 +87,60 @@ module Linkage
     end
 
     def score_records_without_groups(dataset_1, dataset_2)
-      pk_1 = dataset_1.field_set.primary_key.to_expr
-      pk_2 = dataset_2.field_set.primary_key.to_expr
-
-      keys_2 = dataset_2.select_map(pk_2)
-      unfiltered_dataset_2 = dataset_2.unfiltered
-      cache_2 = Hashery::LRUHash.new(config.record_cache_size) do |h, k|
-        h[k] = unfiltered_dataset_2.filter(pk_2 => k).first
-      end
-      keys_2_last = keys_2.length - 1
-
-      forward = true
-      dataset_1.each do |record_1|
-        enum = forward ? 0.upto(keys_2_last) : keys_2_last.downto(0)
-        enum.each do |keys_2_index|
-          record_2 = cache_2[keys_2[keys_2_index]]
-          config.exhaustive_expectations.each_with_index do |expectation, comparator_id|
-            comparator = expectation.comparator
-
-            score = comparator.score(record_1, record_2)
-            result_set.add_score(comparator_id, record_1[pk_1], record_2[pk_2],
-              score)
-
-            break unless expectation.satisfied?(score)
-          end
+      if config.linkage_type == :self
+        keys = dataset_1.select_map(@pk_1)
+        unfiltered_dataset = dataset_1.unfiltered
+        cache = Hashery::LRUHash.new(config.record_cache_size) do |h, k|
+          h[k] = unfiltered_dataset.filter(@pk_1 => k).first
         end
-        forward = !forward
+        upper_bound = keys.length - 1
+
+        forward = true
+        keys.each_with_index do |key_1, key_1_index|
+          record_1 = cache[key_1]
+
+          lower_bound = key_1_index + 1
+          enum =
+            if forward
+              lower_bound.upto(upper_bound)
+            else
+              upper_bound.downto(lower_bound)
+            end
+          enum.each do |key_2_index|
+            record_2 = cache[keys[key_2_index]]
+            score(record_1, record_2)
+          end
+          forward = !forward
+        end
+      else
+        keys_2 = dataset_2.select_map(@pk_2)
+        unfiltered_dataset_2 = dataset_2.unfiltered
+        cache_2 = Hashery::LRUHash.new(config.record_cache_size) do |h, k|
+          h[k] = unfiltered_dataset_2.filter(@pk_2 => k).first
+        end
+        keys_2_last = keys_2.length - 1
+
+        forward = true
+        dataset_1.each do |record_1|
+          enum = forward ? 0.upto(keys_2_last) : keys_2_last.downto(0)
+          enum.each do |key_2_index|
+            record_2 = cache_2[keys_2[key_2_index]]
+            score(record_1, record_2)
+          end
+          forward = !forward
+        end
+      end
+    end
+
+    def score(record_1, record_2)
+      config.exhaustive_expectations.each_with_index do |expectation, comparator_id|
+        comparator = expectation.comparator
+
+        score = comparator.score(record_1, record_2)
+        result_set.add_score(comparator_id, record_1[@pk_1], record_2[@pk_2],
+          score)
+
+        break unless expectation.satisfied?(score)
       end
     end
   end

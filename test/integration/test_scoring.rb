@@ -28,5 +28,28 @@ module IntegrationTests
         assert_equal 1, record[:score]
       end
     end
+
+    test "optimize scoring for self linkage" do
+      database_for('sqlite') do |db|
+        db.create_table(:foo) { primary_key(:id); Integer(:num) }
+        db[:foo].import([:id, :num], [[1, 1], [2, 5], [3, 10]])
+      end
+
+      db_opts = database_options_for('sqlite')
+      dataset = Linkage::Dataset.new(db_opts, "foo")
+      conf = dataset.link_with(dataset) do
+        lhs[:num].must be_within(5).of(rhs[:num])
+        save_results_in(db_opts)
+      end
+
+      runner = Linkage::SingleThreadedRunner.new(conf)
+      runner.execute
+
+      database_for('sqlite') do |db|
+        assert_equal db[:scores].count, 3
+        scores = db[:scores].order(:record_1_id, :record_2_id).select_map(:score)
+        assert_equal [1, 0, 1], scores
+      end
+    end
   end
 end

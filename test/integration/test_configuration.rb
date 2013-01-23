@@ -52,6 +52,19 @@ module IntegrationTests
       assert_equal :self, conf.linkage_type
     end
 
+    test "linkage_type is cross when exhaustive expectations use different fields" do
+      database_for('sqlite') do |db|
+        db.create_table(:foo) { primary_key(:id); Integer(:foo); Integer(:bar) }
+      end
+
+      dataset = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
+      conf = Linkage::Configuration.new(dataset, dataset)
+      conf.configure do
+        lhs[:foo].must(be_within(5).of(rhs[:bar]))
+      end
+      assert_equal :cross, conf.linkage_type
+    end
+
     test "static expectation" do
       database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); String(:foo); String(:bar) }

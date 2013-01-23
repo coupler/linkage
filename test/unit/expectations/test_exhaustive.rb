@@ -9,10 +9,63 @@ class UnitTests::TestExhaustive < Test::Unit::TestCase
     assert_equal :min, exp.mode
   end
 
-  test "kind" do
-    comparator = stub('comparator')
+  test "kind is :self when comparator has same args on both sides" do
+    meta_object_1 = stub('meta object 1')
+    meta_object_2 = stub('meta object 2')
+    meta_object_1.expects(:objects_equal?).with(meta_object_2).returns(true)
+    comparator = stub('comparator', {
+      :lhs_args => [meta_object_1], :rhs_args => [meta_object_2]
+    })
     exp = Linkage::Expectations::Exhaustive.new(comparator, 100, :min)
-    assert_equal :exhaustive, exp.kind
+    assert_equal :self, exp.kind
+  end
+
+  test "kind is :cross when comparator has args with same dataset but different number of args" do
+    meta_object_1 = stub('meta object 1')
+    meta_object_2 = stub('meta object 2')
+    meta_object_3 = stub('meta object 3')
+    meta_object_1.expects(:datasets_equal?).with(meta_object_2).returns(true)
+    comparator = stub('comparator', {
+      :lhs_args => [meta_object_1], :rhs_args => [meta_object_2, meta_object_3]
+    })
+    exp = Linkage::Expectations::Exhaustive.new(comparator, 100, :min)
+    assert_equal :cross, exp.kind
+  end
+
+  test "kind is :cross when comparator has args with same dataset but different objects" do
+    meta_object_1 = stub('meta object 1')
+    meta_object_2 = stub('meta object 2')
+    meta_object_1.expects(:objects_equal?).with(meta_object_2).returns(false)
+    meta_object_1.expects(:datasets_equal?).with(meta_object_2).returns(true)
+    comparator = stub('comparator', {
+      :lhs_args => [meta_object_1], :rhs_args => [meta_object_2]
+    })
+    exp = Linkage::Expectations::Exhaustive.new(comparator, 100, :min)
+    assert_equal :cross, exp.kind
+  end
+
+  test "kind is :dual when comparator has args with different datasets and different number of args" do
+    meta_object_1 = stub('meta object 1')
+    meta_object_2 = stub('meta object 2')
+    meta_object_3 = stub('meta object 3')
+    meta_object_1.expects(:datasets_equal?).with(meta_object_2).returns(false)
+    comparator = stub('comparator', {
+      :lhs_args => [meta_object_1], :rhs_args => [meta_object_2, meta_object_3]
+    })
+    exp = Linkage::Expectations::Exhaustive.new(comparator, 100, :min)
+    assert_equal :dual, exp.kind
+  end
+
+  test "kind is :dual when comparator has args with different datasets" do
+    meta_object_1 = stub('meta object 1')
+    meta_object_2 = stub('meta object 2')
+    meta_object_1.expects(:objects_equal?).with(meta_object_2).returns(false)
+    meta_object_1.expects(:datasets_equal?).with(meta_object_2).returns(false)
+    comparator = stub('comparator', {
+      :lhs_args => [meta_object_1], :rhs_args => [meta_object_2]
+    })
+    exp = Linkage::Expectations::Exhaustive.new(comparator, 100, :min)
+    assert_equal :dual, exp.kind
   end
 
   test "apply_to lhs dataset" do

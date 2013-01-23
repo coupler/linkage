@@ -239,6 +239,9 @@ module Linkage
 
       def add_exhaustive_expectation(expectation)
         @config.add_exhaustive_expectation(expectation)
+        if @config.linkage_type == :self
+          @config.linkage_type = expectation.kind
+        end
       end
 
       def add_visual_comparison(visual_comparison)
