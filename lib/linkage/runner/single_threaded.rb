@@ -90,22 +90,18 @@ module Linkage
       pk_1 = dataset_1.field_set.primary_key.to_expr
       pk_2 = dataset_2.field_set.primary_key.to_expr
 
-      keys_1 = dataset_1.select_map(pk_1)
       keys_2 = dataset_2.select_map(pk_2)
-      unfiltered_dataset_1 = dataset_1.unfiltered
       unfiltered_dataset_2 = dataset_2.unfiltered
-
-      cache_1 = Hashery::LRUHash.new(config.record_cache_size) do |h, k|
-        h[k] = unfiltered_dataset_1.filter(pk_1 => k).first
-      end
       cache_2 = Hashery::LRUHash.new(config.record_cache_size) do |h, k|
         h[k] = unfiltered_dataset_2.filter(pk_2 => k).first
       end
+      keys_2_last = keys_2.length - 1
 
-      keys_1.each do |key_1|
-        record_1 = cache_1[key_1]
-        keys_2.each do |key_2|
-          record_2 = cache_2[key_2]
+      forward = true
+      dataset_1.each do |record_1|
+        enum = forward ? 0.upto(keys_2_last) : keys_2_last.downto(0)
+        enum.each do |keys_2_index|
+          record_2 = cache_2[keys_2[keys_2_index]]
           config.exhaustive_expectations.each_with_index do |expectation, comparator_id|
             comparator = expectation.comparator
 
@@ -116,6 +112,7 @@ module Linkage
             break unless expectation.satisfied?(score)
           end
         end
+        forward = !forward
       end
     end
   end
