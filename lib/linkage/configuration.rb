@@ -22,7 +22,7 @@ module Linkage
         end
       end
 
-      class SimpleExpectationWrapper
+      class ExpectationWrapper
         VALID_OPERATORS = [:==, :>, :<, :>=, :<=]
         OPERATOR_OPPOSITES = {
           :==   => :'!=',
@@ -53,7 +53,19 @@ module Linkage
               rhs.dataset = @lhs.dataset
               rhs.side = @side
             end
+          elsif rhs.is_a?(DataWrapper) && operator != :==
+            # create an exhaustive expectation with the Compare comparator instead
+            comparator = Comparators::Compare.new(@lhs.meta_object,
+              MetaObject.new(operator.to_s), rhs.meta_object)
+
+            score_range = Comparators::Compare.score_range
+            threshold = @type == :must ? score_range.last : score_range.first
+
+            expectation = Expectations::Exhaustive.new(comparator, threshold, :equal)
+            @dsl.add_exhaustive_expectation(expectation)
+            return self
           end
+
           exp_operator = @type == :must_not ? OPERATOR_OPPOSITES[operator] : operator
 
           rhs_meta_object = rhs.is_a?(DataWrapper) ? rhs.meta_object : MetaObject.new(rhs)
@@ -95,7 +107,7 @@ module Linkage
               expectation = Expectations::Exhaustive.new(comparator, threshold, :equal)
               @dsl.add_exhaustive_expectation(expectation)
             else
-              SimpleExpectationWrapper.new(@dsl, type, self)
+              ExpectationWrapper.new(@dsl, type, self)
             end
           end
         end

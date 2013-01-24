@@ -111,6 +111,22 @@ module IntegrationTests
         dataset_2, _ = conf.datasets_with_applied_simple_expectations
         assert_equal dataset_2.obj, dataset_1.filter(expr).obj
       end
+
+      test "comparing two data sources with #{operator}" do
+        database_for('sqlite') do |db|
+          db.create_table(:foo) { primary_key(:id); Integer(:foo); Integer(:bar) }
+        end
+
+        dataset = Linkage::Dataset.new(database_options_for('sqlite'), "foo")
+        conf = Linkage::Configuration.new(dataset, dataset)
+        conf.configure do
+          lhs[:foo].must.send(operator, rhs[:bar])
+        end
+        assert_equal 1, conf.exhaustive_expectations.length
+
+        comp = conf.exhaustive_expectations[0].comparator
+        assert_instance_of Linkage::Comparators::Compare, comp
+      end
     end
 
     test "must_not expectation" do

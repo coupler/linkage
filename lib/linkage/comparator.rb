@@ -115,7 +115,7 @@ module Linkage
         end
 
         if parameter_options.has_key?(:values) && arg.raw? && !parameter_options[:values].include?(arg.object)
-          raise ArgumentError, "argument #{i + 1} was not one of the expected values: #{paramters_options[:values].inspect}"
+          raise ArgumentError, "argument #{i + 1} (#{arg.object.inspect}) was not one of the expected values: #{parameter_options[:values].inspect}"
         end
 
         if parameter_options.has_key?(:same_type_as)
