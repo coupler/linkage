@@ -3,7 +3,7 @@ module Linkage
     class Compare < Binary
       @@parameters = [
         [:any, :static => false, :side => :first],
-        [String, :values => %w{> >= <= <}],
+        [String, :values => %w{> >= <= < !=}],
         [:any, :same_type_as => 0, :static => false, :side => :second]
       ]
       def self.parameters
@@ -25,6 +25,8 @@ module Linkage
       def score(record_1, record_2)
         result =
           case @operator
+          when '!='
+            record_1[@name_1] != record_2[@name_2]
           when '>'
             record_1[@name_1] > record_2[@name_2]
           when '>='

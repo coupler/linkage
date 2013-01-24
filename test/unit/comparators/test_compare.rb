@@ -22,6 +22,16 @@ class UnitTests::TestCompare < Test::Unit::TestCase
     end
   end
 
+  test "score for not equal to" do
+    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
+    meta_object_2 = stub('meta object', :object => '!=', :ruby_type => { :type => String }, :static? => true, :raw? => true)
+    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Integer }, :static? => false)
+    comp = Compare.new(meta_object_1, meta_object_2, meta_object_3)
+    assert_equal 1, comp.score({:foo => 10}, {:bar => 5})
+    assert_equal 0, comp.score({:foo => 5}, {:bar => 5})
+    assert_equal 1, comp.score({:foo => 0}, {:bar => 5})
+  end
+
   test "score for greater than" do
     meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
     meta_object_2 = stub('meta object', :object => '>', :ruby_type => { :type => String }, :static? => true, :raw? => true)
@@ -84,7 +94,7 @@ class UnitTests::TestCompare < Test::Unit::TestCase
     end
   end
 
-  test "requires raw operator to be >, >=, <=, or <" do
+  test "requires raw operator to be >, >=, <=, <, or !=" do
     meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
     meta_object_2 = stub('meta object', :object => 'foo', :ruby_type => { :type => String }, :static? => true, :raw? => true)
     meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Integer }, :static? => false)
