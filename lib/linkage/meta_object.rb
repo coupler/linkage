@@ -130,5 +130,10 @@ module Linkage
         nil
       end
     end
+
+    # Returns true if underlying object is not a subclass of {Linkage::Data}.
+    def raw?
+      !@object.kind_of?(Linkage::Data)
+    end
   end
 end

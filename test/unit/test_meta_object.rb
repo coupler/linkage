@@ -194,4 +194,15 @@ class UnitTests::TestMetaObject < Test::Unit::TestCase
     object = Linkage::MetaObject.new(123)
     assert_nil object.name
   end
+
+  test "#raw? returns true for non-data object" do
+    object = Linkage::MetaObject.new(123)
+    assert object.raw?
+  end
+
+  test "#raw? returns false for data object" do
+    field = stub_field('foo', :name => :foo)
+    object = Linkage::MetaObject.new(field, :lhs)
+    assert !object.raw?
+  end
 end

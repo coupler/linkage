@@ -114,6 +114,10 @@ module Linkage
           raise TypeError, "expected type #{parameters[i].join(" or ")}, got #{type}"
         end
 
+        if parameter_options.has_key?(:values) && arg.raw? && !parameter_options[:values].include?(arg.object)
+          raise ArgumentError, "argument #{i + 1} was not one of the expected values: #{paramters_options[:values].inspect}"
+        end
+
         if parameter_options.has_key?(:same_type_as)
           arg_index = parameter_options[:same_type_as]
           other_type = @args[arg_index].ruby_type[:type]
@@ -164,4 +168,5 @@ end
 
 path = File.expand_path(File.join(File.dirname(__FILE__), "comparators"))
 require File.join(path, "binary")
+require File.join(path, "compare")
 require File.join(path, "within")
