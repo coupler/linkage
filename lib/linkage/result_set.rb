@@ -22,25 +22,25 @@ module Linkage
       if @config.groups_table_needed?
         schema = @config.groups_table_schema
         if @config.decollation_needed?
-          database.create_table(:original_groups) do
+          database.create_table(@config.original_groups_table_name) do
             schema.each { |col| column(*col) }
           end
         end
 
-        database.create_table(:groups) do
+        database.create_table(@config.groups_table_name) do
           schema.each { |col| column(*col) }
         end
       end
 
       if @config.scores_table_needed?
         schema = @config.scores_table_schema
-        database.create_table(:scores) do
+        database.create_table(@config.scores_table_name) do
           schema.each { |col| column(*col) }
         end
       end
 
       schema = @config.matches_table_schema
-      database.create_table(:matches) do
+      database.create_table(@config.matches_table_name) do
         schema.each { |col| column(*col) }
       end
     end
@@ -51,10 +51,13 @@ module Linkage
         values = group.decollated_values
         if !@groups_buffer
           groups_headers = [:id] + values.keys
-          @groups_buffer = ImportBuffer.new(database[:groups], groups_headers)
+          @groups_buffer = ImportBuffer.new(database[@config.groups_table_name],
+            groups_headers)
 
           original_groups_headers = [:id] + original_values.keys
-          @original_groups_buffer = ImportBuffer.new(database[:original_groups], original_groups_headers)
+          @original_groups_buffer = ImportBuffer.new(
+            database[@config.original_groups_table_name],
+            original_groups_headers)
         end
 
         group_id = next_group_id
@@ -65,7 +68,8 @@ module Linkage
         values = group.values
         if !@groups_buffer
           groups_headers = [:id] + values.keys
-          @groups_buffer = ImportBuffer.new(database[:groups], groups_headers)
+          @groups_buffer = ImportBuffer.new(database[@config.groups_table_name],
+            groups_headers)
         end
         group_id = next_group_id
         @groups_buffer.add([group_id] + values.values)
@@ -75,7 +79,8 @@ module Linkage
     def add_score(comparator_id, record_1_id, record_2_id, score)
       if !@scores_buffer
         scores_headers = [:comparator_id, :record_1_id, :record_2_id, :score]
-        @scores_buffer = ImportBuffer.new(database[:scores], scores_headers)
+        @scores_buffer = ImportBuffer.new(database[@config.scores_table_name],
+          scores_headers)
       end
       @scores_buffer.add([comparator_id, record_1_id, record_2_id, score])
     end
@@ -83,7 +88,8 @@ module Linkage
     def add_match(record_1_id, record_2_id, total_score)
       if !@matches_buffer
         matches_headers = [:record_1_id, :record_2_id, :total_score]
-        @matches_buffer = ImportBuffer.new(database[:matches], matches_headers)
+        @matches_buffer = ImportBuffer.new(database[@config.matches_table_name],
+          matches_headers)
       end
       @matches_buffer.add([record_1_id, record_2_id, total_score])
     end

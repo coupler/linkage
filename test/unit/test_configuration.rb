@@ -137,4 +137,36 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     ]
     assert_equal expected, conf.matches_table_schema
   end
+
+  test "change groups table name from default" do
+    dataset = stub('dataset')
+    conf = Linkage::Configuration.new(dataset, dataset)
+    assert_equal :groups, conf.groups_table_name
+    conf.groups_table_name = :foo_groups
+    assert_equal :foo_groups, conf.groups_table_name
+  end
+
+  test "change original groups table name from default" do
+    dataset = stub('dataset')
+    conf = Linkage::Configuration.new(dataset, dataset)
+    assert_equal :original_groups, conf.original_groups_table_name
+    conf.original_groups_table_name = :foo_original_groups
+    assert_equal :foo_original_groups, conf.original_groups_table_name
+  end
+
+  test "change scores table name from default" do
+    dataset = stub('dataset')
+    conf = Linkage::Configuration.new(dataset, dataset)
+    assert_equal :scores, conf.scores_table_name
+    conf.scores_table_name = :foo_scores
+    assert_equal :foo_scores, conf.scores_table_name
+  end
+
+  test "change matches table name from default" do
+    dataset = stub('dataset')
+    conf = Linkage::Configuration.new(dataset, dataset)
+    assert_equal :matches, conf.matches_table_name
+    conf.matches_table_name = :foo_matches
+    assert_equal :foo_matches, conf.matches_table_name
+  end
 end

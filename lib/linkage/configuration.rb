@@ -260,6 +260,22 @@ module Linkage
         @config.visual_comparisons << visual_comparison
       end
 
+      def groups_table_name(new_name)
+        @config.groups_table_name = new_name
+      end
+
+      def original_groups_table_name(new_name)
+        @config.original_groups_table_name = new_name
+      end
+
+      def scores_table_name(new_name)
+        @config.scores_table_name = new_name
+      end
+
+      def matches_table_name(new_name)
+        @config.matches_table_name = new_name
+      end
+
       def method_missing(name, *args, &block)
         # check for comparators
         md = name.to_s.match(/^be_(.+)$/)
@@ -285,7 +301,8 @@ module Linkage
     attr_reader :dataset_1, :dataset_2, :simple_expectations,
       :exhaustive_expectations, :visual_comparisons
     attr_accessor :linkage_type, :results_uri, :results_uri_options,
-      :record_cache_size
+      :record_cache_size, :groups_table_name, :original_groups_table_name,
+      :scores_table_name, :matches_table_name
 
     def initialize(dataset_1, dataset_2)
       @dataset_1 = dataset_1
@@ -297,6 +314,10 @@ module Linkage
       @results_uri_options = {}
       @decollation_needed = false
       @record_cache_size = 10_000
+      @groups_table_name = :groups
+      @original_groups_table_name = :original_groups
+      @scores_table_name = :scores
+      @matches_table_name = :matches
     end
 
     def configure(&block)

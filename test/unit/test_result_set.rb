@@ -5,7 +5,11 @@ class TestResultSet < Test::Unit::TestCase
     @config = stub('configuration', {
       :results_uri => 'foo://bar',
       :results_uri_options => {:blah => 'junk'},
-      :decollation_needed? => true
+      :decollation_needed? => true,
+      :groups_table_name => :groups,
+      :original_groups_table_name => :original_groups,
+      :scores_table_name => :scores,
+      :matches_table_name => :matches
     })
     @database = stub('database')
     Sequel.stubs(:connect).with('foo://bar', :blah => 'junk').returns(@database)
@@ -145,5 +149,88 @@ class TestResultSet < Test::Unit::TestCase
 
     matches_import_buffer.expects(:flush)
     result_set.flush!
+  end
+
+  test "#create_tables! uses custom table names" do
+    @config.stubs({
+      :groups_table_name => :foo_groups,
+      :original_groups_table_name => :foo_original_groups,
+      :scores_table_name => :foo_scores,
+      :matches_table_name => :foo_matches,
+      :groups_table_needed? => true,
+      :decollation_needed? => true,
+      :scores_table_needed? => true,
+      :groups_table_schema => [],
+      :scores_table_schema => [],
+      :matches_table_schema => []
+    })
+    result_set = Linkage::ResultSet.new(@config)
+    @database.expects(:create_table).with(:foo_groups)
+    @database.expects(:create_table).with(:foo_original_groups)
+    @database.expects(:create_table).with(:foo_scores)
+    @database.expects(:create_table).with(:foo_matches)
+    result_set.create_tables!
+  end
+
+  test "#add_group uses custom table names" do
+    @config.stubs({
+      :groups_table_name => :foo_groups,
+      :original_groups_table_name => :foo_original_groups
+    })
+    result_set = Linkage::ResultSet.new(@config)
+
+    group = stub('group', {
+      :values => {:foo => 'bar '},
+      :decollated_values => {:foo => 'BAR'}
+    })
+
+    groups_import_buffer = stub('groups import buffer')
+    groups_dataset = stub('groups dataset')
+    @database.stubs(:[]).with(:foo_groups).returns(groups_dataset)
+    Linkage::ImportBuffer.stubs(:new).with(groups_dataset, [:id, :foo]).
+      returns(groups_import_buffer)
+
+    original_groups_import_buffer = stub('original groups import buffer')
+    original_groups_dataset = stub('original groups dataset')
+    @database.stubs(:[]).with(:foo_original_groups).
+      returns(original_groups_dataset)
+    Linkage::ImportBuffer.stubs(:new).
+      with(original_groups_dataset, [:id, :foo]).
+      returns(original_groups_import_buffer)
+
+    groups_import_buffer.expects(:add).with([1, 'BAR'])
+    original_groups_import_buffer.expects(:add).with([1, 'bar '])
+    result_set.add_group(group)
+  end
+
+  test "#add_score uses custom table name" do
+    @config.stubs(:scores_table_name).returns(:foo_scores)
+    result_set = Linkage::ResultSet.new(@config)
+    scores_dataset = stub('scores dataset')
+    @database.stubs(:[]).with(:foo_scores).returns(scores_dataset)
+    scores_import_buffer = stub('scores import buffer')
+    Linkage::ImportBuffer.expects(:new).
+      with(scores_dataset,
+        [:comparator_id, :record_1_id, :record_2_id, :score]).
+      returns(scores_import_buffer)
+    scores_import_buffer.expects(:add).with([0, 1, 2, 123])
+    scores_import_buffer.expects(:add).with([1, 1, 2, 456])
+    result_set.add_score(0, 1, 2, 123)
+    result_set.add_score(1, 1, 2, 456)
+  end
+
+  test "#add_match uses custom table name" do
+    @config.stubs(:matches_table_name).returns(:foo_matches)
+    result_set = Linkage::ResultSet.new(@config)
+    matches_dataset = stub('matches dataset')
+    @database.stubs(:[]).with(:foo_matches).returns(matches_dataset)
+    matches_import_buffer = stub('matches import buffer')
+    Linkage::ImportBuffer.expects(:new).
+      with(matches_dataset, [:record_1_id, :record_2_id, :total_score]).
+      returns(matches_import_buffer)
+    matches_import_buffer.expects(:add).with([1, 2, 123])
+    matches_import_buffer.expects(:add).with([2, 3, 456])
+    result_set.add_match(1, 2, 123)
+    result_set.add_match(2, 3, 456)
   end
 end
