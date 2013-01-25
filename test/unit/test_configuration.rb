@@ -111,4 +111,30 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
     assert_equal [dataset_1c, dataset_2c], conf.datasets_with_applied_exhaustive_expectations
   end
+
+  test "matches_table_schema" do
+    dataset_1 = stub('dataset 1', {
+      :field_set => stub('field set 1', {
+        :primary_key => stub('primary key 1', {
+          :ruby_type => {:type => Integer}
+        })
+      })
+    })
+    dataset_2 = stub('dataset 2', {
+      :field_set => stub('field set 2', {
+        :primary_key => stub('primary key 2', {
+          :ruby_type => {:type => String, :opts => {:size => 10}}
+        })
+      })
+    })
+    conf = Linkage::Configuration.new(dataset_1, dataset_2)
+
+    expected = [
+      [:id, Integer, {:primary_key => true}],
+      [:record_1_id, Integer, {}],
+      [:record_2_id, String, {:size => 10}],
+      [:total_score, Integer, {}],
+    ]
+    assert_equal expected, conf.matches_table_schema
+  end
 end

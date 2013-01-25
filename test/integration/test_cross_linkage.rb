@@ -16,10 +16,6 @@ module IntegrationTests
     end
 
     test "one mandatory field equality on single threaded runner" do
-      #setup_logger = Logger.new(STDERR)
-      #setup_logger.formatter = lambda { |severity, time, progname, msg|
-        #" SETUP : %s [%s]: %s\n" % [severity, time, msg]
-      #}
       # insert the test data
       database do |db|
         db.create_table(:foo) { primary_key(:id); Integer(:foo); Integer(:bar) }
@@ -27,16 +23,8 @@ module IntegrationTests
           Array.new(100) { |i| [i, i % 10, i % 5] })
       end
 
-      #ds_logger = Logger.new(STDERR)
-      #ds_logger.formatter = lambda { |severity, time, progname, msg|
-        #"DATASET: %s [%s]: %s\n" % [severity, time, msg]
-      #}
       ds = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
 
-      #rs_logger = Logger.new(STDERR)
-      #rs_logger.formatter = lambda { |severity, time, progname, msg|
-        #"RESULTS: %s [%s]: %s\n" % [severity, time, msg]
-      #}
       tmpuri = @tmpuri
       conf = ds.link_with(ds) do
         lhs[:foo].must == rhs[:bar]
@@ -52,11 +40,10 @@ module IntegrationTests
           assert_equal i, row[:foo_bar]
         end
 
-        #assert_equal 150, db[:groups_records].count
-        #db[:groups_records].order(:group_id, :dataset, :record_id).each_with_index do |row, i|
-          #expected_group_id = (row[:record_id] % 5) + 1
-          #assert_equal expected_group_id, row[:group_id], "Record #{row[:record_id]} should have been in group #{expected_group_id}"
-        #end
+        assert_equal 1000, db[:matches].count
+        db[:matches].order(:record_1_id, :record_2_id).each do |row|
+          assert_equal row[:record_1_id] % 10, row[:record_2_id] % 5
+        end
       end
     end
 

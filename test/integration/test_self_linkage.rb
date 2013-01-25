@@ -42,6 +42,11 @@ module IntegrationTests
           dataset, _ = result_set.groups_records_datasets(group)
           assert_equal 10, dataset.count
         end
+
+        assert_equal 450, db[:matches].count
+        db[:matches].order(:record_1_id, :record_2_id).each do |row|
+          assert_equal row[:record_1_id] % 10, row[:record_2_id] % 10
+        end
       end
     end
 

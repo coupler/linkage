@@ -375,6 +375,27 @@ module Linkage
       schema
     end
 
+    def matches_table_schema
+      schema = []
+
+      # add id
+      schema << [:id, Integer, {:primary_key => true}]
+
+      # add record ids
+      pk = dataset_1.field_set.primary_key
+      ruby_type = pk.ruby_type
+      schema << [:record_1_id, ruby_type[:type], ruby_type[:opts] || {}]
+
+      pk = dataset_2.field_set.primary_key
+      ruby_type = pk.ruby_type
+      schema << [:record_2_id, ruby_type[:type], ruby_type[:opts] || {}]
+
+      # add score
+      schema << [:total_score, Integer, {}]
+
+      schema
+    end
+
     def add_simple_expectation(expectation)
       @simple_expectations << expectation
       @decollation_needed ||= decollation_needed_for_simple_expectation?(expectation)
@@ -415,10 +436,18 @@ module Linkage
     end
 
     def groups_table_needed?
-      !@simple_expectations.empty?
+      has_simple_expectations?
     end
 
     def scores_table_needed?
+      has_exhaustive_expectations?
+    end
+
+    def has_simple_expectations?
+      !@simple_expectations.empty?
+    end
+
+    def has_exhaustive_expectations?
       !@exhaustive_expectations.empty?
     end
 

@@ -45,16 +45,10 @@ module IntegrationTests
           assert_equal "12345678#{i%10}", row[:ssn]
         end
 
-        #assert_equal 200, db[:groups_records].count
-        #db[:groups_records].order(:group_id, :dataset, :record_id).each_with_index do |row, i|
-          #if i % 20 >= 10
-            #assert_equal 2, row[:dataset], row.inspect
-          #else
-            #assert_equal 1, row[:dataset], row.inspect
-          #end
-          #expected_group_id = i / 20 + 1
-          #assert_equal expected_group_id, row[:group_id], "Record #{row.inspect} should have been in group #{expected_group_id}"
-        #end
+        assert_equal 1000, db[:matches].count
+        db[:matches].order(:record_1_id, :record_2_id).each do |row|
+          assert_equal row[:record_1_id] % 10, row[:record_2_id] % 10
+        end
       end
     end
 

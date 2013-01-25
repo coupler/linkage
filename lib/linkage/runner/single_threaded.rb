@@ -9,10 +9,15 @@ module Linkage
 
       @pk_1 = config.dataset_1.field_set.primary_key.to_expr
       @pk_2 = config.dataset_2.field_set.primary_key.to_expr
-      if !config.simple_expectations.empty?
+      if config.has_simple_expectations?
         setup_datasets
         group_records
-        score_records_with_groups
+
+        if config.has_exhaustive_expectations?
+          score_records_with_groups
+        else
+          create_matches
+        end
       else
         dataset_1, dataset_2 = config.datasets_with_applied_exhaustive_expectations
         score_records_without_groups(dataset_1, dataset_2)
@@ -133,14 +138,49 @@ module Linkage
     end
 
     def score(record_1, record_2)
-      config.exhaustive_expectations.each_with_index do |expectation, comparator_id|
-        comparator = expectation.comparator
+      pk_1 = record_1[@pk_1]
+      pk_2 = record_2[@pk_2]
 
-        score = comparator.score(record_1, record_2)
-        result_set.add_score(comparator_id, record_1[@pk_1], record_2[@pk_2],
-          score)
+      catch(:stop) do
+        total_score = 0
+        config.exhaustive_expectations.each_with_index do |expectation, comparator_id|
+          comparator = expectation.comparator
 
-        break unless expectation.satisfied?(score)
+          score = comparator.score(record_1, record_2)
+          result_set.add_score(comparator_id, pk_1, pk_2, score)
+
+          throw(:stop) unless expectation.satisfied?(score)
+          total_score += score
+        end
+        result_set.add_match(pk_1, pk_2, total_score)
+      end
+    end
+
+    # Only needed for linkages without exhaustive expectations
+    def create_matches
+      result_set.groups_dataset.each do |group_record|
+        group = Group.from_row(group_record)
+        dataset_1, dataset_2 = result_set.groups_records_datasets(group)
+
+        if config.linkage_type == :self
+          keys = dataset_1.select_map(@pk_1)
+          keys_last = keys.length - 1
+          keys.each_with_index do |key_1, key_1_index|
+            (key_1_index + 1).upto(keys_last) do |key_2_index|
+              key_2 = keys[key_2_index]
+              result_set.add_match(key_1, key_2, nil)
+            end
+          end
+        else
+          keys_1 = dataset_1.select_map(@pk_1)
+          keys_2 = dataset_2.select_map(@pk_2)
+
+          keys_1.each do |key_1|
+            keys_2.each do |key_2|
+              result_set.add_match(key_1, key_2, nil)
+            end
+          end
+        end
       end
     end
   end

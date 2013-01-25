@@ -39,12 +39,9 @@ module Linkage
         end
       end
 
-      pk_type = @config.dataset_1.field_set.primary_key.merge(@config.dataset_2.field_set.primary_key).ruby_type
-      database.create_table(:groups_records) do
-        column(:record_id, pk_type[:type], pk_type[:opts] || {})
-        Integer :group_id
-        Integer :dataset
-        index :group_id
+      schema = @config.matches_table_schema
+      database.create_table(:matches) do
+        schema.each { |col| column(*col) }
       end
     end
 
@@ -83,9 +80,19 @@ module Linkage
       @scores_buffer.add([comparator_id, record_1_id, record_2_id, score])
     end
 
+    def add_match(record_1_id, record_2_id, total_score)
+      if !@matches_buffer
+        matches_headers = [:record_1_id, :record_2_id, :total_score]
+        @matches_buffer = ImportBuffer.new(database[:matches], matches_headers)
+      end
+      @matches_buffer.add([record_1_id, record_2_id, total_score])
+    end
+
     def flush!
       @groups_buffer.flush if @groups_buffer
+      @original_groups_buffer.flush if @original_groups_buffer
       @scores_buffer.flush if @scores_buffer
+      @matches_buffer.flush if @matches_buffer
     end
 
     def get_group(index)
