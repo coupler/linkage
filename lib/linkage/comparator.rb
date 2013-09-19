@@ -167,6 +167,6 @@ module Linkage
 end
 
 path = File.expand_path(File.join(File.dirname(__FILE__), "comparators"))
-require File.join(path, "binary")
 require File.join(path, "compare")
 require File.join(path, "within")
+require File.join(path, "strcompare")

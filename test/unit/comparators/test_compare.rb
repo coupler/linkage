@@ -9,8 +9,8 @@ class UnitTests::TestCompare < Test::Unit::TestCase
     end
   end
 
-  test "subclass of Binary" do
-    assert_equal Binary, Compare.superclass
+  test "subclass of Comparator" do
+    assert_equal Linkage::Comparator, Compare.superclass
   end
 
   test "valid parameters" do
