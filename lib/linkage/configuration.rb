@@ -58,8 +58,7 @@ module Linkage
             comparator = Comparators::Compare.new(@lhs.meta_object,
               MetaObject.new(operator.to_s), rhs.meta_object)
 
-            score_range = Comparators::Compare.score_range
-            threshold = @type == :must ? score_range.last : score_range.first
+            threshold = @type == :must ? 1 : 0
 
             expectation = Expectations::Exhaustive.new(comparator, threshold, :equal)
             @dsl.add_exhaustive_expectation(expectation)
@@ -101,8 +100,7 @@ module Linkage
               wrapper = args[0]
               comparator = wrapper.to_comparator(self)
 
-              score_range = wrapper.klass.score_range
-              threshold = type == :must ? score_range.last : score_range.first
+              threshold = type == :must ? 1 : 0
 
               expectation = Expectations::Exhaustive.new(comparator, threshold, :equal)
               @dsl.add_exhaustive_expectation(expectation)

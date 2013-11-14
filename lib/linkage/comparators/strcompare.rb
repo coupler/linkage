@@ -1,11 +1,6 @@
 module Linkage
   module Comparators
     class Strcompare < Comparator
-      @@score_range = 0..1
-      def self.score_range
-        @@score_range
-      end
-
       @@parameters = [
         [String, :static => false, :side => :first],
         [String, :values => %w{jw}],

@@ -21,7 +21,7 @@ class UnitTests::TestComparator < Test::Unit::TestCase
   end
 
   test "getting a registered subclass" do
-    klass = new_comparator('foo', [[String]], 0..1)
+    klass = new_comparator('foo', [[String]])
     Linkage::Comparator.register(klass)
     assert_equal klass, Linkage::Comparator['foo']
   end
@@ -37,16 +37,6 @@ class UnitTests::TestComparator < Test::Unit::TestCase
 
   test "subclasses required to define at least one parameter" do
     klass = new_comparator('foo', [])
-    assert_raises(ArgumentError) { Linkage::Comparator.register(klass) }
-  end
-
-  test "subclasses required to define score_range class method" do
-    klass = new_comparator('foo', [[String]])
-    assert_raises(ArgumentError) { Linkage::Comparator.register(klass) }
-  end
-
-  test "score_range class should be a Range of two numbers" do
-    klass = new_comparator('foo', [[String]], "foo".."bar")
     assert_raises(ArgumentError) { Linkage::Comparator.register(klass) }
   end
 

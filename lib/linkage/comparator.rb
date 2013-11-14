@@ -26,16 +26,6 @@ module Linkage
       rescue NotImplementedError
         raise ArgumentError, "parameters class method must be defined"
       end
-
-      begin
-        range = klass.score_range
-        if !range.is_a?(Range) || !range.first.is_a?(Numeric) ||
-              !range.last.is_a?(Numeric)
-          raise ArgumentError, "score_range must be a Range of two numbers"
-        end
-      rescue NotImplementedError
-        raise ArgumentError, "score_range class method must be defined"
-      end
     end
 
     def self.[](name)
@@ -60,13 +50,6 @@ module Linkage
     #   At least one argument must be defined.
     # @return [Array]
     def self.parameters
-      raise NotImplementedError
-    end
-
-    # @abstract Override this to return a Range of the possible scores for the
-    #   comparator.
-    # @return [Range]
-    def self.score_range
       raise NotImplementedError
     end
 

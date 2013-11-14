@@ -1,11 +1,6 @@
 module Linkage
   module Comparators
     class Compare < Comparator
-      @@score_range = 0..1
-      def self.score_range
-        @@score_range
-      end
-
       @@parameters = [
         [:any, :static => false, :side => :first],
         [String, :values => %w{> >= <= < !=}],
