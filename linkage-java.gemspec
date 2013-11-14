@@ -14,6 +14,7 @@ Gem::Specification.new do |gem|
   gem.name          = "linkage"
   gem.require_paths = ["lib"]
   gem.version       = Linkage::VERSION
+  gem.platform      = "java"
 
   gem.add_dependency "sequel"
   gem.add_dependency "sequel-collation"
@@ -24,7 +25,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "test-unit"
   gem.add_development_dependency "mocha"
   gem.add_development_dependency "versionomy"
-  gem.add_development_dependency "sqlite3"
-  gem.add_development_dependency "mysql2"
+  gem.add_development_dependency "jdbc-sqlite3"
+  gem.add_development_dependency "jdbc-mysql"
   gem.add_development_dependency "guard-test"
 end

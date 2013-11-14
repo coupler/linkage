@@ -8,3 +8,4 @@ test.rb
 results.db
 .rbenv-version
 bin
+Gemfile.lock
