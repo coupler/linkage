@@ -1,16 +1,4 @@
-# encoding: utf-8
-
-require 'rubygems'
-require 'bundler'
-begin
-  Bundler.setup(:default, :development)
-rescue Bundler::BundlerError => e
-  $stderr.puts e.message
-  $stderr.puts "Run `bundle install` to install missing gems"
-  exit e.status_code
-end
-require 'rake'
-require "bundler/gem_tasks"
+require 'bundler/gem_tasks'
 
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
@@ -28,7 +16,7 @@ end
 
 # Yoinked from https://github.com/rails/rails/blob/master/railties/lib/rails/tasks/annotations.rake
 namespace :notes do
-  ["OPTIMIZE", "FIXME", "TODO"].each do |annotation|
+  ['OPTIMIZE', 'FIXME', 'TODO'].each do |annotation|
     desc "Enumerate all #{annotation} annotations"
     task annotation.downcase.intern do
       SourceAnnotationExtractor.enumerate annotation

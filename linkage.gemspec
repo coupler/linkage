@@ -2,6 +2,7 @@
 require File.expand_path('../lib/linkage/version', __FILE__)
 
 Gem::Specification.new do |gem|
+  gem.name          = "linkage"
   gem.authors       = ["Jeremy Stephens"]
   gem.email         = ["jeremy.f.stephens@vanderbilt.edu"]
   gem.description   = %q{Performs record linkage between one or two datasets, using Sequel on the backend}
