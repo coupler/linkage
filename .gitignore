@@ -9,3 +9,4 @@ results.db
 .rbenv-version
 bin
 Gemfile.lock
+.idea

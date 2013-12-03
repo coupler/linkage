@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Linkage::VERSION
 
-  gem.add_dependency "sequel"
+  gem.add_dependency "sequel", "3.47.0"
   gem.add_dependency "sequel-collation"
   gem.add_dependency "hashery"
 
