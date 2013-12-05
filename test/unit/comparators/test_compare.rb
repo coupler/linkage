@@ -13,93 +13,80 @@ class UnitTests::TestCompare < Test::Unit::TestCase
     assert_equal Linkage::Comparator, Compare.superclass
   end
 
-  test "valid parameters" do
-    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
-    meta_object_2 = stub('meta object', :object => '>', :ruby_type => { :type => String }, :static? => true, :raw? => true)
-    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Integer }, :static? => false)
-    assert_nothing_raised do
-      Compare.new(meta_object_1, meta_object_2, meta_object_3)
-    end
-  end
-
   test "score for not equal to" do
-    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
-    meta_object_2 = stub('meta object', :object => '!=', :ruby_type => { :type => String }, :static? => true, :raw? => true)
-    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Integer }, :static? => false)
-    comp = Compare.new(meta_object_1, meta_object_2, meta_object_3)
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1], [field_2], :not_equal)
     assert_equal 1, comp.score({:foo => 10}, {:bar => 5})
     assert_equal 0, comp.score({:foo => 5}, {:bar => 5})
     assert_equal 1, comp.score({:foo => 0}, {:bar => 5})
   end
 
   test "score for greater than" do
-    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
-    meta_object_2 = stub('meta object', :object => '>', :ruby_type => { :type => String }, :static? => true, :raw? => true)
-    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Integer }, :static? => false)
-    comp = Compare.new(meta_object_1, meta_object_2, meta_object_3)
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1], [field_2], :greater_than)
     assert_equal 1, comp.score({:foo => 10}, {:bar => 5})
     assert_equal 0, comp.score({:foo => 5}, {:bar => 5})
     assert_equal 0, comp.score({:foo => 0}, {:bar => 5})
   end
 
   test "score for greater than or equal to" do
-    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
-    meta_object_2 = stub('meta object', :object => '>=', :ruby_type => { :type => String }, :static? => true, :raw? => true)
-    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Integer }, :static? => false)
-    comp = Compare.new(meta_object_1, meta_object_2, meta_object_3)
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1], [field_2], :greater_than_or_equal_to)
     assert_equal 1, comp.score({:foo => 10}, {:bar => 5})
     assert_equal 1, comp.score({:foo => 5}, {:bar => 5})
     assert_equal 0, comp.score({:foo => 0}, {:bar => 5})
   end
 
   test "score for less than or equal to" do
-    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
-    meta_object_2 = stub('meta object', :object => '<=', :ruby_type => { :type => String }, :static? => true, :raw? => true)
-    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Integer }, :static? => false)
-    comp = Compare.new(meta_object_1, meta_object_2, meta_object_3)
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1], [field_2], :less_than_or_equal_to)
     assert_equal 0, comp.score({:foo => 10}, {:bar => 5})
     assert_equal 1, comp.score({:foo => 5}, {:bar => 5})
     assert_equal 1, comp.score({:foo => 0}, {:bar => 5})
   end
 
   test "score for less than" do
-    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
-    meta_object_2 = stub('meta object', :object => '<', :ruby_type => { :type => String }, :static? => true, :raw? => true)
-    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Integer }, :static? => false)
-    comp = Compare.new(meta_object_1, meta_object_2, meta_object_3)
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1], [field_2], :less_than)
     assert_equal 0, comp.score({:foo => 10}, {:bar => 5})
     assert_equal 0, comp.score({:foo => 5}, {:bar => 5})
     assert_equal 1, comp.score({:foo => 0}, {:bar => 5})
+  end
+
+  test "score_datasets for equal to" do
+    pend
   end
 
   test "registers itself" do
     assert_equal Compare, Linkage::Comparator['compare']
   end
 
-  test "requires argument from each side" do
-    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
-    meta_object_2 = stub('meta object', :object => '>=', :ruby_type => { :type => String }, :static? => true, :raw? => true)
-    meta_object_3 = stub('meta object', :name => :bar, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
+  test "requires equal size sets" do
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     assert_raises do
-      Compare.new(meta_object_1, meta_object_2, meta_object_3)
+      Compare.new([field_1, field_2], [], :greater_than_or_equal_to)
     end
   end
 
-  test "requires that 3rd argument has the same type as the first argument" do
-    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
-    meta_object_2 = stub('meta object', :object => '>=', :ruby_type => { :type => String }, :static? => true, :raw? => true)
-    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Date }, :static? => false)
+  test "requires that sets have values with alike types" do
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Date })
     assert_raises do
-      Compare.new(meta_object_1, meta_object_2, meta_object_3)
+      Compare.new([field_1], [field_2], :greater_than_or_equal_to)
     end
   end
 
-  test "requires raw operator to be >, >=, <=, <, or !=" do
-    meta_object_1 = stub('meta object', :name => :foo, :side => :lhs, :ruby_type => { :type => Integer }, :static? => false)
-    meta_object_2 = stub('meta object', :object => 'foo', :ruby_type => { :type => String }, :static? => true, :raw? => true)
-    meta_object_3 = stub('meta object', :name => :bar, :side => :rhs, :ruby_type => { :type => Integer }, :static? => false)
+  test "requires valid operation" do
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     assert_raises do
-      Compare.new(meta_object_1, meta_object_2, meta_object_3)
+      Compare.new([field_1], [field_2], 'foo')
     end
   end
 end
