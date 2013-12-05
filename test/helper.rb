@@ -82,7 +82,7 @@ class Test::Unit::TestCase
     if params
       klass.send(:define_singleton_method, :parameters) { params }
     end
-    klass.send(:define_method, :score) { |record_1, record_2| 100 }
+    klass.send(:define_method, :score) { |record_1, record_2| 1 }
     if block_given?
       klass.class_eval(&block)
     end
