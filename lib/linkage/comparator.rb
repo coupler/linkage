@@ -4,14 +4,7 @@ module Linkage
     # Register a new comparator.
     #
     # @param [Class] klass Comparator subclass
-    def self.register(klass)
-      name = nil
-      begin
-        name = klass.comparator_name
-      rescue NotImplementedError
-        raise ArgumentError, "comparator_name class method must be defined"
-      end
-
+    def self.register(name, klass)
       if !klass.instance_methods(false).include?(:score)
         raise ArgumentError, "class must define the score method"
       end

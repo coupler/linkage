@@ -10,11 +10,6 @@ module Linkage
         @@parameters
       end
 
-      @@comparator_name = 'compare'
-      def self.comparator_name
-        @@comparator_name
-      end
-
       def initialize(*args)
         super
         @name_1 = @args[0].name
@@ -41,6 +36,6 @@ module Linkage
       end
     end
 
-    Comparator.register(Compare)
+    Comparator.register('compare', Compare)
   end
 end

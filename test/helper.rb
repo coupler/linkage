@@ -76,12 +76,8 @@ class Test::Unit::TestCase
     klass
   end
 
-  def new_comparator(name, params = nil, &block)
+  def new_comparator(&block)
     klass = Class.new(Linkage::Comparator)
-    klass.send(:define_singleton_method, :comparator_name) { name }
-    if params
-      klass.send(:define_singleton_method, :parameters) { params }
-    end
     klass.send(:define_method, :score) { |record_1, record_2| 1 }
     if block_given?
       klass.class_eval(&block)

@@ -10,11 +10,6 @@ module Linkage
         @@parameters
       end
 
-      @@comparator_name = 'within'
-      def self.comparator_name
-        @@comparator_name
-      end
-
       def initialize(*args)
         super
         @name_1 = @args[0].name
@@ -27,6 +22,6 @@ module Linkage
       end
     end
 
-    Comparator.register(Within)
+    Comparator.register('within', Within)
   end
 end
