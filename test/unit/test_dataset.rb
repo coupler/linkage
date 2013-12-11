@@ -68,4 +68,11 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     @database.expects(:database_type).returns(:foo)
     assert_equal :foo, ds.database_type
   end
+
+  test "primary key" do
+    ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    pk = stub('primary key field')
+    @field_set.expects(:primary_key).returns(pk)
+    assert_equal pk, ds.primary_key
+  end
 end

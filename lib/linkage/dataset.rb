@@ -50,6 +50,10 @@ module Linkage
       @db.schema(@table_name)
     end
 
+    def primary_key
+      @field_set.primary_key
+    end
+
     protected
 
     def method_missing(name, *args, &block)
