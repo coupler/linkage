@@ -2,6 +2,7 @@ require 'pathname'
 require 'delegate'
 require 'sequel'
 require 'hashery'
+require 'observer'
 
 module Linkage
 end
