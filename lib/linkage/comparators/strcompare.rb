@@ -1,27 +1,26 @@
 module Linkage
   module Comparators
     class Strcompare < Comparator
-      @@parameters = [
-        [String, :static => false, :side => :first],
-        [String, :values => %w{jw}],
-        [String, :same_type_as => 0, :static => false, :side => :second]
-      ]
-      def self.parameters
-        @@parameters
-      end
+      VALID_OPERATIONS = [:jarowinkler]
 
-      def initialize(*args)
-        super
-        @name_1 = @args[0].name
-        @operator = @args[1].object
-        @name_2 = @args[2].name
+      def initialize(field_1, field_2, operation)
+        if field_1.ruby_type[:type] != String || field_2.ruby_type[:type] != String
+          raise "fields must be string types"
+        end
+        if !VALID_OPERATIONS.include?(operation)
+          raise "#{operation.inspect} is not a valid operation"
+        end
+
+        @expr_1 = field_1.to_expr
+        @expr_2 = field_2.to_expr
+        @operation = operation
       end
 
       def score(record_1, record_2)
         result =
-          case @operator
-          when 'jw'
-            jarowinkler(record_1[@name_1], record_2[@name_2])
+          case @operation
+          when :jarowinkler
+            jarowinkler(record_1[@expr_1], record_2[@expr_2])
           end
 
         result
