@@ -31,21 +31,21 @@ module Linkage
       end
 
       def score(record_1, record_2)
-        expr_1 = @set_1[0].to_expr
-        expr_2 = @set_2[0].to_expr
+        name_1 = @set_1[0].name
+        name_2 = @set_2[0].name
 
         result =
           case @operation
           when :not_equal
-            record_1[expr_1] != record_2[expr_2]
+            record_1[name_1] != record_2[name_2]
           when :greater_than
-            record_1[expr_1] > record_2[expr_2]
+            record_1[name_1] > record_2[name_2]
           when :greater_than_or_equal_to
-            record_1[expr_1] >= record_2[expr_2]
+            record_1[name_1] >= record_2[name_2]
           when :less_than_or_equal_to
-            record_1[expr_1] <= record_2[expr_2]
+            record_1[name_1] <= record_2[name_2]
           when :less_than
-            record_1[expr_1] < record_2[expr_2]
+            record_1[name_1] < record_2[name_2]
           end
 
         result ? 1 : 0
@@ -60,26 +60,26 @@ module Linkage
       def score_dataset(dataset)
         # FIXME: nil value equality
 
-        expr = @set_1.collect(&:to_expr)
-        if @set_2.collect(&:to_expr) != expr
+        name = @set_1.collect(&:name)
+        if @set_2.collect(&:name) != name
           return _score_datasets(dataset, dataset)
         end
 
-        enum = dataset.order(*expr).to_enum
+        enum = dataset.order(*name).to_enum
         begin
           record = enum.next
         rescue StopIteration
           return
         end
         group = [record]
-        last_value = record.values_at(*expr)
+        last_value = record.values_at(*name)
         loop do
           begin
             record = enum.next
           rescue StopIteration
             break
           end
-          value = record.values_at(*expr)
+          value = record.values_at(*name)
           if value == last_value
             group << record
           else
@@ -95,10 +95,10 @@ module Linkage
       private
 
       def _score_datasets(dataset_1, dataset_2)
-        expr_1 = @set_1.collect(&:to_expr)
-        expr_2 = @set_2.collect(&:to_expr)
-        enum_1 = dataset_1.order(*expr_1).to_enum
-        enum_2 = dataset_2.order(*expr_2).to_enum
+        name_1 = @set_1.collect(&:name)
+        name_2 = @set_2.collect(&:name)
+        enum_1 = dataset_1.order(*name_1).to_enum
+        enum_2 = dataset_2.order(*name_2).to_enum
 
         begin
           record_1 = enum_1.next
@@ -110,8 +110,8 @@ module Linkage
         group_1 = []
         group_2 = []
         loop do
-          value_1 = record_1.values_at(*expr_1)
-          value_2 = record_2.values_at(*expr_2)
+          value_1 = record_1.values_at(*name_1)
+          value_2 = record_2.values_at(*name_2)
           result = value_1 <=> value_2
           if result == 0
             last_value = value_1
@@ -124,11 +124,11 @@ module Linkage
                 case state
                 when :left
                   record_1 = enum_1.next
-                  value_1 = record_1.values_at(*expr_1)
+                  value_1 = record_1.values_at(*name_1)
                   result = last_value == value_1
                 when :right
                   record_2 = enum_2.next
-                  value_2 = record_2.values_at(*expr_2)
+                  value_2 = record_2.values_at(*name_2)
                   result = last_value == value_2
                 end
               rescue StopIteration

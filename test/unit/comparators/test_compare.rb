@@ -14,8 +14,8 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score for not equal to" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1], [field_2], :not_equal)
     assert_equal :simple, comp.type
     assert_equal 1, comp.score({:foo => 10}, {:bar => 5})
@@ -24,8 +24,8 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score for greater than" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1], [field_2], :greater_than)
     assert_equal :simple, comp.type
     assert_equal 1, comp.score({:foo => 10}, {:bar => 5})
@@ -34,8 +34,8 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score for greater than or equal to" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1], [field_2], :greater_than_or_equal_to)
     assert_equal :simple, comp.type
     assert_equal 1, comp.score({:foo => 10}, {:bar => 5})
@@ -44,8 +44,8 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score for less than or equal to" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1], [field_2], :less_than_or_equal_to)
     assert_equal :simple, comp.type
     assert_equal 0, comp.score({:foo => 10}, {:bar => 5})
@@ -54,8 +54,8 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score for less than" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1], [field_2], :less_than)
     assert_equal :simple, comp.type
     assert_equal 0, comp.score({:foo => 10}, {:bar => 5})
@@ -64,8 +64,8 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score_datasets with one field equality" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1], [field_2], :equal_to)
     assert_equal :advanced, comp.type
     observer = stub('observer', :update => nil)
@@ -97,10 +97,10 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score_datasets with multiple field equality" do
-    field_1_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_1_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
-    field_2_1 = stub('baz field', :to_expr => :baz, :ruby_type => { :type => Integer })
-    field_2_2 = stub('qux field', :to_expr => :qux, :ruby_type => { :type => Integer })
+    field_1_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_1_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    field_2_1 = stub('baz field', :name => :baz, :ruby_type => { :type => Integer })
+    field_2_2 = stub('qux field', :name => :qux, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1_1, field_1_2], [field_2_1, field_2_2], :equal_to)
     assert_equal :advanced, comp.type
     observer = stub('observer', :update => nil)
@@ -134,7 +134,7 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score_dataset with same single field equality" do
-    field = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
+    field = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
     comp = Compare.new([field], [field], :equal_to)
     assert_equal :advanced, comp.type
     observer = stub('observer', :update => nil)
@@ -153,8 +153,8 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score_dataset with same multiple field equality" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1, field_2], [field_1, field_2], :equal_to)
     assert_equal :advanced, comp.type
     observer = stub('observer', :update => nil)
@@ -181,8 +181,8 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "score_dataset with different single field equality" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1], [field_2], :equal_to)
     assert_equal :advanced, comp.type
     observer = stub('observer', :update => nil)
@@ -219,24 +219,24 @@ class UnitTests::TestCompare < Test::Unit::TestCase
   end
 
   test "requires equal size sets" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     assert_raises do
       Compare.new([field_1, field_2], [], :greater_than_or_equal_to)
     end
   end
 
   test "requires that sets have values with alike types" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Date })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Date })
     assert_raises do
       Compare.new([field_1], [field_2], :greater_than_or_equal_to)
     end
   end
 
   test "requires valid operation" do
-    field_1 = stub('foo field', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('bar field', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     assert_raises do
       Compare.new([field_1], [field_2], 'foo')
     end
