@@ -14,24 +14,24 @@ class UnitTests::TestStrcompare < Test::Unit::TestCase
   end
 
   test "requires string types" do
-    field_1 = stub('field 1', :to_expr => :foo, :ruby_type => { :type => Integer })
-    field_2 = stub('field 2', :to_expr => :bar, :ruby_type => { :type => Integer })
+    field_1 = stub('field 1', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('field 2', :name => :bar, :ruby_type => { :type => Integer })
     assert_raises do
       Strcompare.new(field_1, field_2, :jarowinkler)
     end
   end
 
   test "requires valid operator" do
-    field_1 = stub('field 1', :to_expr => :foo, :ruby_type => { :type => String })
-    field_2 = stub('field 2', :to_expr => :bar, :ruby_type => { :type => String })
+    field_1 = stub('field 1', :name => :foo, :ruby_type => { :type => String })
+    field_2 = stub('field 2', :name => :bar, :ruby_type => { :type => String })
     assert_raises do
       Strcompare.new(field_1, field_2, 'foo')
     end
   end
 
   test "score for jarowinkler" do
-    field_1 = stub('field 1', :to_expr => :foo, :ruby_type => { :type => String })
-    field_2 = stub('field 2', :to_expr => :bar, :ruby_type => { :type => String })
+    field_1 = stub('field 1', :name => :foo, :ruby_type => { :type => String })
+    field_2 = stub('field 2', :name => :bar, :ruby_type => { :type => String })
     comp = Strcompare.new(field_1, field_2, :jarowinkler)
     assert_equal 0.961, comp.score({:foo => 'martha'}, {:bar => 'marhta'})
     assert_equal 0.840, comp.score({:foo => 'dwayne'}, {:bar => 'duane'})

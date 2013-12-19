@@ -11,8 +11,8 @@ module Linkage
           raise "#{operation.inspect} is not a valid operation"
         end
 
-        @expr_1 = field_1.to_expr
-        @expr_2 = field_2.to_expr
+        @name_1 = field_1.name
+        @name_2 = field_2.name
         @operation = operation
       end
 
@@ -20,7 +20,7 @@ module Linkage
         result =
           case @operation
           when :jarowinkler
-            jarowinkler(record_1[@expr_1], record_2[@expr_2])
+            jarowinkler(record_1[@name_1], record_2[@name_2])
           end
 
         result
