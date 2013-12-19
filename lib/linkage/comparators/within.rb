@@ -1,20 +1,14 @@
 module Linkage
   module Comparators
     class Within < Comparator
-      @@parameters = [
-        [:any, :static => false, :side => :first],
-        [Fixnum],
-        [:any, :same_type_as => 0, :static => false, :side => :second]
-      ]
-      def self.parameters
-        @@parameters
-      end
+      def initialize(field_1, field_2, value)
+        if field_1.ruby_type != field_2.ruby_type
+          raise "fields must have the same type"
+        end
 
-      def initialize(*args)
-        super
-        @name_1 = @args[0].name
-        @value = @args[1].object
-        @name_2 = @args[2].name
+        @name_1 = field_1.name
+        @name_2 = field_2.name
+        @value = value
       end
 
       def score(record_1, record_2)
