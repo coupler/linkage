@@ -31,6 +31,7 @@ module Linkage
       end
 
       def score(record_1, record_2)
+        # TODO: multiple field matches?
         name_1 = @set_1[0].name
         name_2 = @set_2[0].name
 

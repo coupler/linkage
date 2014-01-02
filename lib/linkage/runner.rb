@@ -4,28 +4,19 @@ module Linkage
     attr_reader :config, :result_set
 
     # @param [Linkage::Configuration] config
-    # @param [String] uri Sequel-style database URI
-    # @param [Hash] options Sequel.connect options
+    # @param [Linkage::ResultSet] result_set
     # @see Dataset#link_with
-    # @see http://sequel.rubyforge.org/rdoc/files/doc/opening_databases_rdoc.html Sequel: Connecting to a database
-    def initialize(config, uri = nil, options = {})
+    def initialize(config, result_set)
       @config = config
-      if uri
-        warn("[DEPRECATION] Please use Configuration#save_results_in with the database URI and options instead")
-        @config.save_results_in(uri, options)
-      end
+      @result_set = result_set
     end
 
     # @abstract
     def execute
       raise NotImplementedError
     end
-
-    def result_set
-      @config.result_set
-    end
   end
 end
 
-path = Pathname.new(File.expand_path(File.dirname(__FILE__))) + 'runner'
+path = Pathname.new(File.expand_path(File.dirname(__FILE__))) + 'runners'
 require path + 'single_threaded'
