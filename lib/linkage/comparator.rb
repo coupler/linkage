@@ -20,12 +20,6 @@ module Linkage
       @comparators ? @comparators[name] : nil
     end
 
-    # @abstract Override this to return the name of the comparator.
-    # @return [String]
-    def self.comparator_name
-      raise NotImplementedError
-    end
-
     def type
       @type || :simple
     end
