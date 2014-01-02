@@ -36,6 +36,12 @@ module Linkage
     def score(record_1, record_2)
       raise NotImplementedError
     end
+
+    def score_and_notify(record_1, record_2)
+      value = score(record_1, record_2)
+      changed
+      notify_observers(self, record_1, record_2, value)
+    end
   end
 end
 

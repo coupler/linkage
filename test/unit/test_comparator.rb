@@ -50,4 +50,17 @@ class UnitTests::TestComparator < Test::Unit::TestCase
     end
     assert_raises(ArgumentError) { Linkage::Comparator.register('foo', klass) }
   end
+
+  test "score_and_notify" do
+    klass = new_comparator
+    instance = klass.new
+
+    observer = stub('observer', :update => nil)
+    instance.add_observer(observer)
+
+    record_1 = stub('record 1')
+    record_2 = stub('record 2')
+    observer.expects(:update).with(instance, record_1, record_2, 1)
+    instance.score_and_notify(record_1, record_2)
+  end
 end
