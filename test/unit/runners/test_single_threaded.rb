@@ -28,8 +28,8 @@ class UnitTests::TestSingleThreadedRunner < Test::Unit::TestCase
         [(record_2_2 = {:id => 101, :foo => 456})]
       )
 
-      comparator_1.expects(:add_observer).with(@result_set)
-      comparator_2.expects(:add_observer).with(@result_set)
+      comparator_1.expects(:add_observer).with(@result_set, :add_score)
+      comparator_2.expects(:add_observer).with(@result_set, :add_score)
 
       comparator_1.expects(:score_and_notify).with(record_1_1, record_2_1)
       comparator_2.expects(:score_and_notify).with(record_1_1, record_2_1)
@@ -51,11 +51,11 @@ class UnitTests::TestSingleThreadedRunner < Test::Unit::TestCase
       comparator_2 = stub('comparator 2', :type => :advanced)
       @config.stubs(:comparators).returns([comparator_1, comparator_2])
 
-      comparator_1.expects(:add_observer).with(@result_set)
+      comparator_1.expects(:add_observer).with(@result_set, :add_score)
       comparator_1.expects(:score_datasets).with(@dataset_1, @dataset_2)
       comparator_1.expects(:delete_observer).with(@result_set)
 
-      comparator_2.expects(:add_observer).with(@result_set)
+      comparator_2.expects(:add_observer).with(@result_set, :add_score)
       comparator_2.expects(:score_datasets).with(@dataset_1, @dataset_2)
       comparator_2.expects(:delete_observer).with(@result_set)
 
@@ -82,8 +82,8 @@ class UnitTests::TestSingleThreadedRunner < Test::Unit::TestCase
         (record_3 = {:id => 3, :foo => 456})
       ])
 
-      comparator_1.expects(:add_observer).with(@result_set)
-      comparator_2.expects(:add_observer).with(@result_set)
+      comparator_1.expects(:add_observer).with(@result_set, :add_score)
+      comparator_2.expects(:add_observer).with(@result_set, :add_score)
 
       comparator_1.expects(:score_and_notify).with(record_1, record_2)
       comparator_2.expects(:score_and_notify).with(record_1, record_2)

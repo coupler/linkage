@@ -9,10 +9,10 @@ module Linkage
       simple_comparators = []
       config.comparators.each do |comparator|
         if comparator.type == :simple
-          comparator.add_observer(result_set)
+          comparator.add_observer(result_set, :add_score)
           simple_comparators << comparator
         else
-          comparator.add_observer(result_set)
+          comparator.add_observer(result_set, :add_score)
           comparator.score_datasets(dataset_1, dataset_2)
           comparator.delete_observer(result_set)
         end
