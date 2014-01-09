@@ -1,236 +1,40 @@
 require 'helper'
 
 class TestResultSet < Test::Unit::TestCase
-  def setup
-    @config = stub('configuration', {
-      :results_uri => 'foo://bar',
-      :results_uri_options => {:blah => 'junk'},
-      :decollation_needed? => true,
-      :groups_table_name => :groups,
-      :original_groups_table_name => :original_groups,
-      :scores_table_name => :scores,
-      :matches_table_name => :matches
-    })
-    @database = stub('database')
-    Sequel.stubs(:connect).with('foo://bar', :blah => 'junk').returns(@database)
+  test "add_score raises NotImplementedError" do
+    result_set = Linkage::ResultSet.new
+    assert_raises(NotImplementedError) do
+      result_set.add_score('foo', 'bar', 'baz', 'qux')
+    end
   end
 
-  test "creating a result set with a configuration" do
-    result_set = Linkage::ResultSet.new(@config)
+  test "getting a registered class" do
+    klass = new_result_set
+    Linkage::ResultSet.register('foo', klass)
+    assert_equal klass, Linkage::ResultSet['foo']
   end
 
-  test '#add_group creates two copies when decollation is needed' do
-    result_set = Linkage::ResultSet.new(@config)
-
-    group = stub('group', {
-      :values => {:foo => 'bar '},
-      :decollated_values => {:foo => 'BAR'}
-    })
-
-    groups_import_buffer = stub('groups import buffer')
-    groups_dataset = stub('groups dataset')
-    @database.stubs(:[]).with(:groups).returns(groups_dataset)
-    Linkage::ImportBuffer.stubs(:new).with(groups_dataset, [:id, :foo]).
-      returns(groups_import_buffer)
-
-    original_groups_import_buffer = stub('original groups import buffer')
-    original_groups_dataset = stub('original groups dataset')
-    @database.stubs(:[]).with(:original_groups).returns(original_groups_dataset)
-    Linkage::ImportBuffer.stubs(:new).with(original_groups_dataset, [:id, :foo]).
-      returns(original_groups_import_buffer)
-
-    groups_import_buffer.expects(:add).with([1, 'BAR'])
-    original_groups_import_buffer.expects(:add).with([1, 'bar '])
-    result_set.add_group(group)
+  test "registered classes required to define add_score" do
+    klass = new_result_set do
+      remove_method :add_score
+    end
+    assert_raises(ArgumentError) { Linkage::ResultSet.register('foo', klass) }
   end
 
-  test "#flush! flushes groups dataset" do
-    result_set = Linkage::ResultSet.new(@config)
-
-    group = stub('group', {
-      :values => {:foo => 'bar '},
-      :decollated_values => {:foo => 'BAR'}
-    })
-
-    groups_import_buffer = stub('groups import buffer')
-    groups_dataset = stub('groups dataset')
-    @database.stubs(:[]).with(:groups).returns(groups_dataset)
-    Linkage::ImportBuffer.stubs(:new).with(groups_dataset, [:id, :foo]).
-      returns(groups_import_buffer)
-
-    original_groups_import_buffer = stub('original groups import buffer')
-    original_groups_dataset = stub('original groups dataset')
-    @database.stubs(:[]).with(:original_groups).returns(original_groups_dataset)
-    Linkage::ImportBuffer.stubs(:new).with(original_groups_dataset, [:id, :foo]).
-      returns(original_groups_import_buffer)
-
-    groups_import_buffer.stubs(:add)
-    original_groups_import_buffer.stubs(:add)
-    result_set.add_group(group)
-
-    groups_import_buffer.expects(:flush)
-    original_groups_import_buffer.expects(:flush)
-    result_set.flush!
+  test "add_comparator" do
+    klass = new_result_set
+    instance = klass.new
+    comparator = stub('comparator')
+    instance.add_comparator(comparator)
+    assert_equal [comparator], instance.comparators
   end
 
-  test "#add_group doesn't create copies when decollation is not needed" do
-    @config.stubs(:decollation_needed?).returns(false)
-    result_set = Linkage::ResultSet.new(@config)
-
-    group = stub('group', :values => {:foo => 'bar '})
-
-    groups_import_buffer = stub('groups import buffer')
-    groups_dataset = stub('groups dataset', :first_source_table => :groups, :db => @database)
-    @database.stubs(:[]).with(:groups).returns(groups_dataset)
-    Linkage::ImportBuffer.stubs(:new).with(groups_dataset, [:id, :foo]).
-      returns(groups_import_buffer)
-
-    original_groups_dataset = stub('original groups dataset', :first_source_table => :original_groups, :db => @database)
-    @database.stubs(:[]).with(:original_groups).returns(original_groups_dataset)
-    Linkage::ImportBuffer.expects(:new).with(original_groups_dataset, [:id, :foo]).never
-
-    groups_import_buffer.expects(:add).with([1, 'bar '])
-    result_set.add_group(group)
-  end
-
-  test "#add_score adds to score buffer" do
-    result_set = Linkage::ResultSet.new(@config)
-    scores_dataset = stub('scores dataset')
-    @database.stubs(:[]).with(:scores).returns(scores_dataset)
-    scores_import_buffer = stub('scores import buffer')
-    Linkage::ImportBuffer.expects(:new).
-      with(scores_dataset, [:comparator_id, :record_1_id, :record_2_id, :score]).
-      returns(scores_import_buffer)
-    scores_import_buffer.expects(:add).with([0, 1, 2, 123])
-    scores_import_buffer.expects(:add).with([1, 1, 2, 456])
-    result_set.add_score(0, 1, 2, 123)
-    result_set.add_score(1, 1, 2, 456)
-  end
-
-  test "#flush! flushes score buffer" do
-    result_set = Linkage::ResultSet.new(@config)
-    scores_dataset = stub('scores dataset')
-    @database.stubs(:[]).with(:scores).returns(scores_dataset)
-    scores_import_buffer = stub('scores import buffer')
-    Linkage::ImportBuffer.stubs(:new).
-      with(scores_dataset, [:comparator_id, :record_1_id, :record_2_id, :score]).
-      returns(scores_import_buffer)
-    scores_import_buffer.stubs(:add)
-    result_set.add_score(0, 1, 2, 123)
-
-    scores_import_buffer.expects(:flush)
-    result_set.flush!
-  end
-
-  test "#add_match adds to match buffer" do
-    result_set = Linkage::ResultSet.new(@config)
-    matches_dataset = stub('matches dataset')
-    @database.stubs(:[]).with(:matches).returns(matches_dataset)
-    matches_import_buffer = stub('matches import buffer')
-    Linkage::ImportBuffer.expects(:new).
-      with(matches_dataset, [:record_1_id, :record_2_id, :total_score]).
-      returns(matches_import_buffer)
-    matches_import_buffer.expects(:add).with([1, 2, 123])
-    matches_import_buffer.expects(:add).with([2, 3, 456])
-    result_set.add_match(1, 2, 123)
-    result_set.add_match(2, 3, 456)
-  end
-
-  test "#flush! flushes match buffer" do
-    result_set = Linkage::ResultSet.new(@config)
-    matches_dataset = stub('matches dataset')
-    @database.stubs(:[]).with(:matches).returns(matches_dataset)
-    matches_import_buffer = stub('matches import buffer')
-    Linkage::ImportBuffer.stubs(:new).
-      with(matches_dataset, [:record_1_id, :record_2_id, :total_score]).
-      returns(matches_import_buffer)
-    matches_import_buffer.stubs(:add)
-    result_set.add_match(1, 2, 123)
-
-    matches_import_buffer.expects(:flush)
-    result_set.flush!
-  end
-
-  test "#create_tables! uses custom table names" do
-    @config.stubs({
-      :groups_table_name => :foo_groups,
-      :original_groups_table_name => :foo_original_groups,
-      :scores_table_name => :foo_scores,
-      :matches_table_name => :foo_matches,
-      :groups_table_needed? => true,
-      :decollation_needed? => true,
-      :scores_table_needed? => true,
-      :groups_table_schema => [],
-      :scores_table_schema => [],
-      :matches_table_schema => []
-    })
-    result_set = Linkage::ResultSet.new(@config)
-    @database.expects(:create_table).with(:foo_groups)
-    @database.expects(:create_table).with(:foo_original_groups)
-    @database.expects(:create_table).with(:foo_scores)
-    @database.expects(:create_table).with(:foo_matches)
-    result_set.create_tables!
-  end
-
-  test "#add_group uses custom table names" do
-    @config.stubs({
-      :groups_table_name => :foo_groups,
-      :original_groups_table_name => :foo_original_groups
-    })
-    result_set = Linkage::ResultSet.new(@config)
-
-    group = stub('group', {
-      :values => {:foo => 'bar '},
-      :decollated_values => {:foo => 'BAR'}
-    })
-
-    groups_import_buffer = stub('groups import buffer')
-    groups_dataset = stub('groups dataset')
-    @database.stubs(:[]).with(:foo_groups).returns(groups_dataset)
-    Linkage::ImportBuffer.stubs(:new).with(groups_dataset, [:id, :foo]).
-      returns(groups_import_buffer)
-
-    original_groups_import_buffer = stub('original groups import buffer')
-    original_groups_dataset = stub('original groups dataset')
-    @database.stubs(:[]).with(:foo_original_groups).
-      returns(original_groups_dataset)
-    Linkage::ImportBuffer.stubs(:new).
-      with(original_groups_dataset, [:id, :foo]).
-      returns(original_groups_import_buffer)
-
-    groups_import_buffer.expects(:add).with([1, 'BAR'])
-    original_groups_import_buffer.expects(:add).with([1, 'bar '])
-    result_set.add_group(group)
-  end
-
-  test "#add_score uses custom table name" do
-    @config.stubs(:scores_table_name).returns(:foo_scores)
-    result_set = Linkage::ResultSet.new(@config)
-    scores_dataset = stub('scores dataset')
-    @database.stubs(:[]).with(:foo_scores).returns(scores_dataset)
-    scores_import_buffer = stub('scores import buffer')
-    Linkage::ImportBuffer.expects(:new).
-      with(scores_dataset,
-        [:comparator_id, :record_1_id, :record_2_id, :score]).
-      returns(scores_import_buffer)
-    scores_import_buffer.expects(:add).with([0, 1, 2, 123])
-    scores_import_buffer.expects(:add).with([1, 1, 2, 456])
-    result_set.add_score(0, 1, 2, 123)
-    result_set.add_score(1, 1, 2, 456)
-  end
-
-  test "#add_match uses custom table name" do
-    @config.stubs(:matches_table_name).returns(:foo_matches)
-    result_set = Linkage::ResultSet.new(@config)
-    matches_dataset = stub('matches dataset')
-    @database.stubs(:[]).with(:foo_matches).returns(matches_dataset)
-    matches_import_buffer = stub('matches import buffer')
-    Linkage::ImportBuffer.expects(:new).
-      with(matches_dataset, [:record_1_id, :record_2_id, :total_score]).
-      returns(matches_import_buffer)
-    matches_import_buffer.expects(:add).with([1, 2, 123])
-    matches_import_buffer.expects(:add).with([2, 3, 456])
-    result_set.add_match(1, 2, 123)
-    result_set.add_match(2, 3, 456)
+  test "primary key accessors" do
+    klass = new_result_set
+    instance = klass.new
+    instance.primary_key_1 = :foo
+    assert_equal :foo, instance.primary_key_1
+    instance.primary_key_2 = :bar
+    assert_equal :bar, instance.primary_key_2
   end
 end
