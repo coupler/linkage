@@ -1,13 +1,30 @@
 module Linkage
   class Configuration
-    attr_reader :dataset_1, :dataset_2, :comparators
+    attr_reader :dataset_1, :dataset_2, :result_set, :comparators
     attr_accessor :record_cache_size
 
-    def initialize(dataset_1, dataset_2 = nil)
-      @dataset_1 = dataset_1
-      @dataset_2 = dataset_2
+    def initialize(*args)
+      if args.length < 2 || args.length > 3
+        raise ArgumentError, "wrong number of arguments (#{args.length} for 2 or 3)"
+      end
+
+      @dataset_1 = args[0]
+      @pk_1 = @dataset_1.field_set.primary_key
+      if args.length > 2
+        @dataset_2 = args[1]
+        @pk_2 = @dataset_2.field_set.primary_key
+      end
+      @result_set = args.last
+
       @comparators = []
       @record_cache_size = 10_000
+    end
+
+    def add_score(comparator, record_1, record_2, score)
+      index = comparators.index(comparator)
+      pk_1 = @pk_1.name
+      pk_2 = @pk_2 ? @pk_2.name : pk_1
+      @result_set.add_score(index + 1, record_1[pk_1], record_2[pk_2], score)
     end
 
     def method_missing(name, *args, &block)
@@ -26,13 +43,15 @@ module Linkage
 
       set_2 = args[1]
       if set_2.is_a?(Array)
-        set_2 = fields_for(dataset_2, *set_2)
+        set_2 = fields_for(dataset_2 || dataset_1, *set_2)
       else
-        set_2 = fields_for(dataset_2, set_2).first
+        set_2 = fields_for(dataset_2 || dataset_1, set_2).first
       end
       args[1] = set_2
 
-      @comparators << klass.new(*args, &block)
+      comparator = klass.new(*args, &block)
+      @comparators << comparator
+      comparator.add_observer(self, :add_score)
     end
 
     protected
