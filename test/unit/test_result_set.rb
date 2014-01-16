@@ -20,21 +20,4 @@ class TestResultSet < Test::Unit::TestCase
     end
     assert_raises(ArgumentError) { Linkage::ResultSet.register('foo', klass) }
   end
-
-  test "add_comparator" do
-    klass = new_result_set
-    instance = klass.new
-    comparator = stub('comparator')
-    instance.add_comparator(comparator)
-    assert_equal [comparator], instance.comparators
-  end
-
-  test "primary key accessors" do
-    klass = new_result_set
-    instance = klass.new
-    instance.primary_key_1 = :foo
-    assert_equal :foo, instance.primary_key_1
-    instance.primary_key_2 = :bar
-    assert_equal :bar, instance.primary_key_2
-  end
 end

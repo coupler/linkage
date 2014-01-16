@@ -17,19 +17,9 @@ module Linkage
       @result_sets ? @result_sets[name] : nil
     end
 
-    attr_accessor :primary_key_1, :primary_key_2
-
     # @abstract
-    def add_score(comparator, record_1, record_2, value)
+    def add_score(comparator_index, id_1, id_2, value)
       raise NotImplementedError
-    end
-
-    def comparators
-      @comparators ||= []
-    end
-
-    def add_comparator(comparator)
-      comparators << comparator
     end
 
     def close
