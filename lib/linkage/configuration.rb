@@ -15,7 +15,31 @@ module Linkage
       if klass.nil?
         raise "unknown comparator: #{name}"
       end
+
+      set_1 = args[0]
+      if set_1.is_a?(Array)
+        set_1 = fields_for(dataset_1, *set_1)
+      else
+        set_1 = fields_for(dataset_1, set_1).first
+      end
+      args[0] = set_1
+
+      set_2 = args[1]
+      if set_2.is_a?(Array)
+        set_2 = fields_for(dataset_2, *set_2)
+      else
+        set_2 = fields_for(dataset_2, set_2).first
+      end
+      args[1] = set_2
+
       @comparators << klass.new(*args, &block)
+    end
+
+    protected
+
+    def fields_for(dataset, *args)
+      field_set = dataset.field_set
+      args.collect { |name| field_set[name] }
     end
   end
 end
