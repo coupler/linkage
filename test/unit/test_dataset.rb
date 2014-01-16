@@ -75,4 +75,27 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     @field_set.expects(:primary_key).returns(pk)
     assert_equal pk, ds.primary_key
   end
+
+  test "link_with other" do
+    ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    ds_2 = Linkage::Dataset.new('foo:/bar', "bar", {:foo => 'bar'})
+    result_set = stub('result set')
+    conf = stub('configuration')
+    Linkage::Configuration.expects(:new).with(ds_1, ds_2, result_set).returns(conf)
+    actual = ds_1.link_with(ds_2, result_set) do |arg|
+      assert_equal conf, arg
+    end
+    assert_equal actual, conf
+  end
+
+  test "link_with self" do
+    ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    result_set = stub('result set')
+    conf = stub('configuration')
+    Linkage::Configuration.expects(:new).with(ds, nil, result_set).returns(conf)
+    actual = ds.link_with(ds, result_set) do |arg|
+      assert_equal conf, arg
+    end
+    assert_equal actual, conf
+  end
 end

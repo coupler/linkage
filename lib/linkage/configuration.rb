@@ -10,7 +10,7 @@ module Linkage
 
       @dataset_1 = args[0]
       @pk_1 = @dataset_1.field_set.primary_key
-      if args.length > 2
+      if args.length > 2 && args[1]
         @dataset_2 = args[1]
         @pk_2 = @dataset_2.field_set.primary_key
       end
