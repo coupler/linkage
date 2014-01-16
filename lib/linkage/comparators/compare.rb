@@ -183,7 +183,7 @@ module Linkage
         group_1.each do |record_1|
           group_2.each do |record_2|
             changed
-            notify_observers(record_1, record_2, 1)
+            notify_observers(self, record_1, record_2, 1)
           end
         end
       end
@@ -192,7 +192,7 @@ module Linkage
         (group.length - 1).times do |i|
           ((i+1)...group.length).each do |j|
             changed
-            notify_observers(group[i], group[j], 1)
+            notify_observers(self, group[i], group[j], 1)
           end
         end
       end

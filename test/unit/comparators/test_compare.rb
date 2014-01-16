@@ -87,11 +87,11 @@ class UnitTests::TestCompare < Test::Unit::TestCase
       [(record_2_3 = {:id => 102, :bar => 456})]
     )
 
-    observer.expects(:update).with(record_1_1, record_2_1, 1)
-    observer.expects(:update).with(record_1_2, record_2_2, 1)
-    observer.expects(:update).with(record_1_2, record_2_3, 1)
-    observer.expects(:update).with(record_1_3, record_2_2, 1)
-    observer.expects(:update).with(record_1_3, record_2_3, 1)
+    observer.expects(:update).with(comp, record_1_1, record_2_1, 1)
+    observer.expects(:update).with(comp, record_1_2, record_2_2, 1)
+    observer.expects(:update).with(comp, record_1_2, record_2_3, 1)
+    observer.expects(:update).with(comp, record_1_3, record_2_2, 1)
+    observer.expects(:update).with(comp, record_1_3, record_2_3, 1)
 
     comp.score_datasets(dataset_1, dataset_2)
   end
@@ -125,10 +125,10 @@ class UnitTests::TestCompare < Test::Unit::TestCase
       [(record_2_5 = {:id => 104, :baz => 456, :qux => 456})]
     )
 
-    observer.expects(:update).with(record_1_1, record_2_1, 1)
-    observer.expects(:update).with(record_1_1, record_2_2, 1)
-    observer.expects(:update).with(record_1_3, record_2_3, 1)
-    observer.expects(:update).with(record_1_4, record_2_4, 1)
+    observer.expects(:update).with(comp, record_1_1, record_2_1, 1)
+    observer.expects(:update).with(comp, record_1_1, record_2_2, 1)
+    observer.expects(:update).with(comp, record_1_3, record_2_3, 1)
+    observer.expects(:update).with(comp, record_1_4, record_2_4, 1)
 
     comp.score_datasets(dataset_1, dataset_2)
   end
@@ -148,7 +148,7 @@ class UnitTests::TestCompare < Test::Unit::TestCase
       [(record_3 = {:id => 3, :foo => 456})]
     )
 
-    observer.expects(:update).with(record_2, record_3, 1)
+    observer.expects(:update).with(comp, record_2, record_3, 1)
     comp.score_dataset(dataset)
   end
 
@@ -172,10 +172,10 @@ class UnitTests::TestCompare < Test::Unit::TestCase
       [(record_7 = {:id => 7, :foo => 456, :bar => 456})]
     )
 
-    observer.expects(:update).with(record_1, record_2, 1)
-    observer.expects(:update).with(record_1, record_3, 1)
-    observer.expects(:update).with(record_2, record_3, 1)
-    observer.expects(:update).with(record_6, record_7, 1)
+    observer.expects(:update).with(comp, record_1, record_2, 1)
+    observer.expects(:update).with(comp, record_1, record_3, 1)
+    observer.expects(:update).with(comp, record_2, record_3, 1)
+    observer.expects(:update).with(comp, record_6, record_7, 1)
 
     comp.score_dataset(dataset)
   end
@@ -205,11 +205,11 @@ class UnitTests::TestCompare < Test::Unit::TestCase
       [record_2]
     )
 
-    observer.expects(:update).with(record_1, record_3, 1)
-    observer.expects(:update).with(record_2, record_1, 1)
-    observer.expects(:update).with(record_2, record_2, 1)
-    observer.expects(:update).with(record_3, record_1, 1)
-    observer.expects(:update).with(record_3, record_2, 1)
+    observer.expects(:update).with(comp, record_1, record_3, 1)
+    observer.expects(:update).with(comp, record_2, record_1, 1)
+    observer.expects(:update).with(comp, record_2, record_2, 1)
+    observer.expects(:update).with(comp, record_3, record_1, 1)
+    observer.expects(:update).with(comp, record_3, record_2, 1)
 
     comp.score_dataset(dataset)
   end
