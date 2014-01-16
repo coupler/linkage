@@ -1,14 +1,12 @@
 module Linkage
   # Use this class to run a configuration created by {Dataset#link_with}.
   class Runner
-    attr_reader :config, :result_set
+    attr_reader :config
 
     # @param [Linkage::Configuration] config
-    # @param [Linkage::ResultSet] result_set
     # @see Dataset#link_with
-    def initialize(config, result_set)
+    def initialize(config)
       @config = config
-      @result_set = result_set
     end
 
     # @abstract
