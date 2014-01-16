@@ -77,5 +77,15 @@ class UnitTests::TestSingleThreadedRunner < Test::Unit::TestCase
 
       @runner.execute
     end
+
+    test "execute advanced comparisons" do
+      comparator_1 = stub('comparator 1', :type => :advanced)
+      comparator_2 = stub('comparator 2', :type => :advanced)
+      @config.stubs(:comparators).returns([comparator_1, comparator_2])
+
+      comparator_1.expects(:score_dataset).with(@dataset)
+      comparator_2.expects(:score_dataset).with(@dataset)
+      @runner.execute
+    end
   end
 end

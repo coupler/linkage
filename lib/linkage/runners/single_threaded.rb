@@ -11,7 +11,11 @@ module Linkage
         if comparator.type == :simple
           simple_comparators << comparator
         else
-          comparator.score_datasets(dataset_1, dataset_2)
+          if dataset_2
+            comparator.score_datasets(dataset_1, dataset_2)
+          else
+            comparator.score_dataset(dataset_1)
+          end
         end
       end
 
