@@ -98,4 +98,13 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     end
     assert_equal actual, conf
   end
+
+  test "delegating" do
+    dataset_2 = Sequel::Dataset.allocate
+    @dataset.expects(:filter).with(:foo => 123).returns(dataset_2)
+    ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    ds_2 = ds_1.filter(:foo => 123)
+    assert_kind_of Linkage::Dataset, ds_2
+    assert_same dataset_2, ds_2.obj
+  end
 end

@@ -64,9 +64,10 @@ module Linkage
       if result.kind_of?(Sequel::Dataset)
         new_object = clone
         new_object.obj = result
+        new_object
+      else
         result
       end
-      result
     end
   end
 end
