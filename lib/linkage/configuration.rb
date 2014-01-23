@@ -25,14 +25,7 @@ module Linkage
       else
         pk_2 = pk_1
       end
-      Recorder.new(@result_set, [pk_1, pk_2])
-    end
-
-    def add_score(comparator, record_1, record_2, score)
-      index = comparators.index(comparator)
-      pk_1 = @pk_1.name
-      pk_2 = @pk_2 ? @pk_2.name : pk_1
-      @result_set.add_score(index + 1, record_1[pk_1], record_2[pk_2], score)
+      Recorder.new(@comparators, @result_set, [pk_1, pk_2])
     end
 
     def method_missing(name, *args, &block)

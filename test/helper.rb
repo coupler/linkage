@@ -90,6 +90,8 @@ class Test::Unit::TestCase
     klass = Class.new(Linkage::ResultSet)
     klass.send(:define_method, :add_score) do |comparator, record_1, record_2, value|
     end
+    klass.send(:define_method, :each_pair) do
+    end
     if block_given?
       klass.class_eval(&block)
     end

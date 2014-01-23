@@ -8,6 +8,13 @@ class TestResultSet < Test::Unit::TestCase
     end
   end
 
+  test "each_pair raises NotImplementedError" do
+    result_set = Linkage::ResultSet.new
+    assert_raises(NotImplementedError) do
+      result_set.each_pair { |x| }
+    end
+  end
+
   test "getting a registered class" do
     klass = new_result_set
     Linkage::ResultSet.register('foo', klass)
@@ -17,6 +24,13 @@ class TestResultSet < Test::Unit::TestCase
   test "registered classes required to define add_score" do
     klass = new_result_set do
       remove_method :add_score
+    end
+    assert_raises(ArgumentError) { Linkage::ResultSet.register('foo', klass) }
+  end
+
+  test "registered classes required to define each_pair" do
+    klass = new_result_set do
+      remove_method :each_pair
     end
     assert_raises(ArgumentError) { Linkage::ResultSet.register('foo', klass) }
   end

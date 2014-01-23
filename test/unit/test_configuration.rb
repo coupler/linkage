@@ -83,7 +83,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @pk_1.expects(:name).returns(:id_1)
     @pk_2.expects(:name).returns(:id_2)
     recorder = stub('recorder')
-    Linkage::Recorder.expects(:new).with(@result_set, [:id_1, :id_2]).returns(recorder)
+    Linkage::Recorder.expects(:new).with([compare], @result_set, [:id_1, :id_2]).returns(recorder)
     assert_same recorder, config.recorder
   end
 
@@ -101,7 +101,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_1.expects(:primary_key).returns(@pk_1)
     @pk_1.expects(:name).returns(:id_1)
     recorder = stub('recorder')
-    Linkage::Recorder.expects(:new).with(@result_set, [:id_1, :id_1]).returns(recorder)
+    Linkage::Recorder.expects(:new).with([compare], @result_set, [:id_1, :id_1]).returns(recorder)
     assert_same recorder, config.recorder
   end
 end
