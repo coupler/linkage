@@ -67,9 +67,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     assert_equal within, config.comparators[0]
   end
 
-  test "add_score with two datasets" do
-    @field_set_1.expects(:primary_key).returns(@pk_1)
-    @field_set_2.expects(:primary_key).returns(@pk_2)
+  test "recorder with two datasets" do
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
 
     field_1 = stub('field 1')
@@ -80,16 +78,16 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     Linkage::Comparators::Compare.stubs(:new).with([field_1], [field_2], :equal_to).returns(compare)
     config.compare([:foo], [:foo], :equal_to)
 
+    @field_set_1.expects(:primary_key).returns(@pk_1)
+    @field_set_2.expects(:primary_key).returns(@pk_2)
     @pk_1.expects(:name).returns(:id_1)
     @pk_2.expects(:name).returns(:id_2)
-    @result_set.expects(:add_score).with(1, 123, 456, 1)
-    record_1 = { :id_1 => 123 }
-    record_2 = { :id_2 => 456 }
-    config.add_score(compare, record_1, record_2, 1)
+    recorder = stub('recorder')
+    Linkage::Recorder.expects(:new).with(@result_set, [:id_1, :id_2]).returns(recorder)
+    assert_same recorder, config.recorder
   end
 
-  test "add_score with one dataset" do
-    @field_set_1.expects(:primary_key).returns(@pk_1)
+  test "recorder with one dataset" do
     config = Linkage::Configuration.new(@dataset_1, @result_set)
 
     field_1 = stub('field 1')
@@ -100,10 +98,10 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     Linkage::Comparators::Compare.stubs(:new).with([field_1], [field_2], :equal_to).returns(compare)
     config.compare([:foo], [:bar], :equal_to)
 
+    @field_set_1.expects(:primary_key).returns(@pk_1)
     @pk_1.expects(:name).returns(:id_1)
-    @result_set.expects(:add_score).with(1, 123, 456, 1)
-    record_1 = { :id_1 => 123 }
-    record_2 = { :id_1 => 456 }
-    config.add_score(compare, record_1, record_2, 1)
+    recorder = stub('recorder')
+    Linkage::Recorder.expects(:new).with(@result_set, [:id_1, :id_1]).returns(recorder)
+    assert_same recorder, config.recorder
   end
 end

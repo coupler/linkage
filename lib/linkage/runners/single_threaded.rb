@@ -4,10 +4,13 @@ module Linkage
   # @see Runner
   class SingleThreadedRunner < Runner
     def execute
+      recorder = config.recorder
       dataset_1 = config.dataset_1
       dataset_2 = config.dataset_2
       simple_comparators = []
       config.comparators.each do |comparator|
+        recorder.listen_to(comparator)
+
         if comparator.type == :simple
           simple_comparators << comparator
         else
@@ -45,6 +48,8 @@ module Linkage
           end
         end
       end
+
+      recorder.stop_listening
     end
   end
 end
