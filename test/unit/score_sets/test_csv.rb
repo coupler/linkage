@@ -1,7 +1,6 @@
-require 'helper'
-require 'tempfile'
+require File.expand_path("../../test_score_sets", __FILE__)
 
-class UnitTests::TestCSV < Test::Unit::TestCase
+class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   test "open_for_writing" do
     score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv')

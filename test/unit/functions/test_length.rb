@@ -1,6 +1,6 @@
-require 'helper'
+require File.expand_path("../../test_functions", __FILE__)
 
-class UnitTests::TestLength < Test::Unit::TestCase
+class UnitTests::TestFunctions::TestLength < Test::Unit::TestCase
   test "subclass of Function" do
     assert_equal Linkage::Function, Linkage::Functions::Length.superclass
   end

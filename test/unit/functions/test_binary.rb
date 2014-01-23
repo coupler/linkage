@@ -1,6 +1,6 @@
-require 'helper'
+require File.expand_path("../../test_functions", __FILE__)
 
-class UnitTests::TestBinary < Test::Unit::TestCase
+class UnitTests::TestFunctions::TestBinary < Test::Unit::TestCase
   def self.const_missing(name)
     if Linkage::Functions.const_defined?(name)
       Linkage::Functions.const_get(name)

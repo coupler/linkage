@@ -1,6 +1,6 @@
-require 'helper'
+require File.expand_path("../../test_comparators", __FILE__)
 
-class UnitTests::TestCompare < Test::Unit::TestCase
+class UnitTests::TestComparators::TestCompare < Test::Unit::TestCase
   def self.const_missing(name)
     if Linkage::Comparators.const_defined?(name)
       Linkage::Comparators.const_get(name)

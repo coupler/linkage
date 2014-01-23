@@ -1,6 +1,6 @@
-require 'helper'
+require File.expand_path("../../test_runners", __FILE__)
 
-class UnitTests::TestSingleThreadedRunner < Test::Unit::TestCase
+class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
   def setup
     @recorder = stub('recorder')
   end
