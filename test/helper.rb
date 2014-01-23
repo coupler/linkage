@@ -88,9 +88,19 @@ class Test::Unit::TestCase
 
   def new_score_set(&block)
     klass = Class.new(Linkage::ScoreSet)
-    klass.send(:define_method, :add_score) do |comparator, record_1, record_2, value|
+    klass.send(:define_method, :add_score) do |comparator_index, id_1, id_2, value|
     end
     klass.send(:define_method, :each_pair) do
+    end
+    if block_given?
+      klass.class_eval(&block)
+    end
+    klass
+  end
+
+  def new_match_set(&block)
+    klass = Class.new(Linkage::MatchSet)
+    klass.send(:define_method, :add_match) do |id_1, id_2, value|
     end
     if block_given?
       klass.class_eval(&block)
