@@ -8,25 +8,25 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @pk_2 = stub('primary key 2', :name => :id)
     @field_set_2 = stub('field set 2', :primary_key => @pk_2)
     @dataset_2 = stub('dataset 2', :field_set => @field_set_2)
-    @result_set = stub('result set')
+    @score_set = stub('score set')
   end
 
   test "init with single dataset and result set" do
-    config = Linkage::Configuration.new(@dataset_1, @result_set)
+    config = Linkage::Configuration.new(@dataset_1, @score_set)
     assert_equal @dataset_1, config.dataset_1
     assert_nil config.dataset_2
-    assert_equal @result_set, config.result_set
+    assert_equal @score_set, config.score_set
   end
 
   test "init with two datasets and result set" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set)
     assert_equal @dataset_1, config.dataset_1
     assert_equal @dataset_2, config.dataset_2
-    assert_equal @result_set, config.result_set
+    assert_equal @score_set, config.score_set
   end
 
   test "adding comparator with set arguments and two datasets" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set)
 
     field_1 = stub('field 1')
     @field_set_1.expects(:[]).with(:foo).returns(field_1)
@@ -40,7 +40,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "adding comparator with set arguments and one datasets" do
-    config = Linkage::Configuration.new(@dataset_1, @result_set)
+    config = Linkage::Configuration.new(@dataset_1, @score_set)
 
     field_1 = stub('field 1')
     @field_set_1.expects(:[]).with(:foo).returns(field_1)
@@ -54,7 +54,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "adding comparator with scalar arguments and two datasets" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set)
 
     field_1 = stub('field 1')
     @field_set_1.expects(:[]).with(:foo).returns(field_1)
@@ -68,7 +68,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "recorder with two datasets" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set)
 
     field_1 = stub('field 1')
     @field_set_1.stubs(:[]).with(:foo).returns(field_1)
@@ -83,12 +83,12 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @pk_1.expects(:name).returns(:id_1)
     @pk_2.expects(:name).returns(:id_2)
     recorder = stub('recorder')
-    Linkage::Recorder.expects(:new).with([compare], @result_set, [:id_1, :id_2]).returns(recorder)
+    Linkage::Recorder.expects(:new).with([compare], @score_set, [:id_1, :id_2]).returns(recorder)
     assert_same recorder, config.recorder
   end
 
   test "recorder with one dataset" do
-    config = Linkage::Configuration.new(@dataset_1, @result_set)
+    config = Linkage::Configuration.new(@dataset_1, @score_set)
 
     field_1 = stub('field 1')
     @field_set_1.stubs(:[]).with(:foo).returns(field_1)
@@ -101,7 +101,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_1.expects(:primary_key).returns(@pk_1)
     @pk_1.expects(:name).returns(:id_1)
     recorder = stub('recorder')
-    Linkage::Recorder.expects(:new).with([compare], @result_set, [:id_1, :id_1]).returns(recorder)
+    Linkage::Recorder.expects(:new).with([compare], @score_set, [:id_1, :id_1]).returns(recorder)
     assert_same recorder, config.recorder
   end
 end

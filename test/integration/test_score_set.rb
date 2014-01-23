@@ -1,7 +1,7 @@
 require 'helper'
 
 module IntegrationTests
-  class TestResultSet < Test::Unit::TestCase
+  class TestScoreSet < Test::Unit::TestCase
     test "#create_tables! creates original_groups table when decollation is needed" do
       database_for('sqlite') do |db|
         db.create_table!(:foo) { primary_key(:id); String(:foo) }
@@ -18,8 +18,8 @@ module IntegrationTests
         lhs[:foo].must == rhs[:foo]
         save_results_in(results_uri)
       end
-      conf.result_set.create_tables!
-      assert_include conf.result_set.database.tables, :original_groups
+      conf.score_set.create_tables!
+      assert_include conf.score_set.database.tables, :original_groups
     end
 
     test "#create_tables! doesn't create original_groups table when decollation is needed" do
@@ -33,8 +33,8 @@ module IntegrationTests
         lhs[:foo].must == rhs[:foo]
         save_results_in(results_uri)
       end
-      conf.result_set.create_tables!
-      assert_not_include conf.result_set.database.tables, :original_groups
+      conf.score_set.create_tables!
+      assert_not_include conf.score_set.database.tables, :original_groups
     end
 
     test "#create_tables! doesn't create groups table when not needed" do
@@ -48,8 +48,8 @@ module IntegrationTests
         lhs[:foo].must be_within(5).of(rhs[:foo])
         save_results_in(results_uri)
       end
-      conf.result_set.create_tables!
-      assert_not_include conf.result_set.database.tables, :groups
+      conf.score_set.create_tables!
+      assert_not_include conf.score_set.database.tables, :groups
     end
 
     test "#create_tables! creates scores table when there are exhaustive expectations" do
@@ -63,8 +63,8 @@ module IntegrationTests
         lhs[:foo].must be_within(5).of(rhs[:foo])
         save_results_in(results_uri)
       end
-      conf.result_set.create_tables!
-      assert_include conf.result_set.database.tables, :scores
+      conf.score_set.create_tables!
+      assert_include conf.score_set.database.tables, :scores
     end
 
     test "#create_tables! doesn't create scores table when not needed" do
@@ -78,8 +78,8 @@ module IntegrationTests
         lhs[:foo].must == rhs[:foo]
         save_results_in(results_uri)
       end
-      conf.result_set.create_tables!
-      assert_not_include conf.result_set.database.tables, :scores
+      conf.score_set.create_tables!
+      assert_not_include conf.score_set.database.tables, :scores
     end
   end
 end

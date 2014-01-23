@@ -23,15 +23,15 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
     end
 
     csv_file = File.join(@tmpdir, 'results.csv')
-    result_set = Linkage::ResultSet['csv'].new(csv_file)
+    score_set = Linkage::ScoreSet['csv'].new(csv_file)
     dataset = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
-    conf = dataset.link_with(dataset, result_set) do |conf|
+    conf = dataset.link_with(dataset, score_set) do |conf|
       conf.compare([:ssn], [:ssn], :equal_to)
     end
 
     runner = Linkage::SingleThreadedRunner.new(conf)
     runner.execute
-    result_set.close
+    score_set.close
 
     csv = CSV.read(csv_file, :headers => true)
     assert_equal 450, csv.length
@@ -49,15 +49,15 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
     end
 
     csv_file = File.join(@tmpdir, 'results.csv')
-    result_set = Linkage::ResultSet['csv'].new(csv_file)
+    score_set = Linkage::ScoreSet['csv'].new(csv_file)
     dataset = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
-    conf = dataset.link_with(dataset, result_set) do |conf|
+    conf = dataset.link_with(dataset, score_set) do |conf|
       conf.compare([:ssn, :dob], [:ssn, :dob], :equal_to)
     end
 
     runner = Linkage::SingleThreadedRunner.new(conf)
     runner.execute
-    result_set.close
+    score_set.close
 
     csv = CSV.read(csv_file, :headers => true)
     assert_equal 200, csv.length
@@ -78,16 +78,16 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
     end
 
     csv_file = File.join(@tmpdir, 'results.csv')
-    result_set = Linkage::ResultSet['csv'].new(csv_file)
+    score_set = Linkage::ScoreSet['csv'].new(csv_file)
     dataset = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
     dataset = dataset.filter(:mod_5 => 3)
-    conf = dataset.link_with(dataset, result_set) do |conf|
+    conf = dataset.link_with(dataset, score_set) do |conf|
       conf.compare([:ssn], [:ssn], :equal_to)
     end
 
     runner = Linkage::SingleThreadedRunner.new(conf)
     runner.execute
-    result_set.close
+    score_set.close
 
     csv = CSV.read(csv_file, :headers => true)
     assert_equal 90, csv.length

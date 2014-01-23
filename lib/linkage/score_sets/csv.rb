@@ -1,8 +1,8 @@
 require 'csv'
 
 module Linkage
-  module ResultSets
-    class CSV < ResultSet
+  module ScoreSets
+    class CSV < ScoreSet
       def initialize(filename)
         @filename = filename
       end
@@ -52,6 +52,6 @@ module Linkage
       end
     end
 
-    ResultSet.register('csv', CSV)
+    ScoreSet.register('csv', CSV)
   end
 end

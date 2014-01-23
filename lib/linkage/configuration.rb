@@ -1,6 +1,6 @@
 module Linkage
   class Configuration
-    attr_reader :dataset_1, :dataset_2, :result_set, :comparators
+    attr_reader :dataset_1, :dataset_2, :score_set, :comparators
     attr_accessor :record_cache_size
 
     def initialize(*args)
@@ -12,7 +12,7 @@ module Linkage
       if args.length > 2 && args[1]
         @dataset_2 = args[1]
       end
-      @result_set = args.last
+      @score_set = args.last
 
       @comparators = []
       @record_cache_size = 10_000
@@ -25,7 +25,7 @@ module Linkage
       else
         pk_2 = pk_1
       end
-      Recorder.new(@comparators, @result_set, [pk_1, pk_2])
+      Recorder.new(@comparators, @score_set, [pk_1, pk_2])
     end
 
     def method_missing(name, *args, &block)

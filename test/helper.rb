@@ -86,8 +86,8 @@ class Test::Unit::TestCase
     klass
   end
 
-  def new_result_set(&block)
-    klass = Class.new(Linkage::ResultSet)
+  def new_score_set(&block)
+    klass = Class.new(Linkage::ScoreSet)
     klass.send(:define_method, :add_score) do |comparator, record_1, record_2, value|
     end
     klass.send(:define_method, :each_pair) do

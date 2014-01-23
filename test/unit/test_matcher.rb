@@ -2,11 +2,11 @@ require 'helper'
 
 class UnitTests::TestMatcher < Test::Unit::TestCase
   def setup
-    @result_set = stub('result set')
+    @score_set = stub('score set')
   end
 
   test "finding matches with mean and threshold" do
-    matcher = Linkage::Matcher.new(@result_set)
+    matcher = Linkage::Matcher.new(@score_set)
     observer = stub('observer')
     observer.expects(:update).with(3, 4, 2.0 / 3)
     observer.expects(:update).with(4, 5, 1.0)
@@ -18,7 +18,7 @@ class UnitTests::TestMatcher < Test::Unit::TestCase
       [3, 4, [0, 1, 1]],
       [4, 5, [1, 1, 1]]
     ]
-    @result_set.expects(:each_pair).multiple_yields(*pairs)
+    @score_set.expects(:each_pair).multiple_yields(*pairs)
 
     matcher.mean(0.5)
   end

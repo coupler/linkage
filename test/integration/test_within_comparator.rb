@@ -13,19 +13,19 @@ module IntegrationTests
       # result set
       csv_file = Tempfile.new('linkage')
       csv_file.close
-      result_set = Linkage::ResultSet['csv'].new(csv_file.path)
+      score_set = Linkage::ScoreSet['csv'].new(csv_file.path)
 
       # config
       db_opts = database_options_for('sqlite')
       dataset_1 = Linkage::Dataset.new(db_opts, "foo")
       dataset_2 = Linkage::Dataset.new(db_opts, "bar")
-      conf = dataset_1.link_with(dataset_2, result_set) do |conf|
+      conf = dataset_1.link_with(dataset_2, score_set) do |conf|
         conf.within(:num, :num, 5)
       end
 
       runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
-      result_set.close
+      score_set.close
 
       csv = CSV.read(csv_file.path, :headers => true)
       assert_equal 100, csv.length

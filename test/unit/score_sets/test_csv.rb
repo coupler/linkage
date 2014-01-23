@@ -3,73 +3,73 @@ require 'tempfile'
 
 class UnitTests::TestCSV < Test::Unit::TestCase
   test "open_for_writing" do
-    result_set = Linkage::ResultSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv')
     CSV.expects(:open).with('foo.csv', 'wb').returns(csv)
     csv.expects(:<<).with(%w{comparator id_1 id_2 score})
-    result_set.open_for_writing
+    score_set.open_for_writing
   end
 
   test "open_for_writing when already open" do
-    result_set = Linkage::ResultSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv')
     CSV.expects(:open).once.with('foo.csv', 'wb').returns(csv)
     csv.expects(:<<).once.with(%w{comparator id_1 id_2 score})
-    result_set.open_for_writing
-    result_set.open_for_writing
+    score_set.open_for_writing
+    score_set.open_for_writing
   end
 
   test "open_for_reading" do
-    result_set = Linkage::ResultSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv')
     CSV.expects(:open).with('foo.csv', 'rb', {:headers => true}).returns(csv)
-    result_set.open_for_reading
+    score_set.open_for_reading
   end
 
   test "open_for_reading when already open" do
-    result_set = Linkage::ResultSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv')
     CSV.expects(:open).once.with('foo.csv', 'rb', {:headers => true}).returns(csv)
-    result_set.open_for_reading
-    result_set.open_for_reading
+    score_set.open_for_reading
+    score_set.open_for_reading
   end
 
   test "open_for_writing when in read mode raises exception" do
-    result_set = Linkage::ResultSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv')
     CSV.stubs(:open).returns(csv)
-    result_set.open_for_reading
-    assert_raises(RuntimeError) { result_set.open_for_writing }
+    score_set.open_for_reading
+    assert_raises(RuntimeError) { score_set.open_for_writing }
   end
 
   test "open_for_reading when in write mode raises exception" do
-    result_set = Linkage::ResultSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv', :<< => nil)
     CSV.stubs(:open).returns(csv)
-    result_set.open_for_writing
-    assert_raises(RuntimeError) { result_set.open_for_reading }
+    score_set.open_for_writing
+    assert_raises(RuntimeError) { score_set.open_for_reading }
   end
 
   test "add_score when unopened raises exception" do
-    result_set = Linkage::ResultSets::CSV.new('foo.csv')
-    assert_raises { result_set.add_score(1, 1, 2, 1) }
+    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    assert_raises { score_set.add_score(1, 1, 2, 1) }
   end
 
   test "add_score when in read mode raises exception" do
-    result_set = Linkage::ResultSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv')
     CSV.stubs(:open).returns(csv)
-    result_set.open_for_reading
-    assert_raises { result_set.add_score(1, 1, 2, 1) }
+    score_set.open_for_reading
+    assert_raises { score_set.add_score(1, 1, 2, 1) }
   end
 
   test "add_score" do
     tempfile = Tempfile.new('linkage')
     tempfile.close
-    result_set = Linkage::ResultSets::CSV.new(tempfile.path)
-    result_set.open_for_writing
-    result_set.add_score(1, 1, 2, 1)
-    result_set.close
+    score_set = Linkage::ScoreSets::CSV.new(tempfile.path)
+    score_set.open_for_writing
+    score_set.add_score(1, 1, 2, 1)
+    score_set.close
 
     expected = "comparator,id_1,id_2,score\n1,1,2,1\n"
     assert_equal expected, File.read(tempfile.path)
@@ -87,10 +87,10 @@ class UnitTests::TestCSV < Test::Unit::TestCase
       1,3,4,0
     EOF
     tempfile.close
-    result_set = Linkage::ResultSets::CSV.new(tempfile.path)
+    score_set = Linkage::ScoreSets::CSV.new(tempfile.path)
 
     pairs = []
-    result_set.each_pair { |*args| pairs << args }
+    score_set.each_pair { |*args| pairs << args }
     assert_equal 3, pairs.length
 
     pair_1 = pairs.detect { |pair| pair[0] == "1" && pair[1] == "2" }
@@ -107,6 +107,6 @@ class UnitTests::TestCSV < Test::Unit::TestCase
   end
 
   test "registers itself" do
-    assert_equal Linkage::ResultSets::CSV, Linkage::ResultSet['csv']
+    assert_equal Linkage::ScoreSets::CSV, Linkage::ScoreSet['csv']
   end
 end

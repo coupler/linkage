@@ -1,6 +1,6 @@
 module Linkage
-  class ResultSet
-    # Register a result set.
+  class ScoreSet
+    # Register a score set.
     #
     # @param [Class] klass
     def self.register(name, klass)
@@ -16,12 +16,12 @@ module Linkage
         raise ArgumentError, "class must define #{missing.join(" and ")}"
       end
 
-      @result_sets ||= {}
-      @result_sets[name] = klass
+      @score_sets ||= {}
+      @score_sets[name] = klass
     end
 
     def self.[](name)
-      @result_sets ? @result_sets[name] : nil
+      @score_sets ? @score_sets[name] : nil
     end
 
     def open_for_reading
@@ -45,4 +45,4 @@ module Linkage
   end
 end
 
-require 'linkage/result_sets/csv'
+require 'linkage/score_sets/csv'
