@@ -34,7 +34,7 @@ module Linkage
         @csv.each do |row|
           pair = [row['id_1'], row['id_2']]
           scores = pairs[pair] || []
-          scores.push([row['comparator'], row['score']])
+          scores.push([row['comparator'].to_i, row['score'].to_i])
           pairs[pair] = scores
         end
         pairs.each_pair do |pair, scores|

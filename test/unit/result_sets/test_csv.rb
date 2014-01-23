@@ -57,6 +57,8 @@ class UnitTests::TestCSV < Test::Unit::TestCase
 
   test "add_score when in read mode raises exception" do
     result_set = Linkage::ResultSets::CSV.new('foo.csv')
+    csv = stub('csv')
+    CSV.stubs(:open).returns(csv)
     result_set.open_for_reading
     assert_raises { result_set.add_score(1, 1, 2, 1) }
   end
@@ -91,11 +93,11 @@ class UnitTests::TestCSV < Test::Unit::TestCase
 
     pair_1 = pairs.detect { |pair| pair[0] == "1" && pair[1] == "2" }
     assert pair_1
-    assert_equal [["1", "1"], ["2", "0"]], pair_1[2]
+    assert_equal [[1, 1], [2, 0]], pair_1[2]
 
     pair_2 = pairs.detect { |pair| pair[0] == "2" && pair[1] == "3" }
     assert pair_2
-    assert_equal [["1", "1"], ["2", "1"]], pair_2[2]
+    assert_equal [[1, 1], [2, 1]], pair_2[2]
   end
 
   test "registers itself" do
