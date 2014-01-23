@@ -23,6 +23,7 @@ require path + 'configuration'
 require path + 'result_set'
 require path + 'field_set'
 require path + 'comparator'
+require path + 'matcher'
 
 Sequel.extension :core_extensions
 Sequel.extension :collation
