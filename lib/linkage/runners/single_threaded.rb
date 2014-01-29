@@ -4,6 +4,11 @@ module Linkage
   # @see Runner
   class SingleThreadedRunner < Runner
     def execute
+      score_records
+      match_records
+    end
+
+    def score_records
       score_recorder = config.score_recorder
       score_recorder.start
       dataset_1 = config.dataset_1
@@ -48,6 +53,14 @@ module Linkage
         end
       end
       score_recorder.stop
+    end
+
+    def match_records
+      matcher = config.matcher
+      match_recorder = config.match_recorder(matcher)
+      match_recorder.start
+      matcher.run
+      match_recorder.stop
     end
   end
 end
