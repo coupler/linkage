@@ -37,7 +37,6 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_2.expects(:[]).with(:foo).returns(field_2)
     compare = stub('compare')
     Linkage::Comparators::Compare.expects(:new).with([field_1], [field_2], :equal_to).returns(compare)
-    compare.expects(:add_observer).with(config, :add_score)
     config.compare([:foo], [:foo], :equal_to)
     assert_equal compare, config.comparators[0]
   end
@@ -51,7 +50,6 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_1.expects(:[]).with(:bar).returns(field_2)
     compare = stub('compare')
     Linkage::Comparators::Compare.expects(:new).with([field_1], [field_2], :equal_to).returns(compare)
-    compare.expects(:add_observer).with(config, :add_score)
     config.compare([:foo], [:bar], :equal_to)
     assert_equal compare, config.comparators[0]
   end
@@ -65,7 +63,6 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_2.expects(:[]).with(:foo).returns(field_2)
     within = stub('within')
     Linkage::Comparators::Within.expects(:new).with(field_1, field_2, 5).returns(within)
-    within.expects(:add_observer).with(config, :add_score)
     config.within(:foo, :foo, 5)
     assert_equal within, config.comparators[0]
   end
@@ -77,7 +74,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_1.stubs(:[]).with(:foo).returns(field_1)
     field_2 = stub('field 2')
     @field_set_2.stubs(:[]).with(:foo).returns(field_2)
-    compare = stub('compare', :add_observer => nil)
+    compare = stub('compare')
     Linkage::Comparators::Compare.stubs(:new).with([field_1], [field_2], :equal_to).returns(compare)
     config.compare([:foo], [:foo], :equal_to)
 
@@ -97,7 +94,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_1.stubs(:[]).with(:foo).returns(field_1)
     field_2 = stub('field 2')
     @field_set_1.stubs(:[]).with(:bar).returns(field_2)
-    compare = stub('compare', :add_observer => nil)
+    compare = stub('compare')
     Linkage::Comparators::Compare.stubs(:new).with([field_1], [field_2], :equal_to).returns(compare)
     config.compare([:foo], [:bar], :equal_to)
 

@@ -61,7 +61,6 @@ module Linkage
 
       comparator = klass.new(*args, &block)
       @comparators << comparator
-      comparator.add_observer(self, :add_score)
     end
 
     protected
