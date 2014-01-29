@@ -67,9 +67,10 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     ds_1 = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     ds_2 = Linkage::Dataset.new('foo:/bar', "bar", {:foo => 'bar'})
     score_set = stub('score set')
+    match_set = stub('match set')
     conf = stub('configuration')
-    Linkage::Configuration.expects(:new).with(ds_1, ds_2, score_set).returns(conf)
-    actual = ds_1.link_with(ds_2, score_set) do |arg|
+    Linkage::Configuration.expects(:new).with(ds_1, ds_2, score_set, match_set).returns(conf)
+    actual = ds_1.link_with(ds_2, score_set, match_set) do |arg|
       assert_equal conf, arg
     end
     assert_equal actual, conf
@@ -78,9 +79,10 @@ class UnitTests::TestDataset < Test::Unit::TestCase
   test "link_with self" do
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
     score_set = stub('score set')
+    match_set = stub('match set')
     conf = stub('configuration')
-    Linkage::Configuration.expects(:new).with(ds, nil, score_set).returns(conf)
-    actual = ds.link_with(ds, score_set) do |arg|
+    Linkage::Configuration.expects(:new).with(ds, nil, score_set, match_set).returns(conf)
+    actual = ds.link_with(ds, score_set, match_set) do |arg|
       assert_equal conf, arg
     end
     assert_equal actual, conf
