@@ -20,7 +20,6 @@ require path + 'matcher'
 require path + 'runner'
 require path + 'score_recorder'
 require path + 'score_set'
-require path + 'utils'
 require path + 'version'
 require path + 'warnings'
 
