@@ -47,15 +47,6 @@ class Test::Unit::TestCase
     f
   end
 
-  def stub_function(name, options = {}, &block)
-    f = Linkage::Function.allocate
-    f.stubs(options)
-    if block
-      f.send(:instance_eval, &block)
-    end
-    f
-  end
-
   def stub_instance(klass, options = {}, &block)
     f = klass.allocate
     f.stubs(options)
@@ -63,18 +54,6 @@ class Test::Unit::TestCase
       f.send(:instance_eval, &block)
     end
     f
-  end
-
-  def new_function(name, ruby_type = nil, params = nil, &block)
-    klass = Class.new(Linkage::Function)
-    klass.send(:define_singleton_method, :function_name) { name }
-    if ruby_type
-      klass.send(:define_method, :ruby_type) { ruby_type }
-    end
-    if params
-      klass.send(:define_singleton_method, :parameters) { params }
-    end
-    klass
   end
 
   def new_comparator(&block)

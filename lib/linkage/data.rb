@@ -1,5 +1,5 @@
 module Linkage
-  # Superclass to {Field} and {Function}.
+  # Superclass to {Field}.
   #
   # @abstract
   class Data
