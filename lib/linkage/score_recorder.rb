@@ -1,5 +1,5 @@
 module Linkage
-  class Recorder
+  class ScoreRecorder
     def initialize(comparators, score_set, primary_keys)
       @comparators = comparators
       @score_set = score_set

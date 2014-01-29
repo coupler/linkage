@@ -4,8 +4,8 @@ module Linkage
   # @see Runner
   class SingleThreadedRunner < Runner
     def execute
-      recorder = config.recorder
-      recorder.start
+      score_recorder = config.score_recorder
+      score_recorder.start
       dataset_1 = config.dataset_1
       dataset_2 = config.dataset_2
       simple_comparators = []
@@ -47,7 +47,7 @@ module Linkage
           end
         end
       end
-      recorder.stop
+      score_recorder.stop
     end
   end
 end

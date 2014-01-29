@@ -2,7 +2,7 @@ require File.expand_path("../../test_runners", __FILE__)
 
 class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
   def setup
-    @recorder = stub('recorder')
+    @score_recorder = stub('score recorder')
   end
 
   test "subclass of Runner" do
@@ -16,7 +16,7 @@ class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
       @dataset_2 = stub('dataset 2')
       @config = stub('config', {
         :dataset_1 => @dataset_1, :dataset_2 => @dataset_2,
-        :recorder => @recorder
+        :score_recorder => @score_recorder
       })
       @runner = Linkage::SingleThreadedRunner.new(@config)
     end
@@ -25,7 +25,7 @@ class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
       comparator_1 = stub('comparator 1', :type => :simple)
       comparator_2 = stub('comparator 2', :type => :simple)
       @config.stubs(:comparators).returns([comparator_1, comparator_2])
-      @recorder.expects(:start)
+      @score_recorder.expects(:start)
 
       @dataset_1.expects(:each).multiple_yields(
         [(record_1_1 = {:id => 1, :foo => 123})],
@@ -45,7 +45,7 @@ class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
       comparator_1.expects(:score_and_notify).with(record_1_2, record_2_2)
       comparator_2.expects(:score_and_notify).with(record_1_2, record_2_2)
 
-      @recorder.expects(:stop)
+      @score_recorder.expects(:stop)
 
       @runner.execute
     end
@@ -54,11 +54,11 @@ class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
       comparator_1 = stub('comparator 1', :type => :advanced)
       comparator_2 = stub('comparator 2', :type => :advanced)
       @config.stubs(:comparators).returns([comparator_1, comparator_2])
-      @recorder.expects(:start)
+      @score_recorder.expects(:start)
 
       comparator_1.expects(:score_datasets).with(@dataset_1, @dataset_2)
       comparator_2.expects(:score_datasets).with(@dataset_1, @dataset_2)
-      @recorder.expects(:stop)
+      @score_recorder.expects(:stop)
 
       @runner.execute
     end
@@ -70,7 +70,7 @@ class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
       @dataset = stub('dataset')
       @config = stub('config', {
         :dataset_1 => @dataset, :dataset_2 => nil,
-        :recorder => @recorder
+        :score_recorder => @score_recorder
       })
       @runner = Linkage::SingleThreadedRunner.new(@config)
     end
@@ -79,7 +79,7 @@ class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
       comparator_1 = stub('comparator 1', :type => :simple)
       comparator_2 = stub('comparator 2', :type => :simple)
       @config.stubs(:comparators).returns([comparator_1, comparator_2])
-      @recorder.expects(:start)
+      @score_recorder.expects(:start)
 
       @dataset.expects(:all).returns([
         (record_1 = {:id => 1, :foo => 123}),
@@ -93,7 +93,7 @@ class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
       comparator_2.expects(:score_and_notify).with(record_1, record_3)
       comparator_1.expects(:score_and_notify).with(record_2, record_3)
       comparator_2.expects(:score_and_notify).with(record_2, record_3)
-      @recorder.expects(:stop)
+      @score_recorder.expects(:stop)
 
       @runner.execute
     end
@@ -102,11 +102,11 @@ class UnitTests::TestRunners::TestSingleThreadedRunner < Test::Unit::TestCase
       comparator_1 = stub('comparator 1', :type => :advanced)
       comparator_2 = stub('comparator 2', :type => :advanced)
       @config.stubs(:comparators).returns([comparator_1, comparator_2])
-      @recorder.expects(:start)
+      @score_recorder.expects(:start)
 
       comparator_1.expects(:score_dataset).with(@dataset)
       comparator_2.expects(:score_dataset).with(@dataset)
-      @recorder.expects(:stop)
+      @score_recorder.expects(:stop)
 
       @runner.execute
     end

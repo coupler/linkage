@@ -18,14 +18,14 @@ module Linkage
       @record_cache_size = 10_000
     end
 
-    def recorder
+    def score_recorder
       pk_1 = @dataset_1.field_set.primary_key.name
       if @dataset_2
         pk_2 = @dataset_2.field_set.primary_key.name
       else
         pk_2 = pk_1
       end
-      Recorder.new(@comparators, @score_set, [pk_1, pk_2])
+      ScoreRecorder.new(@comparators, @score_set, [pk_1, pk_2])
     end
 
     def method_missing(name, *args, &block)

@@ -67,7 +67,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     assert_equal within, config.comparators[0]
   end
 
-  test "recorder with two datasets" do
+  test "score_recorder with two datasets" do
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set)
 
     field_1 = stub('field 1')
@@ -82,12 +82,12 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_2.expects(:primary_key).returns(@pk_2)
     @pk_1.expects(:name).returns(:id_1)
     @pk_2.expects(:name).returns(:id_2)
-    recorder = stub('recorder')
-    Linkage::Recorder.expects(:new).with([compare], @score_set, [:id_1, :id_2]).returns(recorder)
-    assert_same recorder, config.recorder
+    score_recorder = stub('recorder')
+    Linkage::ScoreRecorder.expects(:new).with([compare], @score_set, [:id_1, :id_2]).returns(score_recorder)
+    assert_same score_recorder, config.score_recorder
   end
 
-  test "recorder with one dataset" do
+  test "score_recorder with one dataset" do
     config = Linkage::Configuration.new(@dataset_1, @score_set)
 
     field_1 = stub('field 1')
@@ -100,8 +100,8 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
     @field_set_1.expects(:primary_key).returns(@pk_1)
     @pk_1.expects(:name).returns(:id_1)
-    recorder = stub('recorder')
-    Linkage::Recorder.expects(:new).with([compare], @score_set, [:id_1, :id_1]).returns(recorder)
-    assert_same recorder, config.recorder
+    score_recorder = stub('score recorder')
+    Linkage::ScoreRecorder.expects(:new).with([compare], @score_set, [:id_1, :id_1]).returns(score_recorder)
+    assert_same score_recorder, config.score_recorder
   end
 end
