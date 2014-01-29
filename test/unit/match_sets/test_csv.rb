@@ -35,6 +35,24 @@ class UnitTests::TestMatchSets::TestCSV < Test::Unit::TestCase
     assert_equal expected, File.read(tempfile.path)
   end
 
+  test "add_match removes extra decimals" do
+    match_set = Linkage::MatchSets::CSV.new('foo.csv')
+    csv = stub('csv')
+    CSV.stubs(:open).with('foo.csv', 'wb').returns(csv)
+    csv.stubs(:<<).with(%w{id_1 id_2 score})
+    match_set.open_for_writing
+
+    csv.expects(:<<).with do |(id_1, id_2, score)|
+      id_1 == 1 && id_2 == 2 && score.equal?(1)
+    end
+    match_set.add_match(1, 2, 1.0)
+
+    csv.expects(:<<).with do |(id_1, id_2, score)|
+      id_1 == 1 && id_2 == 2 && score.equal?(0)
+    end
+    match_set.add_match(1, 2, 0.0)
+  end
+
   test "registers itself" do
     assert_equal Linkage::MatchSets::CSV, Linkage::MatchSet['csv']
   end
