@@ -15,7 +15,7 @@ module IntegrationTests
       FileUtils.remove_entry_secure(@tmpdir)
     end
 
-    test "one mandatory field equality on single threaded runner" do
+    test "one-field equality on single threaded runner" do
       # create the test data
       database do |db|
         db.create_table(:foo) { primary_key(:id); String(:ssn) }
@@ -27,108 +27,37 @@ module IntegrationTests
           Array.new(100) { |i| [i, "12345678#{i%10}"] })
       end
 
-      ds_1 = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
-      ds_2 = Linkage::Dataset.new(@tmpuri, "bar", :single_threaded => true)
-      tmpuri = @tmpuri
-      conf = ds_1.link_with(ds_2) do
-        lhs[:ssn].must == rhs[:ssn]
-        save_results_in(tmpuri)
-      end
-      assert_equal :dual, conf.linkage_type
-
-      runner = Linkage::SingleThreadedRunner.new(conf)
-      runner.execute
-
-      database do |db|
-        assert_equal 10, db[:groups].count
-        db[:groups].order(:ssn).each_with_index do |row, i|
-          assert_equal "12345678#{i%10}", row[:ssn]
-        end
-
-        assert_equal 1000, db[:matches].count
-        db[:matches].order(:record_1_id, :record_2_id).each do |row|
-          assert_equal row[:record_1_id] % 10, row[:record_2_id] % 10
-        end
-      end
-    end
-
-    test "don't ignore 1-record groups before the combining phase" do
-      # create the test data
-      database do |db|
-        db.create_table(:foo) { primary_key(:id); String(:ssn) }
-        db[:foo].import([:id, :ssn],
-          Array.new(100) { |i| [i, "1234567%03d" % i] })
-
-        db.create_table(:bar) { primary_key(:id); String(:ssn) }
-        db[:bar].import([:id, :ssn],
-          Array.new(100) { |i| [i, "1234567%03d" % i] })
-      end
+      score_file = File.join(@tmpdir, 'scores.csv')
+      score_set = Linkage::ScoreSet['csv'].new(score_file)
+      match_file = File.join(@tmpdir, 'matches.csv')
+      match_set = Linkage::MatchSet['csv'].new(match_file)
 
       ds_1 = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
       ds_2 = Linkage::Dataset.new(@tmpuri, "bar", :single_threaded => true)
       tmpuri = @tmpuri
-      conf = ds_1.link_with(ds_2) do
-        lhs[:ssn].must == rhs[:ssn]
-        save_results_in(tmpuri)
-      end
-      runner = Linkage::SingleThreadedRunner.new(conf)
-      runner.execute
-
-      database do |db|
-        assert_equal 100, db[:groups].count
-        db[:groups].order(:ssn).each_with_index do |row, i|
-          assert_equal "1234567%03d" % i, row[:ssn]
-        end
-      end
-    end
-
-    test "reacts properly when using two databases with different string equality methods" do
-      foo_logger = nil #prefixed_logger("FOO")
-      bar_logger = nil #prefixed_logger("BAR")
-
-      database_for('mysql', :logger => foo_logger) do |db|
-        db.create_table!(:foo) do
-          primary_key(:id)
-          String :baz, :collate => "latin1_swedish_ci"
-        end
-        db[:foo].import([:id, :baz], [
-          [1, "tEst"],
-          [2, "teSt"],
-          [3, "tesT "],
-          [4, "TEST"],
-          [5, "junk"]
-        ])
-      end
-
-      database_for('mysql', :logger => bar_logger) do |db|
-        db.create_table!(:bar) do
-          primary_key(:id)
-          String :baz, :collate => "latin1_swedish_ci"
-        end
-        db[:bar].import([:id, :baz], [
-          [1, "Test  "],
-          [2, "tEst "],
-          [3, "teSt"],
-          [4, "TEST"],
-          [5, "junk"]
-        ])
-      end
-
-      options = database_options_for('mysql')
-      ds_1 = Linkage::Dataset.new(options, "foo", :logger => foo_logger)
-      ds_2 = Linkage::Dataset.new(options, "bar", :logger => bar_logger)
-      tmpuri = @tmpuri
-      results_logger = nil #prefixed_logger("RESULTS")
-      conf = ds_1.link_with(ds_2) do
-        lhs[:baz].must == rhs[:baz]
-        save_results_in(tmpuri, :logger => results_logger)
+      conf = ds_1.link_with(ds_2, score_set, match_set) do |conf|
+        conf.compare([:ssn], [:ssn], :equal_to)
+        conf.algorithm = :mean
+        conf.threshold = 1.0
       end
 
       runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
-      database do |db|
-        assert_equal 2, db[:groups].count
+      score_csv = CSV.read(score_file, :headers => true)
+      assert_equal 1000, score_csv.length
+      score_csv.each do |row|
+        id_1 = row['id_1'].to_i
+        id_2 = row['id_2'].to_i
+        assert (id_1 % 10) == (id_2 % 10)
+      end
+
+      match_csv = CSV.read(match_file, :headers => true)
+      assert_equal 1000, match_csv.length
+      match_csv.each do |row|
+        id_1 = row['id_1'].to_i
+        id_2 = row['id_2'].to_i
+        assert (id_1 % 10) == (id_2 % 10)
       end
     end
   end
