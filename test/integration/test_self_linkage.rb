@@ -22,20 +22,29 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
         Array.new(100) { |i| [i, "12345678#{i%10}"] })
     end
 
-    csv_file = File.join(@tmpdir, 'results.csv')
-    score_set = Linkage::ScoreSet['csv'].new(csv_file)
+    score_file = File.join(@tmpdir, 'scores.csv')
+    score_set = Linkage::ScoreSet['csv'].new(score_file)
+    match_file = File.join(@tmpdir, 'matches.csv')
+    match_set = Linkage::MatchSet['csv'].new(match_file)
     dataset = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
-    conf = dataset.link_with(dataset, score_set) do |conf|
+    conf = dataset.link_with(dataset, score_set, match_set) do |conf|
       conf.compare([:ssn], [:ssn], :equal_to)
+      conf.algorithm = :mean
+      conf.threshold = 1.0
     end
 
     runner = Linkage::SingleThreadedRunner.new(conf)
     runner.execute
-    score_set.close
 
-    csv = CSV.read(csv_file, :headers => true)
-    assert_equal 450, csv.length
-    csv.each do |row|
+    score_csv = CSV.read(score_file, :headers => true)
+    assert_equal 450, score_csv.length
+    score_csv.each do |row|
+      assert_equal row['id_1'].to_i % 10, row['id_2'].to_i % 10
+    end
+
+    match_csv = CSV.read(match_file, :headers => true)
+    assert_equal 450, match_csv.length
+    match_csv.each do |row|
       assert_equal row['id_1'].to_i % 10, row['id_2'].to_i % 10
     end
   end
@@ -48,20 +57,30 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
         Array.new(100) { |i| [i, "12345678#{i%10}", Date.civil(1985, 1, (i % 20) + 1)] })
     end
 
-    csv_file = File.join(@tmpdir, 'results.csv')
-    score_set = Linkage::ScoreSet['csv'].new(csv_file)
+    score_file = File.join(@tmpdir, 'scores.csv')
+    score_set = Linkage::ScoreSet['csv'].new(score_file)
+    match_file = File.join(@tmpdir, 'matches.csv')
+    match_set = Linkage::MatchSet['csv'].new(match_file)
     dataset = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
-    conf = dataset.link_with(dataset, score_set) do |conf|
+    conf = dataset.link_with(dataset, score_set, match_set) do |conf|
       conf.compare([:ssn, :dob], [:ssn, :dob], :equal_to)
     end
 
     runner = Linkage::SingleThreadedRunner.new(conf)
     runner.execute
-    score_set.close
 
-    csv = CSV.read(csv_file, :headers => true)
-    assert_equal 200, csv.length
-    csv.each do |row|
+    score_csv = CSV.read(score_file, :headers => true)
+    assert_equal 200, score_csv.length
+    score_csv.each do |row|
+      id_1 = row['id_1'].to_i
+      id_2 = row['id_2'].to_i
+      assert id_1 % 10 == id_2 % 10
+      assert id_1 % 20 == id_2 % 20
+    end
+
+    match_csv = CSV.read(match_file, :headers => true)
+    assert_equal 200, match_csv.length
+    match_csv.each do |row|
       id_1 = row['id_1'].to_i
       id_2 = row['id_2'].to_i
       assert id_1 % 10 == id_2 % 10
@@ -77,21 +96,32 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
         Array.new(100) { |i| [i, "12345678#{i%10}", i % 5] })
     end
 
-    csv_file = File.join(@tmpdir, 'results.csv')
-    score_set = Linkage::ScoreSet['csv'].new(csv_file)
+    score_file = File.join(@tmpdir, 'scores.csv')
+    score_set = Linkage::ScoreSet['csv'].new(score_file)
+    match_file = File.join(@tmpdir, 'matches.csv')
+    match_set = Linkage::MatchSet['csv'].new(match_file)
+
     dataset = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
     dataset = dataset.filter(:mod_5 => 3)
-    conf = dataset.link_with(dataset, score_set) do |conf|
+    conf = dataset.link_with(dataset, score_set, match_set) do |conf|
       conf.compare([:ssn], [:ssn], :equal_to)
     end
 
     runner = Linkage::SingleThreadedRunner.new(conf)
     runner.execute
-    score_set.close
 
-    csv = CSV.read(csv_file, :headers => true)
-    assert_equal 90, csv.length
-    csv.each do |row|
+    score_csv = CSV.read(score_file, :headers => true)
+    assert_equal 90, score_csv.length
+    score_csv.each do |row|
+      id_1 = row['id_1'].to_i
+      id_2 = row['id_2'].to_i
+      assert id_1 % 10 == id_2 % 10
+      assert id_1 % 5 == id_2 % 5
+    end
+
+    match_csv = CSV.read(match_file, :headers => true)
+    assert_equal 90, match_csv.length
+    match_csv.each do |row|
       id_1 = row['id_1'].to_i
       id_2 = row['id_2'].to_i
       assert id_1 % 10 == id_2 % 10
