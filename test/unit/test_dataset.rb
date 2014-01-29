@@ -18,7 +18,6 @@ class UnitTests::TestDataset < Test::Unit::TestCase
 
   test "initialize with uri and table name" do
     Sequel.expects(:connect).with('foo:/bar', {:foo => 'bar'}).returns(@database)
-    @database.expects(:extend).with(Sequel::Collation)
     @database.expects(:[]).with(:foo).returns(@dataset)
     Linkage::FieldSet.expects(:new).with(kind_of(Linkage::Dataset)).returns(@field_set)
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
@@ -26,18 +25,6 @@ class UnitTests::TestDataset < Test::Unit::TestCase
 
   test "initialize with sequel dataset" do
     Linkage::Dataset.new(@dataset)
-  end
-
-  test "extend Sequel::Collation when initializing with sequel dataset" do
-    @database.stubs(:kind_of?).with(Sequel::Collation).returns(false)
-    @database.expects(:extend).with(Sequel::Collation)
-    ds = Linkage::Dataset.new(@dataset)
-  end
-
-  test "don't extend already extended database" do
-    @database.stubs(:kind_of?).with(Sequel::Collation).returns(true)
-    @database.expects(:extend).with(Sequel::Collation).never
-    ds = Linkage::Dataset.new(@dataset)
   end
 
   test "table_name" do

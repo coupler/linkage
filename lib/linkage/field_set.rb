@@ -7,11 +7,11 @@ module Linkage
     # @param [Linkage::Dataset] dataset
     def initialize(dataset)
       dataset.schema.each do |(name, column_schema)|
-        f = Field.new(dataset, name, column_schema)
-        self[name] = f
+        field = Field.new(name, column_schema)
+        self[name] = field
 
         if @primary_key.nil? && column_schema[:primary_key]
-          @primary_key = f
+          @primary_key = field
         end
       end
     end

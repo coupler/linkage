@@ -1,17 +1,19 @@
 module Linkage
   # This class is for holding information about a particular field in a
   # dataset.
-  class Field < Data
+  class Field
+    # @!attribute [r] name
+    #   @return [Symbol] This object's name
+    attr_reader :name
+
     # @return [Symbol] This field's schema information
     attr_reader :schema
 
     # Create a new instance of Field.
     #
-    # @param [Linkage::Dataset] dataset
     # @param [Symbol] name The field's name
     # @param [Hash] schema The field's schema information
-    def initialize(dataset, name, schema)
-      @dataset = dataset
+    def initialize(name, schema)
       @name = name
       @schema = schema
     end
@@ -63,7 +65,6 @@ module Linkage
           else
             {:type=>String}
           end
-        hsh[:collate] = collation
 
         hsh.delete_if { |k, v| v.nil? }
         @ruby_type = {:type => hsh.delete(:type)}
@@ -72,40 +73,8 @@ module Linkage
       @ruby_type
     end
 
-    def to_expr(options = {})
-      @name
-    end
-
-    def static?
-      false
-    end
-
     def primary_key?
       schema && schema[:primary_key]
-    end
-
-    def collation
-      schema[:collation]
-    end
-  end
-
-  # A special field used for merging two {Data} objects together. It
-  # has no dataset or schema.
-  class MergeField < Field
-    attr_reader :database_type
-
-    # Create a new instance of MergeField.
-    #
-    # @param [Symbol] name The field's name
-    # @param [Hash] ruby_type The field's schema information
-    def initialize(name, ruby_type, database_type = nil)
-      @name = name
-      @ruby_type = ruby_type
-      @database_type = database_type
-    end
-
-    def collation
-      @ruby_type.has_key?(:opts) ? @ruby_type[:opts][:collate] : nil
     end
   end
 end

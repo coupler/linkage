@@ -20,9 +20,9 @@ class UnitTests::TestFieldSet < Test::Unit::TestCase
     field_1 = stub('id field')
     field_2 = stub('first_name field')
     field_3 = stub('last_name field')
-    Linkage::Field.expects(:new).with(dataset, :id, @schema[:id]).returns(field_1)
-    Linkage::Field.expects(:new).with(dataset, :first_name, @schema[:first_name]).returns(field_2)
-    Linkage::Field.expects(:new).with(dataset, :last_name, @schema[:last_name]).returns(field_3)
+    Linkage::Field.expects(:new).with(:id, @schema[:id]).returns(field_1)
+    Linkage::Field.expects(:new).with(:first_name, @schema[:first_name]).returns(field_2)
+    Linkage::Field.expects(:new).with(:last_name, @schema[:last_name]).returns(field_3)
 
     fs = Linkage::FieldSet.new(dataset)
     assert_equal field_1, fs.primary_key
@@ -37,9 +37,9 @@ class UnitTests::TestFieldSet < Test::Unit::TestCase
     field_1 = stub('id field')
     field_2 = stub('first_name field')
     field_3 = stub('last_name field')
-    Linkage::Field.stubs(:new).with(dataset, :id, @schema[:id]).returns(field_1)
-    Linkage::Field.stubs(:new).with(dataset, :first_name, @schema[:first_name]).returns(field_2)
-    Linkage::Field.stubs(:new).with(dataset, :last_name, @schema[:last_name]).returns(field_3)
+    Linkage::Field.stubs(:new).with(:id, @schema[:id]).returns(field_1)
+    Linkage::Field.stubs(:new).with(:first_name, @schema[:first_name]).returns(field_2)
+    Linkage::Field.stubs(:new).with(:last_name, @schema[:last_name]).returns(field_3)
 
     fs = Linkage::FieldSet.new(dataset)
     assert_equal field_1, fs.primary_key

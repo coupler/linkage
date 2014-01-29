@@ -17,7 +17,6 @@ Gem::Specification.new do |gem|
   gem.version       = Linkage::VERSION
 
   gem.add_dependency "sequel"
-  gem.add_dependency "sequel-collation"
   gem.add_dependency "hashery"
 
   gem.add_development_dependency "bundler", "~> 1.3"

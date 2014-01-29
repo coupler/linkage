@@ -10,9 +10,7 @@ end
 path = Pathname.new(File.expand_path(File.dirname(__FILE__))) + 'linkage'
 require path + 'comparator'
 require path + 'configuration'
-require path + 'data'
 require path + 'dataset'
-require path + 'decollation'
 require path + 'field'
 require path + 'field_set'
 require path + 'import_buffer'
@@ -27,7 +25,3 @@ require path + 'version'
 require path + 'warnings'
 
 Sequel.extension :core_extensions
-Sequel.extension :collation
-if Sequel::Collation.respond_to?(:suppress_warnings=)
-  Sequel::Collation.suppress_warnings = true
-end
