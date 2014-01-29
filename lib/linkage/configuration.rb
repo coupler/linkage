@@ -1,7 +1,7 @@
 module Linkage
   class Configuration
     attr_reader :dataset_1, :dataset_2, :score_set, :match_set, :comparators
-    attr_accessor :record_cache_size
+    attr_accessor :record_cache_size, :algorithm, :threshold
 
     def initialize(*args)
       if args.length < 3 || args.length > 4
@@ -30,10 +30,10 @@ module Linkage
     end
 
     def matcher
-      Matcher.new(@score_set)
+      Matcher.new(@score_set, @algorithm || :mean, @threshold || 0.5)
     end
 
-    def match_recorder
+    def match_recorder(matcher)
       MatchRecorder.new(matcher, @match_set)
     end
 

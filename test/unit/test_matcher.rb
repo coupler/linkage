@@ -6,7 +6,7 @@ class UnitTests::TestMatcher < Test::Unit::TestCase
   end
 
   test "finding matches with mean and threshold" do
-    matcher = Linkage::Matcher.new(@score_set)
+    matcher = Linkage::Matcher.new(@score_set, :mean, 0.5)
     observer = stub('observer')
     observer.expects(:update).with(3, 4, 2.0 / 3)
     observer.expects(:update).with(4, 5, 1.0)
@@ -20,6 +20,6 @@ class UnitTests::TestMatcher < Test::Unit::TestCase
     ]
     @score_set.expects(:each_pair).multiple_yields(*pairs)
 
-    matcher.mean(0.5)
+    matcher.run
   end
 end

@@ -108,11 +108,29 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     assert_same score_recorder, config.score_recorder
   end
 
-  test "matcher" do
+  test "default matcher" do
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
 
     matcher = stub('matcher')
-    Linkage::Matcher.expects(:new).with(@score_set).returns(matcher)
+    Linkage::Matcher.expects(:new).with(@score_set, :mean, 0.5).returns(matcher)
+    assert_equal matcher, config.matcher
+  end
+
+  test "matcher with explicit algorithm" do
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+    config.algorithm = :foo
+
+    matcher = stub('matcher')
+    Linkage::Matcher.expects(:new).with(@score_set, :foo, 0.5).returns(matcher)
+    assert_equal matcher, config.matcher
+  end
+
+  test "matcher with explicit threshold" do
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+    config.threshold = 0.9
+
+    matcher = stub('matcher')
+    Linkage::Matcher.expects(:new).with(@score_set, :mean, 0.9).returns(matcher)
     assert_equal matcher, config.matcher
   end
 
@@ -120,9 +138,8 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
 
     matcher = stub('matcher')
-    Linkage::Matcher.stubs(:new).returns(matcher)
     match_recorder = stub('match recorder')
     Linkage::MatchRecorder.expects(:new).with(matcher, @match_set).returns(match_recorder)
-    assert_equal match_recorder, config.match_recorder
+    assert_equal match_recorder, config.match_recorder(matcher)
   end
 end
