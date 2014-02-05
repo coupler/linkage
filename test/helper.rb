@@ -87,6 +87,18 @@ class Test::Unit::TestCase
     klass
   end
 
+  def new_result_set(&block)
+    klass = Class.new(Linkage::ResultSet)
+    klass.send(:define_method, :score_set) do
+    end
+    klass.send(:define_method, :match_set) do
+    end
+    if block_given?
+      klass.class_eval(&block)
+    end
+    klass
+  end
+
   def database_config
     self.class.database_config
   end
