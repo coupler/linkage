@@ -46,3 +46,4 @@ module Linkage
 end
 
 require 'linkage/score_sets/csv'
+require 'linkage/score_sets/database'
