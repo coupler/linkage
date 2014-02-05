@@ -8,10 +8,17 @@ class UnitTests::TestDataset < Test::Unit::TestCase
       [:first_name, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(255)", :type=>:string, :ruby_default=>nil}],
       [:last_name, {:allow_null=>true, :default=>nil, :primary_key=>false, :db_type=>"varchar(255)", :type=>:string, :ruby_default=>nil}]
     ]
+
     @dataset = stub('Sequel dataset', :first_source_table => :foo)
-    @database = stub('database', :schema => @schema, :[] => @dataset, :extend => nil)
+    @dataset.responds_like_instance_of(Sequel::Dataset)
+    @dataset.stubs(:kind_of?).with(Sequel::Dataset).returns(true)
+
+    @database = stub('database', :schema => @schema, :[] => @dataset)
+    @database.responds_like_instance_of(Sequel::Database)
+    @database.stubs(:kind_of?).with(Sequel::Database).returns(true)
     @dataset.stubs(:db).returns(@database)
     Sequel.stubs(:connect).returns(@database)
+
     @field_set = stub("field set")
     Linkage::FieldSet.stubs(:new).returns(@field_set)
   end
@@ -21,10 +28,25 @@ class UnitTests::TestDataset < Test::Unit::TestCase
     @database.expects(:[]).with(:foo).returns(@dataset)
     Linkage::FieldSet.expects(:new).with(kind_of(Linkage::Dataset)).returns(@field_set)
     ds = Linkage::Dataset.new('foo:/bar', "foo", {:foo => 'bar'})
+    assert_equal @field_set, ds.field_set
   end
 
   test "initialize with sequel dataset" do
-    Linkage::Dataset.new(@dataset)
+    @dataset.expects(:first_source_table).returns(:foo)
+    @dataset.expects(:db).returns(@database)
+    Linkage::FieldSet.expects(:new).with(kind_of(Linkage::Dataset)).returns(@field_set)
+    ds = Linkage::Dataset.new(@dataset)
+    assert_equal :foo, ds.table_name
+    assert_equal @field_set, ds.field_set
+  end
+
+  test "initialize with sequel database and table name" do
+    Sequel.unstub(:connect)
+    Sequel.expects(:connect).never
+    @database.expects(:[]).with(:foo).returns(@dataset)
+    Linkage::FieldSet.expects(:new).with(kind_of(Linkage::Dataset)).returns(@field_set)
+    ds = Linkage::Dataset.new(@database, "foo")
+    assert_equal @field_set, ds.field_set
   end
 
   test "table_name" do
