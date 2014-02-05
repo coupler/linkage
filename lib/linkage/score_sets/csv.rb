@@ -3,13 +3,18 @@ require 'csv'
 module Linkage
   module ScoreSets
     class CSV < ScoreSet
-      def initialize(filename)
+      def initialize(filename, options = {})
         @filename = filename
+        @overwrite = options[:overwrite]
       end
 
       def open_for_reading
         raise "already open for writing, try closing first" if @mode == :write
         return if @mode == :read
+
+        if !File.exist?(@filename)
+          raise FileMissingError, "#{@filename} does not exist"
+        end
         @csv = ::CSV.open(@filename, 'rb', :headers => true)
         @mode = :read
       end
@@ -17,6 +22,11 @@ module Linkage
       def open_for_writing
         raise "already open for reading, try closing first" if @mode == :read
         return if @mode == :write
+
+        if !@overwrite && File.exist?(@filename)
+          raise FileExistsError, "#{@filename} exists and not in overwrite mode"
+        end
+
         @csv = ::CSV.open(@filename, 'wb')
         @csv << %w{comparator_id id_1 id_2 score}
         @mode = :write
