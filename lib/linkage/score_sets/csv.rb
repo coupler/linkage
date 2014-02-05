@@ -18,13 +18,13 @@ module Linkage
         raise "already open for reading, try closing first" if @mode == :read
         return if @mode == :write
         @csv = ::CSV.open(@filename, 'wb')
-        @csv << %w{comparator id_1 id_2 score}
+        @csv << %w{comparator_id id_1 id_2 score}
         @mode = :write
       end
 
-      def add_score(comparator_index, id_1, id_2, score)
+      def add_score(comparator_id, id_1, id_2, score)
         raise "not in write mode" if @mode != :write
-        @csv << [comparator_index, id_1, id_2, score]
+        @csv << [comparator_id, id_1, id_2, score]
       end
 
       def each_pair
@@ -35,8 +35,8 @@ module Linkage
           pair = [row['id_1'], row['id_2']]
           scores = pairs[pair] || []
 
-          comparator = row['comparator'].to_i - 1
-          scores[comparator] = row['score'].to_i
+          comparator_id = row['comparator_id'].to_i - 1
+          scores[comparator_id] = row['score'].to_f
           pairs[pair] = scores
         end
         pairs.each_pair do |pair, scores|

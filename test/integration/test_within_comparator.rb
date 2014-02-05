@@ -32,7 +32,7 @@ module IntegrationTests
       score_csv = CSV.read(File.join(@tmpdir, 'scores.csv'), :headers => true)
       assert_equal 100, score_csv.length
       score_csv.each do |row|
-        assert_equal "1", row['comparator']
+        assert_equal "1", row['comparator_id']
         # ids same as values
         id_1 = row['id_1'].to_i
         id_2 = row['id_2'].to_i

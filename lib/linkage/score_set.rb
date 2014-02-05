@@ -31,7 +31,7 @@ module Linkage
     end
 
     # @abstract
-    def add_score(comparator_index, id_1, id_2, value)
+    def add_score(comparator_id, id_1, id_2, value)
       raise NotImplementedError
     end
 

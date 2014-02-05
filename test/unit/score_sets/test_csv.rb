@@ -5,7 +5,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
     score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv')
     CSV.expects(:open).with('foo.csv', 'wb').returns(csv)
-    csv.expects(:<<).with(%w{comparator id_1 id_2 score})
+    csv.expects(:<<).with(%w{comparator_id id_1 id_2 score})
     score_set.open_for_writing
   end
 
@@ -13,7 +13,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
     score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     csv = stub('csv')
     CSV.expects(:open).once.with('foo.csv', 'wb').returns(csv)
-    csv.expects(:<<).once.with(%w{comparator id_1 id_2 score})
+    csv.expects(:<<).once.with(%w{comparator_id id_1 id_2 score})
     score_set.open_for_writing
     score_set.open_for_writing
   end
@@ -70,15 +70,15 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
     score_set.add_score(1, 1, 2, 1)
     score_set.close
 
-    expected = "comparator,id_1,id_2,score\n1,1,2,1\n"
+    expected = "comparator_id,id_1,id_2,score\n1,1,2,1\n"
     assert_equal expected, File.read(tempfile.path)
   end
 
   test "each_pair" do
     tempfile = Tempfile.new('linkage')
     tempfile.write(<<-EOF.gsub(/^\s*/, ""))
-      comparator,id_1,id_2,score
-      1,1,2,1
+      comparator_id,id_1,id_2,score
+      1,1,2,0.5
       1,2,3,1
       2,1,2,0
       2,2,3,1
@@ -94,7 +94,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
 
     pair_1 = pairs.detect { |pair| pair[0] == "1" && pair[1] == "2" }
     assert pair_1
-    assert_equal [1, 0], pair_1[2]
+    assert_equal [0.5, 0], pair_1[2]
 
     pair_2 = pairs.detect { |pair| pair[0] == "2" && pair[1] == "3" }
     assert pair_2
