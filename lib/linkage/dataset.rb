@@ -42,9 +42,9 @@ module Linkage
     # Setup a linkage with another dataset
     #
     # @return [Linkage::Configuration]
-    def link_with(dataset, score_set, match_set)
+    def link_with(dataset, result_set)
       other = dataset.eql?(self) ? nil : dataset
-      conf = Configuration.new(self, other, score_set, match_set)
+      conf = Configuration.new(self, other, result_set)
       if block_given?
         yield conf
       end

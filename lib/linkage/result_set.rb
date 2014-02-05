@@ -35,3 +35,5 @@ module Linkage
     end
   end
 end
+
+require 'linkage/result_sets/csv'

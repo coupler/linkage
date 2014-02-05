@@ -1,19 +1,18 @@
 module Linkage
   class Configuration
-    attr_reader :dataset_1, :dataset_2, :score_set, :match_set, :comparators
+    attr_reader :dataset_1, :dataset_2, :result_set, :comparators
     attr_accessor :record_cache_size, :algorithm, :threshold
 
     def initialize(*args)
-      if args.length < 3 || args.length > 4
+      if args.length < 2 || args.length > 3
         raise ArgumentError, "wrong number of arguments (#{args.length} for 3..4)"
       end
 
       @dataset_1 = args[0]
-      if args.length > 3 && args[1]
+      if args.length > 2 && args[1]
         @dataset_2 = args[1]
       end
-      @score_set = args[-2]
-      @match_set = args[-1]
+      @result_set = args[-1]
 
       @comparators = []
       @record_cache_size = 10_000
@@ -26,15 +25,15 @@ module Linkage
       else
         pk_2 = pk_1
       end
-      ScoreRecorder.new(@comparators, @score_set, [pk_1, pk_2])
+      ScoreRecorder.new(@comparators, @result_set.score_set, [pk_1, pk_2])
     end
 
     def matcher
-      Matcher.new(@score_set, @algorithm || :mean, @threshold || 0.5)
+      Matcher.new(@result_set.score_set, @algorithm || :mean, @threshold || 0.5)
     end
 
     def match_recorder(matcher)
-      MatchRecorder.new(matcher, @match_set)
+      MatchRecorder.new(matcher, @result_set.match_set)
     end
 
     def method_missing(name, *args, &block)

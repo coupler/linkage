@@ -2,6 +2,14 @@ require 'helper'
 
 module IntegrationTests
   class TestWithinComparator < Test::Unit::TestCase
+    def setup
+      @tmpdir = Dir.mktmpdir('linkage')
+    end
+
+    def teardown
+      FileUtils.remove_entry_secure(@tmpdir)
+    end
+
     test "within comparator" do
       database_for('sqlite') do |db|
         db.create_table(:foo) { primary_key(:id); Integer(:num) }
@@ -10,25 +18,18 @@ module IntegrationTests
         db[:bar].import([:id, :num], (1..10).collect { |i| [i, i] })
       end
 
-      score_file = Tempfile.new('linkage')
-      score_file.close
-      score_set = Linkage::ScoreSet['csv'].new(score_file.path)
-      match_file = Tempfile.new('linkage')
-      match_file.close
-      match_set = Linkage::MatchSet['csv'].new(match_file.path)
-
-      # config
+      result_set = Linkage::ResultSet['csv'].new(@tmpdir)
       db_opts = database_options_for('sqlite')
       dataset_1 = Linkage::Dataset.new(db_opts, "foo")
       dataset_2 = Linkage::Dataset.new(db_opts, "bar")
-      conf = dataset_1.link_with(dataset_2, score_set, match_set) do |conf|
+      conf = dataset_1.link_with(dataset_2, result_set) do |conf|
         conf.within(:num, :num, 5)
       end
 
       runner = Linkage::SingleThreadedRunner.new(conf)
       runner.execute
 
-      score_csv = CSV.read(score_file.path, :headers => true)
+      score_csv = CSV.read(File.join(@tmpdir, 'scores.csv'), :headers => true)
       assert_equal 100, score_csv.length
       score_csv.each do |row|
         assert_equal "1", row['comparator']

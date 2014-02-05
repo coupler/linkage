@@ -10,26 +10,25 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @dataset_2 = stub('dataset 2', :field_set => @field_set_2)
     @score_set = stub('score set')
     @match_set = stub('match set')
+    @result_set = stub('result set', :score_set => @score_set, :match_set => @match_set)
   end
 
-  test "init with single dataset, score set, and match set" do
-    config = Linkage::Configuration.new(@dataset_1, @score_set, @match_set)
+  test "init with single dataset and result set" do
+    config = Linkage::Configuration.new(@dataset_1, @result_set)
     assert_equal @dataset_1, config.dataset_1
     assert_nil config.dataset_2
-    assert_equal @score_set, config.score_set
-    assert_equal @match_set, config.match_set
+    assert_equal @result_set, config.result_set
   end
 
-  test "init with two datasets, score set, and match set" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+  test "init with two datasets and result set" do
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
     assert_equal @dataset_1, config.dataset_1
     assert_equal @dataset_2, config.dataset_2
-    assert_equal @score_set, config.score_set
-    assert_equal @match_set, config.match_set
+    assert_equal @result_set, config.result_set
   end
 
   test "adding comparator with set arguments and two datasets" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
 
     field_1 = stub('field 1')
     @field_set_1.expects(:[]).with(:foo).returns(field_1)
@@ -42,7 +41,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "adding comparator with set arguments and one datasets" do
-    config = Linkage::Configuration.new(@dataset_1, @score_set, @match_set)
+    config = Linkage::Configuration.new(@dataset_1, @result_set)
 
     field_1 = stub('field 1')
     @field_set_1.expects(:[]).with(:foo).returns(field_1)
@@ -55,7 +54,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "adding comparator with scalar arguments and two datasets" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
 
     field_1 = stub('field 1')
     @field_set_1.expects(:[]).with(:foo).returns(field_1)
@@ -68,7 +67,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "score_recorder with two datasets" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
 
     field_1 = stub('field 1')
     @field_set_1.stubs(:[]).with(:foo).returns(field_1)
@@ -88,7 +87,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "score_recorder with one dataset" do
-    config = Linkage::Configuration.new(@dataset_1, @score_set, @match_set)
+    config = Linkage::Configuration.new(@dataset_1, @result_set)
 
     field_1 = stub('field 1')
     @field_set_1.stubs(:[]).with(:foo).returns(field_1)
@@ -106,7 +105,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "default matcher" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
 
     matcher = stub('matcher')
     Linkage::Matcher.expects(:new).with(@score_set, :mean, 0.5).returns(matcher)
@@ -114,7 +113,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "matcher with explicit algorithm" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
     config.algorithm = :foo
 
     matcher = stub('matcher')
@@ -123,7 +122,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "matcher with explicit threshold" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
     config.threshold = 0.9
 
     matcher = stub('matcher')
@@ -132,7 +131,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
   end
 
   test "match_recorder" do
-    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
 
     matcher = stub('matcher')
     match_recorder = stub('match recorder')

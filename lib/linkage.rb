@@ -1,4 +1,5 @@
 require 'pathname'
+require 'fileutils'
 require 'delegate'
 require 'sequel'
 require 'hashery'
