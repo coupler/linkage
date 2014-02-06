@@ -3,12 +3,18 @@ require 'csv'
 module Linkage
   module MatchSets
     class CSV < MatchSet
-      def initialize(filename)
+      def initialize(filename, options = {})
         @filename = filename
+        @overwrite = options[:overwrite]
       end
 
       def open_for_writing
         return if @mode == :write
+
+        if !@overwrite && File.exist?(@filename)
+          raise FileExistsError, "#{@filename} exists and not in overwrite mode"
+        end
+
         @csv = ::CSV.open(@filename, 'wb')
         @csv << %w{id_1 id_2 score}
         @mode = :write

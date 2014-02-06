@@ -18,6 +18,25 @@ class UnitTests::TestMatchSets::TestCSV < Test::Unit::TestCase
     match_set.open_for_writing
   end
 
+  test "open_for_writing when file exists" do
+    match_set = Linkage::MatchSets::CSV.new('foo.csv')
+    File.expects(:exist?).with('foo.csv').returns(true)
+    assert_raises(Linkage::FileExistsError) do
+      match_set.open_for_writing
+    end
+  end
+
+  test "open_for_writing when file exists and forcing overwrite" do
+    match_set = Linkage::MatchSets::CSV.new('foo.csv', :overwrite => true)
+    File.stubs(:exist?).with('foo.csv').returns(true)
+    assert_nothing_raised do
+      csv = stub('csv')
+      CSV.expects(:open).with('foo.csv', 'wb').returns(csv)
+      csv.expects(:<<).with(%w{id_1 id_2 score})
+      match_set.open_for_writing
+    end
+  end
+
   test "add_match when unopened raises exception" do
     match_set = Linkage::MatchSets::CSV.new('foo.csv')
     assert_raises { match_set.add_match(1, 2, 1) }
@@ -26,7 +45,7 @@ class UnitTests::TestMatchSets::TestCSV < Test::Unit::TestCase
   test "add_match" do
     tempfile = Tempfile.new('linkage')
     tempfile.close
-    match_set = Linkage::MatchSets::CSV.new(tempfile.path)
+    match_set = Linkage::MatchSets::CSV.new(tempfile.path, :overwrite => true)
     match_set.open_for_writing
     match_set.add_match(1, 2, 1)
     match_set.close
