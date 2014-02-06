@@ -9,6 +9,20 @@ class UnitTests::TestResultSets::TestCSV < Test::Unit::TestCase
     FileUtils.remove_entry_secure(@tmpdir)
   end
 
+  test "no directory option uses current directory" do
+    result_set = Linkage::ResultSets::CSV.new
+
+    expected_score_file = './scores.csv'
+    score_set = stub('score set')
+    Linkage::ScoreSets::CSV.expects(:new).with(expected_score_file).returns(score_set)
+    assert_same score_set, result_set.score_set
+
+    expected_match_file = './matches.csv'
+    match_set = stub('match set')
+    Linkage::MatchSets::CSV.expects(:new).with(expected_match_file).returns(match_set)
+    assert_same match_set, result_set.match_set
+  end
+
   test "directory option" do
     opts = {
       :dir => File.join(@tmpdir, 'foo')
@@ -38,6 +52,26 @@ class UnitTests::TestResultSets::TestCSV < Test::Unit::TestCase
     assert_same score_set, result_set.score_set
 
     expected_match_file = File.join(@tmpdir, 'foo', 'matches.csv')
+    match_set = stub('match set')
+    Linkage::MatchSets::CSV.expects(:new).with(expected_match_file).returns(match_set)
+    assert_same match_set, result_set.match_set
+  end
+
+  test "custom filenames" do
+    opts = {
+      :dir => File.join(@tmpdir, 'foo'),
+      :scores_file => 'foo-scores.csv',
+      :matches_file => 'foo-matches.csv'
+    }
+    result_set = Linkage::ResultSets::CSV.new(opts)
+    assert Dir.exist?(opts[:dir])
+
+    expected_score_file = File.join(@tmpdir, 'foo', 'foo-scores.csv')
+    score_set = stub('score set')
+    Linkage::ScoreSets::CSV.expects(:new).with(expected_score_file).returns(score_set)
+    assert_same score_set, result_set.score_set
+
+    expected_match_file = File.join(@tmpdir, 'foo', 'foo-matches.csv')
     match_set = stub('match set')
     Linkage::MatchSets::CSV.expects(:new).with(expected_match_file).returns(match_set)
     assert_same match_set, result_set.match_set
