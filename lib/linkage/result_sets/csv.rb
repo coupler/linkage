@@ -16,21 +16,35 @@ module Linkage
 
         if opts[:dir]
           FileUtils.mkdir_p(opts[:dir])
-          dir = opts[:dir]
-        else
-          dir = '.'
         end
 
-        @scores_file = File.join(dir, opts[:scores_file] || 'scores.csv')
-        @matchs_file = File.join(dir, opts[:matches_file] || 'matches.csv')
+        @score_set_args = extract_args_for(:scores, opts)
+        @match_set_args = extract_args_for(:matches, opts)
       end
 
       def score_set
-        @score_set ||= ScoreSet['csv'].new(@scores_file)
+        @score_set ||= ScoreSet['csv'].new(*@score_set_args)
       end
 
       def match_set
-        @match_set ||= MatchSet['csv'].new(@matchs_file)
+        @match_set ||= MatchSet['csv'].new(*@match_set_args)
+      end
+
+      private
+
+      def extract_args_for(name, opts)
+        dir = opts[:dir] || '.'
+        opts = opts[name]
+
+        filename =
+          case opts
+          when Hash, nil
+            opts = opts ? opts.dup : {}
+            opts.delete(:filename) || "#{name}.csv"
+          when String
+            opts
+          end
+        [File.join(dir, filename), opts]
       end
     end
 
