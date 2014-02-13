@@ -40,14 +40,11 @@ module Linkage
       def each_pair
         open_for_reading
 
-        pairs = {}
+        pairs = Hash.new { |h, k| h[k] = {} }
         @csv.each do |row|
-          pair = [row['id_1'], row['id_2']]
-          scores = pairs[pair] || []
-
-          comparator_id = row['comparator_id'].to_i - 1
-          scores[comparator_id] = row['score'].to_f
-          pairs[pair] = scores
+          key = [row['id_1'], row['id_2']]
+          score = row['score']
+          pairs[key][row['comparator_id'].to_i] = score.to_f
         end
         pairs.each_pair do |pair, scores|
           yield pair[0], pair[1], scores

@@ -29,7 +29,7 @@ module Linkage
     end
 
     def matcher
-      Matcher.new(@result_set.score_set, @algorithm || :mean, @threshold || 0.5)
+      Matcher.new(@comparators, @result_set.score_set, @algorithm || :mean, @threshold || 0.5)
     end
 
     def match_recorder(matcher)

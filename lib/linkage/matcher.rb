@@ -2,9 +2,10 @@ module Linkage
   class Matcher
     include Observable
 
-    attr_reader :score_set, :algorithm, :threshold
+    attr_reader :comparators, :score_set, :algorithm, :threshold
 
-    def initialize(score_set, algorithm, threshold)
+    def initialize(comparators, score_set, algorithm, threshold)
+      @comparators = comparators
       @score_set = score_set
       @algorithm = algorithm
       @threshold = threshold
@@ -18,7 +19,7 @@ module Linkage
 
     def mean
       @score_set.each_pair do |id_1, id_2, scores|
-        mean = scores.inject(:+) / scores.length.to_f
+        mean = scores.values.inject(:+) / @comparators.length.to_f
         if mean >= @threshold
           changed
           notify_observers(id_1, id_2, mean)
