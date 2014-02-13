@@ -12,7 +12,7 @@ module Linkage
         return if @mode == :write
 
         if !@overwrite && File.exist?(@filename)
-          raise FileExistsError, "#{@filename} exists and not in overwrite mode"
+          raise ExistsError, "#{@filename} exists and not in overwrite mode"
         end
 
         @csv = ::CSV.open(@filename, 'wb')

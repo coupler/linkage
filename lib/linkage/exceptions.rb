@@ -1,5 +1,5 @@
 module Linkage
   class Error < Exception; end
-  class FileExistsError < Error; end
-  class FileMissingError < Error; end
+  class ExistsError < Error; end
+  class MissingError < Error; end
 end

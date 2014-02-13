@@ -21,7 +21,7 @@ class UnitTests::TestMatchSets::TestCSV < Test::Unit::TestCase
   test "open_for_writing when file exists" do
     match_set = Linkage::MatchSets::CSV.new('foo.csv')
     File.expects(:exist?).with('foo.csv').returns(true)
-    assert_raises(Linkage::FileExistsError) do
+    assert_raises(Linkage::ExistsError) do
       match_set.open_for_writing
     end
   end

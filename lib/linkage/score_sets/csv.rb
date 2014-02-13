@@ -13,7 +13,7 @@ module Linkage
         return if @mode == :read
 
         if !File.exist?(@filename)
-          raise FileMissingError, "#{@filename} does not exist"
+          raise MissingError, "#{@filename} does not exist"
         end
         @csv = ::CSV.open(@filename, 'rb', :headers => true)
         @mode = :read
@@ -24,7 +24,7 @@ module Linkage
         return if @mode == :write
 
         if !@overwrite && File.exist?(@filename)
-          raise FileExistsError, "#{@filename} exists and not in overwrite mode"
+          raise ExistsError, "#{@filename} exists and not in overwrite mode"
         end
 
         @csv = ::CSV.open(@filename, 'wb')

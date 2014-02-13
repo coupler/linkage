@@ -21,7 +21,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   test "open_for_writing when file exists" do
     score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     File.expects(:exist?).with('foo.csv').returns(true)
-    assert_raises(Linkage::FileExistsError) do
+    assert_raises(Linkage::ExistsError) do
       score_set.open_for_writing
     end
   end
@@ -57,7 +57,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   test "open_for_reading when file doesn't exist" do
     score_set = Linkage::ScoreSets::CSV.new('foo.csv')
     File.expects(:exist?).with('foo.csv').returns(false)
-    assert_raises(Linkage::FileMissingError) do
+    assert_raises(Linkage::MissingError) do
       score_set.open_for_reading
     end
   end
