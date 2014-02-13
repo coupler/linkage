@@ -31,3 +31,4 @@ module Linkage
 end
 
 require 'linkage/match_sets/csv'
+require 'linkage/match_sets/database'
