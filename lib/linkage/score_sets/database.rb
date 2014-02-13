@@ -1,14 +1,19 @@
 module Linkage
   module ScoreSets
     class Database < ScoreSet
-      def initialize(database, table_name = :scores)
+      def initialize(database, options = {})
         @database = database
-        @table_name = table_name
+        @table_name = options[:table_name] || :scores
+        @overwrite = options[:overwrite]
       end
 
       def open_for_reading
         raise "already open for writing, try closing first" if @mode == :write
         return if @mode == :read
+
+        if !@database.table_exists?(@table_name)
+          raise MissingError, "#{@table_name} table does not exist"
+        end
 
         @dataset = @database[@table_name]
         @mode = :read
@@ -17,6 +22,12 @@ module Linkage
       def open_for_writing
         raise "already open for reading, try closing first" if @mode == :read
         return if @mode == :write
+
+        if @overwrite
+          @database.drop_table?(@table_name)
+        elsif @database.table_exists?(@table_name)
+          raise ExistsError, "#{@table_name} table exists and not in overwrite mode"
+        end
 
         @database.create_table(@table_name) do
           Integer :comparator_id
