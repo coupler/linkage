@@ -1,99 +1,80 @@
 require File.expand_path("../../test_score_sets", __FILE__)
 
 class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
+  def setup
+    @dataset = stub('dataset')
+    @database = stub('database', :[] => @dataset)
+  end
+
   test "open_for_writing for database with no scores table" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
-    database.expects(:create_table).with(:scores)
-    dataset = stub('dataset')
-    database.expects(:[]).with(:scores).returns(dataset)
+    score_set = Linkage::ScoreSets::Database.new(@database)
+    @database.expects(:create_table).with(:scores)
+    @database.expects(:[]).with(:scores).returns(@dataset)
     score_set.open_for_writing
   end
 
   test "open_for_writing when already open" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
-    database.expects(:create_table).with(:scores)
-    dataset = stub('dataset')
-    database.expects(:[]).with(:scores).returns(dataset)
+    score_set = Linkage::ScoreSets::Database.new(@database)
+    @database.expects(:create_table).with(:scores)
+    @database.expects(:[]).with(:scores).returns(@dataset)
     score_set.open_for_writing
     score_set.open_for_writing
   end
 
   test "open_for_reading" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
-    dataset = stub('dataset')
-    database.expects(:[]).with(:scores).returns(dataset)
+    score_set = Linkage::ScoreSets::Database.new(@database)
+    @database.expects(:[]).with(:scores).returns(@dataset)
     score_set.open_for_reading
   end
 
   test "open_for_reading when already open" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
-    dataset = stub('dataset')
-    database.expects(:[]).with(:scores).returns(dataset)
+    score_set = Linkage::ScoreSets::Database.new(@database)
+    @database.expects(:[]).with(:scores).returns(@dataset)
     score_set.open_for_reading
     score_set.open_for_reading
   end
 
   test "open_for_writing when in read mode raises exception" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
-    dataset = stub('dataset')
-    database.stubs(:[]).returns(dataset)
+    score_set = Linkage::ScoreSets::Database.new(@database)
     score_set.open_for_reading
     assert_raises(RuntimeError) { score_set.open_for_writing }
   end
 
   test "open_for_reading when in write mode raises exception" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
-    database.stubs(:create_table)
-    dataset = stub('dataset')
-    database.stubs(:[]).returns(dataset)
+    score_set = Linkage::ScoreSets::Database.new(@database)
+    @database.stubs(:create_table)
     score_set.open_for_writing
     assert_raises(RuntimeError) { score_set.open_for_reading }
   end
 
   test "add_score when unopened raises exception" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
+    score_set = Linkage::ScoreSets::Database.new(@database)
     assert_raises { score_set.add_score(1, 1, 2, 1) }
   end
 
   test "add_score when in read mode raises exception" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
-    dataset = stub('dataset')
-    database.stubs(:[]).returns(dataset)
+    score_set = Linkage::ScoreSets::Database.new(@database)
     score_set.open_for_reading
     assert_raises { score_set.add_score(1, 1, 2, 1) }
   end
 
   test "add_score" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
-    database.stubs(:create_table)
-    dataset = stub('dataset')
-    database.stubs(:[]).returns(dataset)
+    score_set = Linkage::ScoreSets::Database.new(@database)
+    @database.stubs(:create_table)
     score_set.open_for_writing
 
-    dataset.expects(:insert).with({
+    @dataset.expects(:insert).with({
       :comparator_id => 1, :id_1 => 1, :id_2 => 2, :score => 1
     })
     score_set.add_score(1, 1, 2, 1)
   end
 
   test "each_pair" do
-    database = stub('database')
-    score_set = Linkage::ScoreSets::Database.new(database)
-    dataset = stub('dataset')
-    database.stubs(:[]).returns(dataset)
+    score_set = Linkage::ScoreSets::Database.new(@database)
     score_set.open_for_reading
 
-    dataset.expects(:order).with(:id_1, :id_2, :comparator_id).returns(dataset)
-    dataset.expects(:each).multiple_yields(
+    @dataset.expects(:order).with(:id_1, :id_2, :comparator_id).returns(@dataset)
+    @dataset.expects(:each).multiple_yields(
       [{:comparator_id => 1, :id_1 => '1', :id_2 => '2', :score => 1}],
       [{:comparator_id => 2, :id_1 => '1', :id_2 => '2', :score => 0}],
       [{:comparator_id => 1, :id_1 => '2', :id_2 => '3', :score => 1}],
