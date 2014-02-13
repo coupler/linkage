@@ -37,3 +37,4 @@ module Linkage
 end
 
 require 'linkage/result_sets/csv'
+require 'linkage/result_sets/database'
