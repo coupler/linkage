@@ -110,28 +110,37 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
 
     @dataset.expects(:order).with(:id_1, :id_2, :comparator_id).returns(@dataset)
     @dataset.expects(:each).multiple_yields(
-      [{:comparator_id => 1, :id_1 => '1', :id_2 => '2', :score => 1}],
+      [{:comparator_id => 1, :id_1 => '1', :id_2 => '2', :score => 0.5}],
       [{:comparator_id => 2, :id_1 => '1', :id_2 => '2', :score => 0}],
       [{:comparator_id => 1, :id_1 => '2', :id_2 => '3', :score => 1}],
       [{:comparator_id => 2, :id_1 => '2', :id_2 => '3', :score => 1}],
       [{:comparator_id => 1, :id_1 => '3', :id_2 => '4', :score => 0}],
-      [{:comparator_id => 2, :id_1 => '3', :id_2 => '4', :score => 1}]
+      [{:comparator_id => 2, :id_1 => '3', :id_2 => '4', :score => 1}],
+      [{:comparator_id => 3, :id_1 => '4', :id_2 => '5', :score => 0}]
     )
     pairs = []
     score_set.each_pair { |*args| pairs << args }
-    assert_equal 3, pairs.length
+    assert_equal 4, pairs.length
 
     pair_1 = pairs.detect { |pair| pair[0] == "1" && pair[1] == "2" }
     assert pair_1
-    assert_equal [1, 0], pair_1[2]
+    expected_1 = {1 => 0.5, 2 => 0}
+    assert_equal expected_1, pair_1[2]
 
     pair_2 = pairs.detect { |pair| pair[0] == "2" && pair[1] == "3" }
     assert pair_2
-    assert_equal [1, 1], pair_2[2]
+    expected_2 = {1 => 1, 2 => 1}
+    assert_equal expected_2, pair_2[2]
 
     pair_3 = pairs.detect { |pair| pair[0] == "3" && pair[1] == "4" }
     assert pair_3
-    assert_equal [0, 1], pair_3[2]
+    expected_3 = {1 => 0, 2 => 1}
+    assert_equal expected_3, pair_3[2]
+
+    pair_4 = pairs.detect { |pair| pair[0] == "4" && pair[1] == "5" }
+    assert pair_3
+    expected_4 = {3 => 0}
+    assert_equal expected_4, pair_4[2]
   end
 
   test "registers itself" do

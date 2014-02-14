@@ -57,12 +57,10 @@ module Linkage
         @dataset.order(:id_1, :id_2, :comparator_id).each do |row|
           if current_pair.nil? || current_pair[0] != row[:id_1] || current_pair[1] != row[:id_2]
             yield(*current_pair) unless current_pair.nil?
-            current_pair = [row[:id_1], row[:id_2], []]
+            current_pair = [row[:id_1], row[:id_2], {}]
           end
           scores = current_pair[2]
-
-          comparator_id = row[:comparator_id] - 1
-          scores[comparator_id] = row[:score]
+          scores[row[:comparator_id]] = row[:score]
         end
         yield(*current_pair) unless current_pair.nil?
 
