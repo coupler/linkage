@@ -30,7 +30,7 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
       conf.threshold = 1.0
     end
 
-    runner = Linkage::SingleThreadedRunner.new(conf)
+    runner = Linkage::Runner.new(conf)
     runner.execute
 
     score_csv = CSV.read(File.join(@tmpdir, 'scores.csv'), :headers => true)
@@ -60,7 +60,7 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
       conf.compare([:ssn, :dob], [:ssn, :dob], :equal_to)
     end
 
-    runner = Linkage::SingleThreadedRunner.new(conf)
+    runner = Linkage::Runner.new(conf)
     runner.execute
 
     score_csv = CSV.read(File.join(@tmpdir, 'scores.csv'), :headers => true)
@@ -97,7 +97,7 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
       conf.compare([:ssn], [:ssn], :equal_to)
     end
 
-    runner = Linkage::SingleThreadedRunner.new(conf)
+    runner = Linkage::Runner.new(conf)
     runner.execute
 
     score_csv = CSV.read(File.join(@tmpdir, 'scores.csv'), :headers => true)

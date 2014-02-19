@@ -32,7 +32,7 @@ class IntegrationTests::TestDatabaseResultSet < Test::Unit::TestCase
       conf.algorithm = :mean
       conf.threshold = 1
     end
-    runner = Linkage::SingleThreadedRunner.new(conf)
+    runner = Linkage::Runner.new(conf)
     runner.execute
 
     results_database do |db|

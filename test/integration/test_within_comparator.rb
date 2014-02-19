@@ -26,7 +26,7 @@ module IntegrationTests
         conf.within(:num, :num, 5)
       end
 
-      runner = Linkage::SingleThreadedRunner.new(conf)
+      runner = Linkage::Runner.new(conf)
       runner.execute
 
       score_csv = CSV.read(File.join(@tmpdir, 'scores.csv'), :headers => true)
