@@ -15,6 +15,7 @@ module Linkage
           end
 
         if opts[:dir]
+          opts[:dir] = File.expand_path(opts[:dir])
           FileUtils.mkdir_p(opts[:dir])
         end
 

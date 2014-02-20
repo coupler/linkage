@@ -57,6 +57,14 @@ class UnitTests::TestResultSets::TestCSV < Test::Unit::TestCase
     assert_same match_set, result_set.match_set
   end
 
+  test "directory path is expanded" do
+    opts = {
+      :dir => "~/foo"
+    }
+    FileUtils.expects(:mkdir_p).with(File.expand_path("~/foo"))
+    result_set = Linkage::ResultSets::CSV.new(opts)
+  end
+
   test "custom filenames" do
     opts = {
       :dir => File.join(@tmpdir, 'foo'),
