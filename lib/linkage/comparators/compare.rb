@@ -24,29 +24,36 @@ module Linkage
           raise "operation is not valid"
         end
         @type = operation == :equal_to ? :advanced : :simple
-
-        @set_1 = set_1
-        @set_2 = set_2
+        @names_1 = set_1.collect(&:name)
+        @names_2 = set_2.collect(&:name)
         @operation = operation
       end
 
       def score(record_1, record_2)
-        # TODO: multiple field matches?
-        name_1 = @set_1[0].name
-        name_2 = @set_2[0].name
-
+        values_1 = record_1.values_at(*@names_1)
+        values_2 = record_2.values_at(*@names_2)
         result =
           case @operation
           when :not_equal
-            record_1[name_1] != record_2[name_2]
+            values_1.each_with_index.all? do |value_1, i|
+              value_1 != values_2[i]
+            end
           when :greater_than
-            record_1[name_1] > record_2[name_2]
+            values_1.each_with_index.all? do |value_1, i|
+              value_1 > values_2[i]
+            end
           when :greater_than_or_equal_to
-            record_1[name_1] >= record_2[name_2]
+            values_1.each_with_index.all? do |value_1, i|
+              value_1 >= values_2[i]
+            end
           when :less_than_or_equal_to
-            record_1[name_1] <= record_2[name_2]
+            values_1.each_with_index.all? do |value_1, i|
+              value_1 <= values_2[i]
+            end
           when :less_than
-            record_1[name_1] < record_2[name_2]
+            values_1.each_with_index.all? do |value_1, i|
+              value_1 < values_2[i]
+            end
           end
 
         result ? 1 : 0
@@ -61,26 +68,25 @@ module Linkage
       def score_dataset(dataset)
         # FIXME: nil value equality
 
-        name = @set_1.collect(&:name)
-        if @set_2.collect(&:name) != name
+        if @names_1 != @names_2
           return _score_datasets(dataset, dataset)
         end
 
-        enum = dataset.order(*name).to_enum
+        enum = dataset.order(*@names_1).to_enum
         begin
           record = enum.next
         rescue StopIteration
           return
         end
         group = [record]
-        last_value = record.values_at(*name)
+        last_value = record.values_at(*@names_1)
         loop do
           begin
             record = enum.next
           rescue StopIteration
             break
           end
-          value = record.values_at(*name)
+          value = record.values_at(*@names_1)
           if value == last_value
             group << record
           else
@@ -96,10 +102,8 @@ module Linkage
       private
 
       def _score_datasets(dataset_1, dataset_2)
-        name_1 = @set_1.collect(&:name)
-        name_2 = @set_2.collect(&:name)
-        enum_1 = dataset_1.order(*name_1).to_enum
-        enum_2 = dataset_2.order(*name_2).to_enum
+        enum_1 = dataset_1.order(*@names_1).to_enum
+        enum_2 = dataset_2.order(*@names_2).to_enum
 
         begin
           record_1 = enum_1.next
@@ -111,8 +115,8 @@ module Linkage
         group_1 = []
         group_2 = []
         loop do
-          value_1 = record_1.values_at(*name_1)
-          value_2 = record_2.values_at(*name_2)
+          value_1 = record_1.values_at(*@names_1)
+          value_2 = record_2.values_at(*@names_2)
           result = value_1 <=> value_2
           if result == 0
             last_value = value_1
@@ -125,11 +129,11 @@ module Linkage
                 case state
                 when :left
                   record_1 = enum_1.next
-                  value_1 = record_1.values_at(*name_1)
+                  value_1 = record_1.values_at(*@names_1)
                   result = last_value == value_1
                 when :right
                   record_2 = enum_2.next
-                  value_2 = record_2.values_at(*name_2)
+                  value_2 = record_2.values_at(*@names_2)
                   result = last_value == value_2
                 end
               rescue StopIteration

@@ -23,6 +23,19 @@ class UnitTests::TestComparators::TestCompare < Test::Unit::TestCase
     assert_equal 1, comp.score({:foo => 0}, {:bar => 5})
   end
 
+  test "score for not equal to with multiple fields" do
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    field_3 = stub('baz field', :name => :baz, :ruby_type => { :type => Integer })
+    field_4 = stub('qux field', :name => :qux, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1, field_2], [field_3, field_4], :not_equal)
+    assert_equal :simple, comp.type
+    assert_equal 1, comp.score({:foo => 10, :bar => 5}, {:baz => 5, :qux => 10})
+    assert_equal 0, comp.score({:foo => 10, :bar => 5}, {:baz => 10, :qux => 5})
+    assert_equal 0, comp.score({:foo => 10, :bar => 5}, {:baz => 10, :qux => 7})
+    assert_equal 0, comp.score({:foo => 10, :bar => 5}, {:baz => 7, :qux => 5})
+  end
+
   test "score for greater than" do
     field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
     field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
@@ -31,6 +44,19 @@ class UnitTests::TestComparators::TestCompare < Test::Unit::TestCase
     assert_equal 1, comp.score({:foo => 10}, {:bar => 5})
     assert_equal 0, comp.score({:foo => 5}, {:bar => 5})
     assert_equal 0, comp.score({:foo => 0}, {:bar => 5})
+  end
+
+  test "score for greater than with multiple fields" do
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    field_3 = stub('baz field', :name => :baz, :ruby_type => { :type => Integer })
+    field_4 = stub('qux field', :name => :qux, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1, field_2], [field_3, field_4], :greater_than)
+    assert_equal :simple, comp.type
+    assert_equal 1, comp.score({:foo => 10, :bar => 5}, {:baz => 5, :qux => 0})
+    assert_equal 0, comp.score({:foo => 10, :bar => 5}, {:baz => 15, :qux => 10})
+    assert_equal 0, comp.score({:foo => 10, :bar => 5}, {:baz => 15, :qux => 0})
+    assert_equal 0, comp.score({:foo => 10, :bar => 5}, {:baz => 5, :qux => 10})
   end
 
   test "score for greater than or equal to" do
@@ -43,14 +69,40 @@ class UnitTests::TestComparators::TestCompare < Test::Unit::TestCase
     assert_equal 0, comp.score({:foo => 0}, {:bar => 5})
   end
 
+  test "score for greater than or equal to with multiple fields" do
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    field_3 = stub('baz field', :name => :baz, :ruby_type => { :type => Integer })
+    field_4 = stub('qux field', :name => :qux, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1, field_2], [field_3, field_4], :greater_than_or_equal_to)
+    assert_equal :simple, comp.type
+    assert_equal 1, comp.score({:foo => 10, :bar => 5}, {:baz => 5, :qux => 0})
+    assert_equal 1, comp.score({:foo => 10, :bar => 5}, {:baz => 10, :qux => 5})
+    assert_equal 0, comp.score({:foo => 10, :bar => 5}, {:baz => 5, :qux => 10})
+    assert_equal 0, comp.score({:foo => 10, :bar => 5}, {:baz => 15, :qux => 0})
+  end
+
   test "score for less than or equal to" do
     field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
     field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1], [field_2], :less_than_or_equal_to)
     assert_equal :simple, comp.type
-    assert_equal 0, comp.score({:foo => 10}, {:bar => 5})
     assert_equal 1, comp.score({:foo => 5}, {:bar => 5})
     assert_equal 1, comp.score({:foo => 0}, {:bar => 5})
+    assert_equal 0, comp.score({:foo => 10}, {:bar => 5})
+  end
+
+  test "score for less than or equal to with multiple fields" do
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    field_3 = stub('baz field', :name => :baz, :ruby_type => { :type => Integer })
+    field_4 = stub('qux field', :name => :qux, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1, field_2], [field_3, field_4], :less_than_or_equal_to)
+    assert_equal :simple, comp.type
+    assert_equal 1, comp.score({:foo => 5, :bar => 0}, {:baz => 10, :qux => 5})
+    assert_equal 1, comp.score({:foo => 5, :bar => 0}, {:baz => 5, :qux => 0})
+    assert_equal 0, comp.score({:foo => 5, :bar => 0}, {:baz => 0, :qux => 5})
+    assert_equal 0, comp.score({:foo => 5, :bar => 0}, {:baz => 10, :qux => -5})
   end
 
   test "score for less than" do
@@ -58,9 +110,22 @@ class UnitTests::TestComparators::TestCompare < Test::Unit::TestCase
     field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
     comp = Compare.new([field_1], [field_2], :less_than)
     assert_equal :simple, comp.type
+    assert_equal 1, comp.score({:foo => 0}, {:bar => 5})
     assert_equal 0, comp.score({:foo => 10}, {:bar => 5})
     assert_equal 0, comp.score({:foo => 5}, {:bar => 5})
-    assert_equal 1, comp.score({:foo => 0}, {:bar => 5})
+  end
+
+  test "score for less than with multiple fields" do
+    field_1 = stub('foo field', :name => :foo, :ruby_type => { :type => Integer })
+    field_2 = stub('bar field', :name => :bar, :ruby_type => { :type => Integer })
+    field_3 = stub('baz field', :name => :baz, :ruby_type => { :type => Integer })
+    field_4 = stub('qux field', :name => :qux, :ruby_type => { :type => Integer })
+    comp = Compare.new([field_1, field_2], [field_3, field_4], :less_than)
+    assert_equal :simple, comp.type
+    assert_equal 1, comp.score({:foo => 5, :bar => 0}, {:baz => 10, :qux => 5})
+    assert_equal 0, comp.score({:foo => 5, :bar => 0}, {:baz => 5, :qux => 0})
+    assert_equal 0, comp.score({:foo => 5, :bar => 0}, {:baz => 0, :qux => 5})
+    assert_equal 0, comp.score({:foo => 5, :bar => 0}, {:baz => 10, :qux => -5})
   end
 
   test "score_datasets with one field equality" do
