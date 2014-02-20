@@ -29,7 +29,7 @@ datasets, result set, and comparators. A dataset refers to a table in a
 database. A result set is a place to put score and match information that
 Linkage generates.  Comparators describe how records are compared.
 
-A dataset is created via the Linkage::Dataset class, along with a connection URI
+A dataset is created via the `Linkage::Dataset` class, along with a connection URI
 and a table name:
 
 ```ruby
