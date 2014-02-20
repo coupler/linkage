@@ -1,5 +1,51 @@
 module Linkage
   module Comparators
+    # Compare is the most basic comparator in Linkage, conceptually. It scores
+    # two records based on whether or not field values satisfy the specified
+    # operator. Score is either 0 or 1.
+    #
+    # To use Compare, you must specify two sets of fields to use in the
+    # comparison, along with an operator. Valid operators are:
+    #
+    # * `:equal`
+    # * `:not_equal`
+    # * `:greater_than`
+    # * `:greater_than_or_equal`
+    # * `:less_than`
+    # * `:less_than_or_equal`
+    #
+    # Sets of fields must be of equal length. If you specify more than one
+    # field, each field will be compared to its counterpart in the other set.
+    # All of the field values must meet the conditions in order for the score to
+    # be 1. Otherwise, the score is 0.
+    #
+    # Consider the following example, using a {Configuration} as part of
+    # {Dataset#link_with}:
+    #
+    # ```ruby
+    # config.compare([:foo, :bar], [:baz, :qux], :equal)
+    # ```
+    #
+    # For each record, the values of `foo` and `baz` are compared, and the
+    # values of `bar` and `qux` are compared. If both of these two comparisons
+    # are `true`, then the score of 1 is given. If `foo` and `baz` are equal but
+    # `bar` and `qux` are not equal, or if both comparisons are false, then a
+    # score of 0 is given.
+    #
+    # Algorithms
+    # ----------
+    #
+    # The way records are chosen for comparison depends on which operator you
+    # use. The `:equal` operator is treated differently than the other
+    # operators. When using operators other than `:equal`, each record is
+    # compared to every other record (and {#type} returns `:simple`). When using
+    # `:equal`, {#type} is `:advanced` and a different algorithm is used.
+    #
+    # "Equal" mode uses an algorithm similar to the sorted neighborhood method.
+    # Values are sorted (via database query) and then compared. This way, only
+    # adjacent records are compared. Using the transitive property of equality,
+    # records are grouped together. All pairs of records in the group are scored
+    # as 1. Scores of 0 are not given at all (absence of score means 0).
     class Compare < Comparator
       VALID_OPERATIONS = [
         :not_equal, :greater_than, :greater_than_or_equal,
