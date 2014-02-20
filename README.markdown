@@ -32,12 +32,16 @@ Linkage generates.  Comparators describe how records are compared.
 A dataset is created via the Linkage::Dataset class, along with a connection URI
 and a table name:
 
-    ds = Linkage::Dataset.new('mysql://example.com/database_name', 'table_name')
+```ruby
+ds = Linkage::Dataset.new('mysql://example.com/database_name', 'table_name')
+```
 
 Result sets have different options depending on what storage medium you're
 using (CSV or database). For CSVs, you could use:
 
-    result_set = Linkage::ResultSet['csv'].new('~/my_results')
+```ruby
+result_set = Linkage::ResultSet['csv'].new('~/my_results')
+```
 
 In this case, scores and matches will be saved in CSV files in the `my_results`
 directory in your home folder.
@@ -46,11 +50,13 @@ To describe a linkage, you can use the `Dataset#link_with` method. This creates
 a linkage configuration that you can use to describe how you want the records in
 each dataset to be compared. For example:
 
-    demo = Linkage::Dataset.new('postgres://example.com/foo', 'demographics')
-    visits = Linkage::Dataset.new('mysql://some-other-host.net/bar', 'visits')
-    config = demo.link_with(visits, score_set, match_set) do |config|
-      config.compare([:first_name, :last_name], [:first_name, :last_name], :equal_to)
-    end
+```ruby
+demo = Linkage::Dataset.new('postgres://example.com/foo', 'demographics')
+visits = Linkage::Dataset.new('mysql://some-other-host.net/bar', 'visits')
+config = demo.link_with(visits, score_set, match_set) do |config|
+  config.compare([:first_name, :last_name], [:first_name, :last_name], :equal_to)
+end
+```
 
 This linkage would match records from a demographics table to records in a table
 with information about doctor visits by using first name and last name.
@@ -69,8 +75,10 @@ Other comparators are `Strcompare` for approximate string matching and
 To run a linkage, use a Runner with the resulting configuration from
 `Dataset#link_with`:
 
-    runner = Linkage::Runner.new(config)
-    runner.execute
+```ruby
+runner = Linkage::Runner.new(config)
+runner.execute
+```
 
 After running a linkage, there will be a list of matches in a CSV file or
 database, depending on how you configured your result set.
@@ -83,13 +91,15 @@ the threshold value like so: `config.threshold = 0.9`.
 
 Linking a dataset to itself:
 
-    births = Linkage::Dataset.new('postgres://example.com/hospital_data', 'births')
-    result_set = Linkage::ResultSet['csv'].new('~/my_birth_results')
-    config = births.link_with(births, result_set) do |config|
-      config.compare([:mother_first_name, :mother_last_name], [:mother_first_name, :mother_last_name], :equal_to)
-    end
-    runner = Linkage::Runner.new(config)
-    runner.execute
+```ruby
+births = Linkage::Dataset.new('postgres://example.com/hospital_data', 'births')
+result_set = Linkage::ResultSet['csv'].new('~/my_birth_results')
+config = births.link_with(births, result_set) do |config|
+  config.compare([:mother_first_name, :mother_last_name], [:mother_first_name, :mother_last_name], :equal_to)
+end
+runner = Linkage::Runner.new(config)
+runner.execute
+```
 
 The above example would find birth records that have mothers with the same
 name.
