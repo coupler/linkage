@@ -17,9 +17,9 @@ In order to use Linkage, the records you want to link must be in a database.
 Linkage has the ability to perform record linkage across different kinds of
 databases, so it's okay if your records are not all in the same place.
 
-Since Linkage uses (Sequel)[http://sequel.jeremyevans.net/] to communicate with
-databases, any database that Sequel supports will work. See (Connecting to a
-database)[http://sequel.jeremyevans.net/documentation.html] on the Sequel
+Since Linkage uses [Sequel](http://sequel.jeremyevans.net/) to communicate with
+databases, any database that Sequel supports will work. See [Connecting to a
+database](http://sequel.jeremyevans.net/documentation.html) on the Sequel
 website for more information about what databases are supported.
 
 ## Usage
