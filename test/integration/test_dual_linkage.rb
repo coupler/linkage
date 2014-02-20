@@ -32,7 +32,7 @@ module IntegrationTests
       ds_2 = Linkage::Dataset.new(@tmpuri, "bar", :single_threaded => true)
       tmpuri = @tmpuri
       conf = ds_1.link_with(ds_2, result_set) do |conf|
-        conf.compare([:ssn], [:ssn], :equal_to)
+        conf.compare([:ssn], [:ssn], :equal)
         conf.algorithm = :mean
         conf.threshold = 1.0
       end

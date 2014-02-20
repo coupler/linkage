@@ -36,8 +36,8 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
     @field_set_1.expects(:[]).with(:foo).returns(@field_1)
     @field_set_2.expects(:[]).with(:foo).returns(@field_2)
-    Linkage::Comparators::Compare.expects(:new).with([@field_1], [@field_2], :equal_to).returns(@compare)
-    config.compare([:foo], [:foo], :equal_to)
+    Linkage::Comparators::Compare.expects(:new).with([@field_1], [@field_2], :equal).returns(@compare)
+    config.compare([:foo], [:foo], :equal)
     assert_equal @compare, config.comparators[0]
   end
 
@@ -46,8 +46,8 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
     @field_set_1.expects(:[]).with(:foo).returns(@field_1)
     @field_set_1.expects(:[]).with(:bar).returns(@field_2)
-    Linkage::Comparators::Compare.expects(:new).with([@field_1], [@field_2], :equal_to).returns(@compare)
-    config.compare([:foo], [:bar], :equal_to)
+    Linkage::Comparators::Compare.expects(:new).with([@field_1], [@field_2], :equal).returns(@compare)
+    config.compare([:foo], [:bar], :equal)
     assert_equal @compare, config.comparators[0]
   end
 
@@ -64,7 +64,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
   test "score_recorder with two datasets" do
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
-    config.compare([:foo], [:foo], :equal_to)
+    config.compare([:foo], [:foo], :equal)
 
     @field_set_1.expects(:primary_key).returns(@pk_1)
     @field_set_2.expects(:primary_key).returns(@pk_2)
@@ -77,7 +77,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
   test "score_recorder with one dataset" do
     config = Linkage::Configuration.new(@dataset_1, @result_set)
-    config.compare([:foo], [:bar], :equal_to)
+    config.compare([:foo], [:bar], :equal)
 
     @field_set_1.expects(:primary_key).returns(@pk_1)
     @pk_1.expects(:name).returns(:id_1)
@@ -88,7 +88,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
   test "default matcher" do
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
-    config.compare([:foo], [:bar], :equal_to)
+    config.compare([:foo], [:bar], :equal)
 
     matcher = stub('matcher')
     Linkage::Matcher.expects(:new).with([@compare], @score_set, :mean, 0.5).returns(matcher)
@@ -97,7 +97,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
   test "matcher with explicit algorithm" do
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
-    config.compare([:foo], [:bar], :equal_to)
+    config.compare([:foo], [:bar], :equal)
     config.algorithm = :foo
 
     matcher = stub('matcher')
@@ -107,7 +107,7 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
 
   test "matcher with explicit threshold" do
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
-    config.compare([:foo], [:bar], :equal_to)
+    config.compare([:foo], [:bar], :equal)
     config.threshold = 0.9
 
     matcher = stub('matcher')

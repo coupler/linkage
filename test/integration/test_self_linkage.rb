@@ -25,7 +25,7 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
     result_set = Linkage::ResultSet['csv'].new(@tmpdir)
     dataset = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
     conf = dataset.link_with(dataset, result_set) do |conf|
-      conf.compare([:ssn], [:ssn], :equal_to)
+      conf.compare([:ssn], [:ssn], :equal)
       conf.algorithm = :mean
       conf.threshold = 1.0
     end
@@ -57,7 +57,7 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
     result_set = Linkage::ResultSet['csv'].new(@tmpdir)
     dataset = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
     conf = dataset.link_with(dataset, result_set) do |conf|
-      conf.compare([:ssn, :dob], [:ssn, :dob], :equal_to)
+      conf.compare([:ssn, :dob], [:ssn, :dob], :equal)
     end
 
     runner = Linkage::Runner.new(conf)
@@ -94,7 +94,7 @@ class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
     dataset = Linkage::Dataset.new(@tmpuri, "foo", :single_threaded => true)
     dataset = dataset.filter(:mod_5 => 3)
     conf = dataset.link_with(dataset, result_set) do |conf|
-      conf.compare([:ssn], [:ssn], :equal_to)
+      conf.compare([:ssn], [:ssn], :equal)
     end
 
     runner = Linkage::Runner.new(conf)

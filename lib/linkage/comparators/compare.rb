@@ -2,8 +2,8 @@ module Linkage
   module Comparators
     class Compare < Comparator
       VALID_OPERATIONS = [
-        :not_equal, :greater_than, :greater_than_or_equal_to,
-        :less_than_or_equal_to, :less_than, :equal_to
+        :not_equal, :greater_than, :greater_than_or_equal,
+        :less_than_or_equal, :less_than, :equal
       ]
 
       def initialize(set_1, set_2, operation)
@@ -23,7 +23,7 @@ module Linkage
         if !VALID_OPERATIONS.include?(operation)
           raise "operation is not valid"
         end
-        @type = operation == :equal_to ? :advanced : :simple
+        @type = operation == :equal ? :advanced : :simple
         @names_1 = set_1.collect(&:name)
         @names_2 = set_2.collect(&:name)
         @operation = operation
@@ -42,11 +42,11 @@ module Linkage
             values_1.each_with_index.all? do |value_1, i|
               value_1 > values_2[i]
             end
-          when :greater_than_or_equal_to
+          when :greater_than_or_equal
             values_1.each_with_index.all? do |value_1, i|
               value_1 >= values_2[i]
             end
-          when :less_than_or_equal_to
+          when :less_than_or_equal
             values_1.each_with_index.all? do |value_1, i|
               value_1 <= values_2[i]
             end

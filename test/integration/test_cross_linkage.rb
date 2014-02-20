@@ -27,7 +27,7 @@ module IntegrationTests
 
       result_set = Linkage::ResultSet['csv'].new(@tmpdir)
       conf = ds.link_with(ds, result_set) do |conf|
-        conf.compare([:foo], [:bar], :equal_to)
+        conf.compare([:foo], [:bar], :equal)
         conf.algorithm = :mean
         conf.threshold = 1
       end
@@ -66,7 +66,7 @@ module IntegrationTests
       ds_1 = ds.filter(:bar => 0)
       ds_2 = ds.filter(:bar => 10)
       conf = ds_1.link_with(ds_2, result_set) do |conf|
-        conf.compare([:foo], [:foo], :equal_to)
+        conf.compare([:foo], [:foo], :equal)
         conf.algorithm = :mean
         conf.threshold = 1
       end

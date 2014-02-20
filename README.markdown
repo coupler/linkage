@@ -55,7 +55,7 @@ demo = Linkage::Dataset.new('postgres://example.com/foo', 'demographics')
 visits = Linkage::Dataset.new('mysql://some-other-host.net/bar', 'visits')
 result_set = Linkage::ResultSet['csv'].new('~/my_results')
 config = demo.link_with(visits, result_set) do |config|
-  config.compare([:first_name, :last_name], [:first_name, :last_name], :equal_to)
+  config.compare([:first_name, :last_name], [:first_name, :last_name], :equal)
 end
 ```
 
@@ -64,7 +64,7 @@ with information about doctor visits by using first name and last name.
 
 The `compare` method creates a `Compare` comparator. This is the simplest
 comparator in Linkage, and it just compares fields with the operator you specify
-(`:equal_to`, `:less_than`, `:greater_than`, etc). When a comparator compares
+(`:equal`, `:less_than`, `:greater_than`, etc). When a comparator compares
 two records, it gives the pair of records a score between 0 and 1. In the case
 of the example above, records that have the same first name and last name get a
 score of 1, and records that don't get a score of 0 (or sometimes, they aren't
@@ -96,7 +96,7 @@ Linking a dataset to itself:
 births = Linkage::Dataset.new('postgres://example.com/hospital_data', 'births')
 result_set = Linkage::ResultSet['csv'].new('~/my_birth_results')
 config = births.link_with(births, result_set) do |config|
-  config.compare([:mother_first_name, :mother_last_name], [:mother_first_name, :mother_last_name], :equal_to)
+  config.compare([:mother_first_name, :mother_last_name], [:mother_first_name, :mother_last_name], :equal)
 end
 runner = Linkage::Runner.new(config)
 runner.execute

@@ -28,7 +28,7 @@ class IntegrationTests::TestDatabaseResultSet < Test::Unit::TestCase
     ds = Linkage::Dataset.new(@data_uri, 'foo')
     result_set = Linkage::ResultSet['database'].new(@results_uri)
     conf = ds.link_with(ds, result_set) do |conf|
-      conf.compare([:foo], [:bar], :equal_to)
+      conf.compare([:foo], [:bar], :equal)
       conf.algorithm = :mean
       conf.threshold = 1
     end
