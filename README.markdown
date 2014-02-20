@@ -53,7 +53,7 @@ each dataset to be compared. For example:
 ```ruby
 demo = Linkage::Dataset.new('postgres://example.com/foo', 'demographics')
 visits = Linkage::Dataset.new('mysql://some-other-host.net/bar', 'visits')
-config = demo.link_with(visits, score_set, match_set) do |config|
+config = demo.link_with(visits, result_set) do |config|
   config.compare([:first_name, :last_name], [:first_name, :last_name], :equal_to)
 end
 ```
