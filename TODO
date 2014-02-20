@@ -1,6 +1,4 @@
 Features
-- add config storage
 - add matcher algorithms
 - change comparator_id to more than just an index; need to get comparator ids
   from result set instead of configuration
-- update README
