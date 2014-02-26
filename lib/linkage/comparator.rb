@@ -1,6 +1,7 @@
 module Linkage
   # Comparator is the superclass for comparators in Linkage. Comparators are
-  # used
+  # used to compare two records and compute scores based on closely the two
+  # records relate.
   # @abstract
   class Comparator
     include Observable
