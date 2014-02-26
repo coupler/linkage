@@ -1,7 +1,23 @@
 module Linkage
-  # Comparator is the superclass for comparators in Linkage. Comparators are
+  # {Comparator} is the superclass for comparators in Linkage. Comparators are
   # used to compare two records and compute scores based on closely the two
   # records relate.
+  #
+  # Each comparator should inherit from {Comparator} and declare itself as
+  # simple or advanced by overriding {#type} (the default is simple). Simple
+  # comparators must define the {#score} method that uses data from two records
+  # and returns a number (`Integer` or `Float`) between 0 and 1 (inclusive).
+  # Advanced comparators must define both {#score_dataset} and {#score_datasets}
+  # that use one or two {Dataset}s respectively to create scores.
+  #
+  # Each comparator can be registered via the {.register} function. This allows
+  # {Configuration} a way to find a comparator by name via
+  # {Configuration#method_missing}. For example, `config.compare(...)` creates a
+  # new {Comparators::Compare} object, since that comparator is registered under
+  # the name `"compare"`.
+  #
+  # See documentation for the methods below for more information.
+  #
   # @abstract
   class Comparator
     include Observable
@@ -9,7 +25,7 @@ module Linkage
     class << self
       # Register a new comparator. Subclasses must define at least {#score} for
       # simple comparators, or {#score_dataset} and {#score_datasets} for
-      # advanced comparators. Otherwise, an {ArgumentError} will be raised when
+      # advanced comparators. Otherwise, an `ArgumentError` will be raised when
       # you try to call {.register}. The `name` parameter is used in
       # {Configuration#method_missing} as an easy way for users to select
       # comparators for their linkage.
@@ -26,7 +42,7 @@ module Linkage
         @comparators[name] = klass
       end
 
-      # Return a registered Comparator subclass or nil if it doesn't exist.
+      # Return a registered Comparator subclass or `nil` if it doesn't exist.
       #
       # @param [String] name of registered comparator
       # @return [Class, nil]
