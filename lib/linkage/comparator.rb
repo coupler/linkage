@@ -48,6 +48,14 @@ module Linkage
       raise NotImplementedError
     end
 
+    def score_datasets(dataset_1, dataset_2)
+      raise NotImplementedError
+    end
+
+    def score_dataset(dataset)
+      raise NotImplementedError
+    end
+
     # Calls {#score} with two hashes of record data. The result is then used to
     # notify any observers.
     #

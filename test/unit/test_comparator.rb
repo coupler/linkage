@@ -51,6 +51,27 @@ class UnitTests::TestComparator < Test::Unit::TestCase
     assert_raises(ArgumentError) { Linkage::Comparator.register('foo', klass) }
   end
 
+  test "score raises NotImplementedError" do
+    comparator = Linkage::Comparator.new
+    assert_raises(NotImplementedError) do
+      comparator.score(stub('record 1'), stub('record 2'))
+    end
+  end
+
+  test "score_datasets raises NotImplementedError" do
+    comparator = Linkage::Comparator.new
+    assert_raises(NotImplementedError) do
+      comparator.score_datasets(stub('dataset 1'), stub('dataset 2'))
+    end
+  end
+
+  test "score_dataset raises NotImplementedError" do
+    comparator = Linkage::Comparator.new
+    assert_raises(NotImplementedError) do
+      comparator.score_dataset(stub('dataset'))
+    end
+  end
+
   test "score_and_notify" do
     klass = new_comparator
     instance = klass.new
