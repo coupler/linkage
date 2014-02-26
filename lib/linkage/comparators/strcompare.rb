@@ -1,5 +1,22 @@
 module Linkage
   module Comparators
+    # Strcompare is a string comparison comparator. It uses the specified
+    # operation to compare string-type fields. Score ranges from 0 to 1.
+    #
+    # To use Strcompare, you must specify one field for each record to use in
+    # the comparison, along with an operator. Valid operators are:
+    #
+    # * `:jarowinkler` ([Jaro-Winkler distance](http://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance))
+    #
+    # Consider the following example, using a {Configuration} as part of
+    # {Dataset#link_with}:
+    #
+    # ```ruby
+    # config.strcompare(:foo, :bar, :jarowinkler)
+    # ```
+    #
+    # For each record, the values of the `foo` and `bar` fields are compared
+    # using the Jaro-Winkler distance algorithm.
     class Strcompare < Comparator
       VALID_OPERATIONS = [:jarowinkler]
 
