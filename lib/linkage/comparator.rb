@@ -7,9 +7,14 @@ module Linkage
     include Observable
 
     class << self
-      # Register a new comparator.
+      # Register a new comparator. Subclasses must define at least {#score} for
+      # simple comparators, or {#score_dataset} and {#score_datasets} for
+      # advanced comparators. Otherwise, an {ArgumentError} will be raised when
+      # you try to call {.register}. The `name` parameter is used in
+      # {Configuration#method_missing} as an easy way for users to select
+      # comparators for their linkage.
       #
-      # @param [String] name Comparator name used in {Comparator.klass_for}
+      # @param [String] name Comparator name used in {.klass_for}
       # @param [Class] klass Comparator subclass
       def register(name, klass)
         methods = klass.instance_methods(false)
@@ -31,7 +36,13 @@ module Linkage
       alias :[] :klass_for
     end
 
-    # Return the type of this comparator.
+    # Return the type of this comparator. When {#type} returns `:simple`,
+    # {#score_and_notify} is called by {Runner#score_records} with each pair of
+    # records in order to create scores. When {#type} returns `:advanced`,
+    # either {#score_dataset} or {#score_datasets} is called by
+    # {Runner#score_records}. In advanced mode, it is left up to the
+    # {Comparator} subclass to determine which records to compare and how to
+    # compare them.
     #
     # @return [Symbol] either `:simple` or `:advanced`
     def type
@@ -39,6 +50,8 @@ module Linkage
     end
 
     # Override this to return the score of the linkage strength of two records.
+    # This method is used to score records by {Runner#score_records} when
+    # {#type} returns `:simple`.
     #
     # @abstract
     # @param [Hash] record_1 data from first record
@@ -48,16 +61,79 @@ module Linkage
       raise NotImplementedError
     end
 
+    # Override this to score the linkage strength of records in two datasets.
+    # This method is used to score records by {Runner#score_records} when
+    # {#type} returns `:advanced` and {Configuration} is setup to link two
+    # datasets together.
+    #
+    # Since each {Dataset} delegates to a
+    # {http://sequel.jeremyevans.net/rdoc/classes/Sequel/Dataset.html `Sequel::Dataset`},
+    # you can use any
+    # {http://sequel.jeremyevans.net/rdoc/classes/Sequel/Dataset.html `Sequel::Dataset`}
+    # methods that you wish in order to select records to compare.
+    #
+    # To record scores, subclasses must call
+    # {http://ruby-doc.org/stdlib/libdoc/observer/rdoc/Observable.html `Observable#notify_observers`}
+    # like so:
+    #
+    # ```ruby
+    # changed
+    # notify_observers(self, record_1, record_2, score)
+    # ```
+    #
+    # This works by notifying any observers, typically {ScoreRecorder}, that a
+    # new score has been generated. {ScoreRecorder#update} then calls
+    # {ScoreSet#add_score} with comparator ID, the primary key of each record
+    # and the score.
+    #
+    # @abstract
+    # @param [Linkage::Dataset] dataset_1
+    # @param [Linkage::Dataset] dataset_2
+    # @see http://ruby-doc.org/stdlib/libdoc/observer/rdoc/Observable.html Observable
+    # @see http://sequel.jeremyevans.net/rdoc/classes/Sequel/Dataset.html Sequel::Dataset
     def score_datasets(dataset_1, dataset_2)
       raise NotImplementedError
     end
 
+    # Override this to score the linkage strength of records in one dataset.
+    # This method is used to score records by {Runner#score_records} when
+    # {#type} returns `:advanced` and {Configuration} is setup to link a
+    # dataset to itself.
+    #
+    # Since a {Dataset} delegates to a
+    # {http://sequel.jeremyevans.net/rdoc/classes/Sequel/Dataset.html `Sequel::Dataset`},
+    # you can use any
+    # {http://sequel.jeremyevans.net/rdoc/classes/Sequel/Dataset.html `Sequel::Dataset`}
+    # methods that you wish in order to select records to compare.
+    #
+    # To record scores, subclasses must call
+    # {http://ruby-doc.org/stdlib/libdoc/observer/rdoc/Observable.html `Observable#notify_observers`}
+    # like so:
+    #
+    # ```ruby
+    # changed
+    # notify_observers(self, record_1, record_2, score)
+    # ```
+    #
+    # This works by notifying any observers, typically {ScoreRecorder}, that a
+    # new score has been generated.  {ScoreRecorder#update} then calls
+    # {ScoreSet#add_score} with comparator ID, the primary key of each record
+    # and the score.
+    #
+    # @abstract
+    # @param [Linkage::Dataset] dataset
+    # @see http://ruby-doc.org/stdlib/libdoc/observer/rdoc/Observable.html Observable
+    # @see http://sequel.jeremyevans.net/rdoc/classes/Sequel/Dataset.html Sequel::Dataset
     def score_dataset(dataset)
       raise NotImplementedError
     end
 
     # Calls {#score} with two hashes of record data. The result is then used to
-    # notify any observers.
+    # notify any observers (typically {ScoreRecorder}).
+    #
+    # This method is used by {Runner#score_records} when {#type} returns
+    # `:simple`. Subclasses should override {#score} to implement the scoring
+    # algorithm.
     #
     # @param [Hash] record_1 data from first record
     # @param [Hash] record_2 data from second record
