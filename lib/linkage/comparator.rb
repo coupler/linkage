@@ -1,6 +1,6 @@
 module Linkage
   # {Comparator} is the superclass for comparators in Linkage. Comparators are
-  # used to compare two records and compute scores based on closely the two
+  # used to compare two records and compute scores based on how closely the two
   # records relate.
   #
   # Each comparator should inherit from {Comparator} and declare itself as
