@@ -52,6 +52,13 @@ module Linkage
   # config.compare([:foo], [:bar], :equal_to)
   # ```
   #
+  # Note that a dataset can be linked with itself the same way, like so:
+  #
+  # ```ruby
+  # config = dataset.link_with(dataset, result_set)
+  # config.compare([:foo], [:bar], :equal_to)
+  # ```
+  #
   # If you give {#link_with} a block, it will yield the same {Configuration}
   # object to the block that it returns.
   #
@@ -59,6 +66,13 @@ module Linkage
   # config = dataset.link_with(other_dataset, result_set) do |c|
   #   c.compare([:foo], [:bar], :equal_to)
   # end
+  # ```
+  #
+  # Once that's done, use a {Runner} to run the record linkage:
+  #
+  # ```ruby
+  # runner = Linkage::Runner.new(config)
+  # runner.execute
   # ```
   #
   # @see http://sequel.jeremyevans.net/rdoc/files/doc/opening_databases_rdoc.html Connecting to a database
