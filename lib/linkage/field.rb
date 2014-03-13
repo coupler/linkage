@@ -1,15 +1,14 @@
 module Linkage
-  # This class is for holding information about a particular field in a
-  # dataset.
+  # {Field} describes a field in a dataset, otherwise known as database table
+  # column.
   class Field
-    # @!attribute [r] name
-    #   @return [Symbol] This object's name
+    # @return [Symbol] This field's name
     attr_reader :name
 
-    # @return [Symbol] This field's schema information
+    # @return [Array] This field's schema information
     attr_reader :schema
 
-    # Create a new instance of Field.
+    # Returns a new instance of Field.
     #
     # @param [Symbol] name The field's name
     # @param [Hash] schema The field's schema information
@@ -19,12 +18,41 @@ module Linkage
     end
 
     # Convert the column schema information to a hash of column options, one of
-    # which must be :type. The other options added should modify that type
-    # (e.g. :size). If a database type is not recognized, return it as a String
-    # type.
+    # which is `:type`. The other options modify that type (e.g. `:size`).
     #
-    # @note This method comes more or less straight from Sequel
-    #   (lib/sequel/extensions/schema_dumper.rb).
+    # Here are some examples:
+    #
+    # | Database type    | Ruby type          | Other modifiers       |
+    # |------------------|--------------------|-----------------------|
+    # | mediumint        | Fixnum             |                       |
+    # | smallint         | Fixnum             |                       |
+    # | int              | Fixnum             |                       |
+    # | int(10) unsigned | Bignum             |                       |
+    # | tinyint          | TrueClass, Integer |                       |
+    # | bigint           | Bignum             |                       |
+    # | real             | Float              |                       |
+    # | float            | Float              |                       |
+    # | double           | Float              |                       |
+    # | boolean          | TrueClass          |                       |
+    # | text             | String             | text: true            |
+    # | date             | Date               |                       |
+    # | datetime         | DateTime           |                       |
+    # | timestamp        | DateTime           |                       |
+    # | time             | Time               | only_time: true       |
+    # | varchar(255)     | String             | size: 255             |
+    # | char(10)         | String             | size: 10, fixed: true |
+    # | money            | BigDecimal         | size: [19, 2]         |
+    # | decimal          | BigDecimal         |                       |
+    # | numeric          | BigDecimal         |                       |
+    # | number           | BigDecimal         |                       |
+    # | blob             | File               |                       |
+    # | year             | Integer            |                       |
+    # | identity         | Integer            |                       |
+    # | **other types**  | String             |                       |
+    #
+    # @note This method is copied from
+    #   {http://sequel.jeremyevans.net/rdoc-plugins/classes/Sequel/SchemaDumper.html `Sequel::SchemaDumper`}.
+    # @return [Hash]
     def ruby_type
       unless @ruby_type
         hsh =
@@ -79,6 +107,9 @@ module Linkage
       @ruby_type
     end
 
+    # Returns whether or not this field is a primary key.
+    #
+    # @return [Boolean]
     def primary_key?
       schema && schema[:primary_key]
     end
