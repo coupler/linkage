@@ -28,14 +28,20 @@ module Linkage
     def ruby_type
       unless @ruby_type
         hsh =
-          case t = @schema[:db_type].downcase
-          when /\A(?:medium|small)?int(?:eger)?(?:\((?:\d+)\))?(?: unsigned)?\z/o
-            {:type=>Integer}
-          when /\Atinyint(?:\((\d+)\))?\z/o
-            {:type =>@schema[:type] == :boolean ? TrueClass : Integer}
+          case @schema[:db_type].downcase
+          when /\A(medium|small)?int(?:eger)?(?:\((\d+)\))?( unsigned)?\z/o
+            if !$1 && $2 && $2.to_i >= 10 && $3
+              # Unsigned integer type with 10 digits can potentially contain values which
+              # don't fit signed integer type, so use bigint type in target database.
+              {:type=>Bignum}
+            else
+              {:type=>Integer}
+            end
+          when /\Atinyint(?:\((\d+)\))?(?: unsigned)?\z/o
+            {:type =>schema[:type] == :boolean ? TrueClass : Integer}
           when /\Abigint(?:\((?:\d+)\))?(?: unsigned)?\z/o
             {:type=>Bignum}
-          when /\A(?:real|float|double(?: precision)?)\z/o
+          when /\A(?:real|float|double(?: precision)?|double\(\d+,\d+\)(?: unsigned)?)\z/o
             {:type=>Float}
           when 'boolean'
             {:type=>TrueClass}
@@ -60,7 +66,7 @@ module Linkage
             {:type=>BigDecimal, :size=>(s.empty? ? nil : s)}
           when /\A(?:bytea|(?:tiny|medium|long)?blob|(?:var)?binary)(?:\((\d+)\))?\z/o
             {:type=>File, :size=>($1.to_i if $1)}
-          when 'year'
+          when /\A(?:year|(?:int )?identity)\z/o
             {:type=>Integer}
           else
             {:type=>String}
