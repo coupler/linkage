@@ -7,7 +7,7 @@ module Linkage
   # score is recorded by a {ScoreRecorder}, which uses a {ScoreSet} to actually
   # save the score. After the scoring is complete, a {Matcher} combines the
   # scores to create matches. Each match is recorded by a {MatchRecorder}, which
-  # uses a {MatchSet} to actually save the score.
+  # uses a {MatchSet} to actually save the match information.
   #
   # So to save scores and matches, we need both a {ScoreSet} and a {MatchSet}.
   # To make this easier, a {ResultSet} configures both.
@@ -20,10 +20,20 @@ module Linkage
   #
   # See the documentation for result set you're interested in for more
   # information.
+  #
+  # If you want to implement a custom {ResultSet}, create a class that inherits
+  # {ResultSet} and defines both {#score_set} that returns a {ScoreSet} and
+  # {#match_set} that returns a {MatchSet}. You can then register that class via
+  # {.register}.
+  #
+  # @abstract
   class ResultSet
-    # Register a result set.
+    # Register a new result set. Subclasses must define {#score_set} and
+    # {#match_set}.  Otherwise, an `ArgumentError` will be raised when you try
+    # to call {.register}.
     #
-    # @param [Class] klass
+    # @param [String] name Result set name used in {.klass_for}
+    # @param [Class] klass ResultSet subclass
     def self.register(name, klass)
       methods = klass.instance_methods(false)
       missing = []
@@ -45,11 +55,17 @@ module Linkage
       @result_set ? @result_set[name] : nil
     end
 
+    # Returns a {ScoreSet}. Subclasses must define this method.
+    #
+    # @return [ScoreSet]
     # @abstract
     def score_set
       raise NotImplementedError
     end
 
+    # Returns a {MatchSet}. Subclasses must define this method.
+    #
+    # @return [MatchSet]
     # @abstract
     def match_set
       raise NotImplementedError
