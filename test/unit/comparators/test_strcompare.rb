@@ -39,6 +39,17 @@ class UnitTests::TestComparators::TestStrcompare < Test::Unit::TestCase
     assert_equal 0, comp.score({:foo => 'cat'}, {:bar => 'dog'})
   end
 
+  test "score for damerau-levenshtein" do
+    field_1 = stub('field 1', :name => :foo, :ruby_type => { :type => String })
+    field_2 = stub('field 2', :name => :bar, :ruby_type => { :type => String })
+    comp = Strcompare.new(field_1, field_2, :damerau_levenshtein)
+    assert_equal 0.833, comp.score({:foo => 'martha'}, {:bar => 'marhta'})
+    assert_equal 0.750, comp.score({:foo => 'dwayne'}, {:bar => 'duane'})
+    assert_equal 0.688, comp.score({:foo => 'dixon'}, {:bar => 'dicksonx'})
+    assert_equal 0.889, comp.score({:foo => 'perfect'}, {:bar => 'perfect10'})
+    assert_equal 0, comp.score({:foo => 'cat'}, {:bar => 'dog'})
+  end
+
   test "registers itself" do
     assert_equal Strcompare, Linkage::Comparator['strcompare']
   end

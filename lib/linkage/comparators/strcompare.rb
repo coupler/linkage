@@ -7,6 +7,7 @@ module Linkage
     # the comparison, along with an operator. Valid operators are:
     #
     # * `:jarowinkler` ([Jaro-Winkler distance](http://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance))
+    # * `:damerau_levenshtein` ([Damerau-Levenshtein distance](http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance))
     #
     # Consider the following example, using a {Configuration} as part of
     # {Dataset#link_with}:
@@ -17,8 +18,11 @@ module Linkage
     #
     # For each record, the values of the `foo` and `bar` fields are compared
     # using the Jaro-Winkler distance algorithm.
+    #
+    # Damerau-Levenshtein is a modified Levenshtein that allows for transpositions
+    # It has additionally been modified to make costs of additions or deletions only 0.5
     class Strcompare < Comparator
-      VALID_OPERATIONS = [:jarowinkler]
+      VALID_OPERATIONS = [:jarowinkler, :damerau_levenshtein]
 
       def initialize(field_1, field_2, operation)
         if field_1.ruby_type[:type] != String || field_2.ruby_type[:type] != String
@@ -38,6 +42,8 @@ module Linkage
           case @operation
           when :jarowinkler
             jarowinkler(record_1[@name_1], record_2[@name_2])
+          when :damerau_levenshtein
+            damerau_levenshtein(record_1[@name_1], record_2[@name_2])
           end
 
         result
@@ -76,6 +82,37 @@ module Linkage
         d = (nm/al.to_f + nm/bl.to_f + (nm-nt)/nm.to_f)/3.0
         w = (d + l * 0.1 * (1 - d)).round(3)
         w
+      end
+
+      def damerau_levenshtein(w1, w2)
+        a = w1.downcase
+        b = w2.downcase
+        aa = a.split('')
+        ba = b.split('')
+        al = a.length
+        bl = b.length
+        denom = [al, bl].max
+        return 0 if denom == 0
+        oneago = nil
+        thisrow = (1..bl).to_a + [0]
+        al.times do |x|
+          twoago, oneago, thisrow = oneago, thisrow, [0] * bl + [x + 1]
+          bl.times do |y|
+            if aa[x] == ba[y]
+              thisrow[y] = oneago[y - 1]
+            else
+              delcost = oneago[y] + 0.5
+              addcost = thisrow[y - 1] + 0.5
+              subcost = oneago[y - 1] + 1
+              thisrow[y] = [delcost, addcost, subcost].min
+              # remove this statement for original levenshtein
+              if x > 0 and y > 0 and aa[x] == ba[y-1] and aa[x-1] == ba[y]
+                thisrow[y] = [thisrow[y], twoago[y-2] + 1].min
+              end
+            end
+          end
+        end
+        return (1 - thisrow[bl - 1] / denom.to_f).round(3)
       end
     end
 
