@@ -28,6 +28,8 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "mysql2"
   gem.add_development_dependency "guard-test"
   gem.add_development_dependency "guard-yard"
+  gem.add_development_dependency "redcarpet"
+  gem.add_development_dependency "yard-redcarpet-ext"
 
   gem.required_ruby_version = '>= 1.9'
 end

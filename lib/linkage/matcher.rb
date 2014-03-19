@@ -15,8 +15,6 @@ module Linkage
       send(@algorithm)
     end
 
-    private
-
     def mean
       @score_set.each_pair do |id_1, id_2, scores|
         mean = scores.values.inject(:+) / @comparators.length.to_f

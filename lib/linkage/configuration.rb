@@ -1,7 +1,64 @@
 module Linkage
+  # {Configuration} keeps track of everything needed to run a record linkage,
+  # including which datasets you want to link, how you want to link them, and
+  # where you want to store the results. Once created, you can supply the
+  # {Configuration} to {Runner#initialize} and run it with {Runner#execute}.
+  #
+  # To create a configuration, usually you will want to use {Dataset#link_with},
+  # but you can create it directly if you like (see {#initialize}), like so:
+  #
+  # ```ruby
+  # dataset_1 = Linkage::Dataset.new('mysql://example.com/database_name', 'foo')
+  # dataset_2 = Linkage::Dataset.new('postgres://example.com/other_name', 'bar')
+  # result_set = Linkage::ResultSet['csv'].new('/home/foo/linkage')
+  # config = Linkage::Configuration.new(dataset_1, dataset_2, result_set)
+  # ```
+  #
+  # To add comparators to {Configuration}, you can call methods with the same
+  # name as registered comparators. Here's the list of builtin comparators:
+  #
+  # | Name       | Class                     |
+  # |------------|---------------------------|
+  # | compare    | {Comparators::Compare}    |
+  # | strcompare | {Comparators::Strcompare} |
+  # | within     | {Comparators::Within}     |
+  #
+  # For example, if you want to add a {Comparators::Compare} comparator to
+  # your configuration, run this:
+  #
+  # ```ruby
+  # config.compare([:foo], [:bar], :equal_to)
+  # ```
+  #
+  # This works via {Configuration#method_missing}. First, the comparator class
+  # is fetched via {Comparator.[]}. Then fields are looked up in the {FieldSet}
+  # of the {Dataset}. Those {Field}s along with any other arguments you specify
+  # are passed to the constructor of the comparator you chose.
+  #
+  # {Configuration} also contains information about how records are matched.
+  # Once scores are computed, the scores for each pair of records are averaged
+  # and compared against a threshold value. Record pairs that have an average
+  # score greater than or equal to the threshold value are considered matches.
+  #
+  # The threshold value is `0.5` by default, but you can change it by setting
+  # {#threshold} like so:
+  #
+  # ```ruby
+  # config.threshold = 0.75
+  # ```
+  #
+  # Since scores range between 0 and 1 (inclusive), be sure to set a threshold
+  # value within the same range. The actual matching work is done by the
+  # {Matcher} class.
+  #
+  # @see Dataset
+  # @see ResultSet
+  # @see Comparator
+  # @see Matcher
+  # @see Runner
   class Configuration
     attr_reader :dataset_1, :dataset_2, :result_set, :comparators
-    attr_accessor :record_cache_size, :algorithm, :threshold
+    attr_accessor :algorithm, :threshold
 
     def initialize(*args)
       if args.length < 2 || args.length > 3
@@ -15,7 +72,8 @@ module Linkage
       @result_set = args[-1]
 
       @comparators = []
-      @record_cache_size = 10_000
+      @algorithm = :mean
+      @threshold = 0.5
     end
 
     def score_recorder
@@ -29,7 +87,7 @@ module Linkage
     end
 
     def matcher
-      Matcher.new(@comparators, @result_set.score_set, @algorithm || :mean, @threshold || 0.5)
+      Matcher.new(@comparators, @result_set.score_set, @algorithm, @threshold)
     end
 
     def match_recorder(matcher)
