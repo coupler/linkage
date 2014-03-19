@@ -42,6 +42,9 @@ module Linkage
     #   :matches => { :filename => "/some/other/path/foo-matches.csv" }
     # })
     # ```
+    #
+    # @see ScoreSets::CSV
+    # @see MatchSets::CSV
     class CSV < ResultSet
       def initialize(dir_or_options = nil)
         opts =
