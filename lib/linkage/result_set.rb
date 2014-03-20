@@ -28,31 +28,38 @@ module Linkage
   #
   # @abstract
   class ResultSet
-    # Register a new result set. Subclasses must define {#score_set} and
-    # {#match_set}.  Otherwise, an `ArgumentError` will be raised when you try
-    # to call {.register}.
-    #
-    # @param [String] name Result set name used in {.klass_for}
-    # @param [Class] klass ResultSet subclass
-    def self.register(name, klass)
-      methods = klass.instance_methods(false)
-      missing = []
-      unless methods.include?(:score_set)
-        missing.push("#score_set")
-      end
-      unless methods.include?(:match_set)
-        missing.push("#match_set")
-      end
-      unless missing.empty?
-        raise ArgumentError, "class must define #{missing.join(" and ")}"
+    class << self
+      # Register a new result set. Subclasses must define {#score_set} and
+      # {#match_set}.  Otherwise, an `ArgumentError` will be raised when you try
+      # to call {.register}.
+      #
+      # @param [String] name Result set name used in {.klass_for}
+      # @param [Class] klass ResultSet subclass
+      def register(name, klass)
+        methods = klass.instance_methods(false)
+        missing = []
+        unless methods.include?(:score_set)
+          missing.push("#score_set")
+        end
+        unless methods.include?(:match_set)
+          missing.push("#match_set")
+        end
+        unless missing.empty?
+          raise ArgumentError, "class must define #{missing.join(" and ")}"
+        end
+
+        @result_set ||= {}
+        @result_set[name] = klass
       end
 
-      @result_set ||= {}
-      @result_set[name] = klass
-    end
-
-    def self.[](name)
-      @result_set ? @result_set[name] : nil
+      # Return a registered ResultSet subclass or `nil` if it doesn't exist.
+      #
+      # @param [String] name of registered result set
+      # @return [Class, nil]
+      def klass_for(name)
+        @result_set ? @result_set[name] : nil
+      end
+      alias :[] :klass_for
     end
 
     # Returns a {ScoreSet}. Subclasses must define this method.
