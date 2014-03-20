@@ -51,7 +51,7 @@ module Linkage
       end
 
       def each_pair
-        open_for_reading
+        raise "not in read mode" if @mode != :read
 
         current_pair = nil
         @dataset.order(:id_1, :id_2, :comparator_id).each do |row|
@@ -63,8 +63,6 @@ module Linkage
           scores[row[:comparator_id]] = row[:score]
         end
         yield(*current_pair) unless current_pair.nil?
-
-        close
       end
 
       def close

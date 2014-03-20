@@ -19,7 +19,10 @@ class UnitTests::TestMatcher < Test::Unit::TestCase
       [3, 4, {1 => 0, 2 => 1, 3 => 1}],
       [4, 5, {1 => 1, 2 => 1, 3 => 1}]
     ]
-    @score_set.expects(:each_pair).multiple_yields(*pairs)
+    seq = sequence("mean")
+    @score_set.expects(:open_for_reading).in_sequence(seq)
+    @score_set.expects(:each_pair).multiple_yields(*pairs).in_sequence(seq)
+    @score_set.expects(:close).in_sequence(seq)
 
     matcher.run
   end
@@ -37,7 +40,10 @@ class UnitTests::TestMatcher < Test::Unit::TestCase
       [3, 4, {2 => 1, 3 => 1}],
       [4, 5, {1 => 1, 2 => 1, 3 => 1}]
     ]
-    @score_set.expects(:each_pair).multiple_yields(*pairs)
+    seq = sequence("mean")
+    @score_set.expects(:open_for_reading).in_sequence(seq)
+    @score_set.expects(:each_pair).multiple_yields(*pairs).in_sequence(seq)
+    @score_set.expects(:close).in_sequence(seq)
 
     matcher.run
   end

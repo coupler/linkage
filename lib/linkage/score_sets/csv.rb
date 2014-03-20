@@ -38,7 +38,7 @@ module Linkage
       end
 
       def each_pair
-        open_for_reading
+        raise "not in read mode" if @mode != :read
 
         pairs = Hash.new { |h, k| h[k] = {} }
         @csv.each do |row|
@@ -49,8 +49,6 @@ module Linkage
         pairs.each_pair do |pair, scores|
           yield pair[0], pair[1], scores
         end
-
-        close
       end
 
       def close

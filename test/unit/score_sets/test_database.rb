@@ -106,7 +106,6 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   test "each_pair" do
     score_set = Linkage::ScoreSets::Database.new(@database)
     @database.stubs(:table_exists?).with(:scores).returns(true)
-    score_set.open_for_reading
 
     @dataset.expects(:order).with(:id_1, :id_2, :comparator_id).returns(@dataset)
     @dataset.expects(:each).multiple_yields(
@@ -119,7 +118,9 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
       [{:comparator_id => 3, :id_1 => '4', :id_2 => '5', :score => 0}]
     )
     pairs = []
+    score_set.open_for_reading
     score_set.each_pair { |*args| pairs << args }
+    score_set.close
     assert_equal 4, pairs.length
 
     pair_1 = pairs.detect { |pair| pair[0] == "1" && pair[1] == "2" }
@@ -141,6 +142,13 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
     assert pair_3
     expected_4 = {3 => 0}
     assert_equal expected_4, pair_4[2]
+  end
+
+  test "each_pair when not open for reading" do
+    score_set = Linkage::ScoreSets::Database.new(@database)
+    assert_raise_message("not in read mode") do
+      score_set.each_pair { |*args| }
+    end
   end
 
   test "registers itself" do

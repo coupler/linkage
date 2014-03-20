@@ -121,7 +121,10 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
     score_set = Linkage::ScoreSets::CSV.new(tempfile.path)
 
     pairs = []
+    score_set.open_for_reading
     score_set.each_pair { |*args| pairs << args }
+    score_set.close
+
     assert_equal 4, pairs.length
 
     pair_1 = pairs.detect { |pair| pair[0] == "1" && pair[1] == "2" }
@@ -143,6 +146,13 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
     assert pair_3
     expected_4 = {3 => 0}
     assert_equal expected_4, pair_4[2]
+  end
+
+  test "each_pair when not open for reading" do
+    score_set = Linkage::ScoreSets::CSV.new("/foo/bar.csv")
+    assert_raise_message("not in read mode") do
+      score_set.each_pair { |*args| }
+    end
   end
 
   test "registers itself" do

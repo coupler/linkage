@@ -16,6 +16,7 @@ module Linkage
     end
 
     def mean
+      @score_set.open_for_reading
       @score_set.each_pair do |id_1, id_2, scores|
         mean = scores.values.inject(:+) / @comparators.length.to_f
         if mean >= @threshold
@@ -23,6 +24,7 @@ module Linkage
           notify_observers(id_1, id_2, mean)
         end
       end
+      @score_set.close
     end
   end
 end
