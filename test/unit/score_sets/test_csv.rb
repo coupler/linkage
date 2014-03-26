@@ -2,15 +2,35 @@ require File.expand_path("../../test_score_sets", __FILE__)
 
 class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   test "open_for_writing" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     csv = stub('csv')
     CSV.expects(:open).with('foo.csv', 'wb').returns(csv)
     csv.expects(:<<).with(%w{comparator_id id_1 id_2 score})
     score_set.open_for_writing
   end
 
+  test "open_for_writing with default options" do
+    score_set = Linkage::ScoreSets::CSV.new
+    csv = stub('csv')
+    CSV.expects(:open).with('scores.csv', 'wb').returns(csv)
+    csv.expects(:<<).with(%w{comparator_id id_1 id_2 score})
+    score_set.open_for_writing
+  end
+
+  test "open_for_writing with directory option" do
+    expected_dir = File.expand_path('foo')
+    FileUtils.expects(:mkdir_p).with(expected_dir)
+    score_set = Linkage::ScoreSets::CSV.new(:dir => 'foo')
+
+    csv = stub('csv')
+    expected_filename = File.join(expected_dir, 'scores.csv')
+    CSV.expects(:open).with(expected_filename, 'wb').returns(csv)
+    csv.expects(:<<).with(%w{comparator_id id_1 id_2 score})
+    score_set.open_for_writing
+  end
+
   test "open_for_writing when already open" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     csv = stub('csv')
     CSV.expects(:open).once.with('foo.csv', 'wb').returns(csv)
     csv.expects(:<<).once.with(%w{comparator_id id_1 id_2 score})
@@ -19,7 +39,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   end
 
   test "open_for_writing when file exists" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     File.expects(:exist?).with('foo.csv').returns(true)
     assert_raises(Linkage::ExistsError) do
       score_set.open_for_writing
@@ -27,7 +47,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   end
 
   test "open_for_writing when file exists and forcing overwrite" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv', :overwrite => true)
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv', :overwrite => true)
     File.stubs(:exist?).with('foo.csv').returns(true)
     assert_nothing_raised do
       csv = stub('csv')
@@ -38,7 +58,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   end
 
   test "open_for_reading" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     File.stubs(:exist?).with('foo.csv').returns(true)
     csv = stub('csv')
     CSV.expects(:open).with('foo.csv', 'rb', {:headers => true}).returns(csv)
@@ -46,7 +66,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   end
 
   test "open_for_reading when already open" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     File.stubs(:exist?).with('foo.csv').returns(true)
     csv = stub('csv')
     CSV.expects(:open).once.with('foo.csv', 'rb', {:headers => true}).returns(csv)
@@ -55,7 +75,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   end
 
   test "open_for_reading when file doesn't exist" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     File.expects(:exist?).with('foo.csv').returns(false)
     assert_raises(Linkage::MissingError) do
       score_set.open_for_reading
@@ -63,7 +83,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   end
 
   test "open_for_writing when in read mode raises exception" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     File.stubs(:exist?).with('foo.csv').returns(true)
     csv = stub('csv')
     CSV.stubs(:open).returns(csv)
@@ -72,7 +92,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   end
 
   test "open_for_reading when in write mode raises exception" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     csv = stub('csv', :<< => nil)
     CSV.stubs(:open).returns(csv)
     score_set.open_for_writing
@@ -80,12 +100,12 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   end
 
   test "add_score when unopened raises exception" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     assert_raises { score_set.add_score(1, 1, 2, 1) }
   end
 
   test "add_score when in read mode raises exception" do
-    score_set = Linkage::ScoreSets::CSV.new('foo.csv')
+    score_set = Linkage::ScoreSets::CSV.new(:filename => 'foo.csv')
     File.stubs(:exist?).with('foo.csv').returns(true)
     csv = stub('csv')
     CSV.stubs(:open).returns(csv)
@@ -96,7 +116,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   test "add_score" do
     tempfile = Tempfile.new('linkage')
     tempfile.close
-    score_set = Linkage::ScoreSets::CSV.new(tempfile.path, :overwrite => true)
+    score_set = Linkage::ScoreSets::CSV.new(:filename => tempfile.path, :overwrite => true)
     score_set.open_for_writing
     score_set.add_score(1, 1, 2, 1)
     score_set.close
@@ -118,7 +138,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
       3,4,5,0
     EOF
     tempfile.close
-    score_set = Linkage::ScoreSets::CSV.new(tempfile.path)
+    score_set = Linkage::ScoreSets::CSV.new(:filename => tempfile.path)
 
     pairs = []
     score_set.open_for_reading
@@ -149,7 +169,7 @@ class UnitTests::TestScoreSets::TestCSV < Test::Unit::TestCase
   end
 
   test "each_pair when not open for reading" do
-    score_set = Linkage::ScoreSets::CSV.new("/foo/bar.csv")
+    score_set = Linkage::ScoreSets::CSV.new(:filename => "/foo/bar.csv")
     assert_raise_message("not in read mode") do
       score_set.each_pair { |*args| }
     end

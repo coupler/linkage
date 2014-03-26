@@ -9,99 +9,73 @@ class UnitTests::TestResultSets::TestCSV < Test::Unit::TestCase
     FileUtils.remove_entry_secure(@tmpdir)
   end
 
-  test "no directory option uses current directory" do
+  test "default options" do
     result_set = Linkage::ResultSets::CSV.new
 
-    expected_score_file = './scores.csv'
     score_set = stub('score set')
-    Linkage::ScoreSets::CSV.expects(:new).with(expected_score_file, {}).returns(score_set)
+    Linkage::ScoreSets::CSV.expects(:new).with({}).returns(score_set)
     assert_same score_set, result_set.score_set
 
-    expected_match_file = './matches.csv'
     match_set = stub('match set')
-    Linkage::MatchSets::CSV.expects(:new).with(expected_match_file, {}).returns(match_set)
+    Linkage::MatchSets::CSV.expects(:new).with({}).returns(match_set)
     assert_same match_set, result_set.match_set
   end
 
   test "directory option" do
-    opts = {
-      :dir => File.join(@tmpdir, 'foo')
-    }
-    result_set = Linkage::ResultSets::CSV.new(opts)
-    assert Dir.exist?(opts[:dir])
+    result_set = Linkage::ResultSets::CSV.new(:dir => 'foo')
 
-    expected_score_file = File.join(@tmpdir, 'foo', 'scores.csv')
     score_set = stub('score set')
-    Linkage::ScoreSets::CSV.expects(:new).with(expected_score_file, {}).returns(score_set)
+    Linkage::ScoreSets::CSV.expects(:new).with({:dir => 'foo'}).returns(score_set)
     assert_same score_set, result_set.score_set
 
-    expected_match_file = File.join(@tmpdir, 'foo', 'matches.csv')
     match_set = stub('match set')
-    Linkage::MatchSets::CSV.expects(:new).with(expected_match_file, {}).returns(match_set)
+    Linkage::MatchSets::CSV.expects(:new).with({:dir => 'foo'}).returns(match_set)
     assert_same match_set, result_set.match_set
   end
 
   test "directory argument" do
-    dir = File.join(@tmpdir, 'foo')
-    result_set = Linkage::ResultSets::CSV.new(dir)
-    assert Dir.exist?(dir)
+    result_set = Linkage::ResultSets::CSV.new('foo')
 
-    expected_score_file = File.join(@tmpdir, 'foo', 'scores.csv')
     score_set = stub('score set')
-    Linkage::ScoreSets::CSV.expects(:new).with(expected_score_file, {}).returns(score_set)
+    Linkage::ScoreSets::CSV.expects(:new).with({:dir => 'foo'}).returns(score_set)
     assert_same score_set, result_set.score_set
 
-    expected_match_file = File.join(@tmpdir, 'foo', 'matches.csv')
     match_set = stub('match set')
-    Linkage::MatchSets::CSV.expects(:new).with(expected_match_file, {}).returns(match_set)
+    Linkage::MatchSets::CSV.expects(:new).with({:dir => 'foo'}).returns(match_set)
     assert_same match_set, result_set.match_set
-  end
-
-  test "directory path is expanded" do
-    opts = {
-      :dir => "~/foo"
-    }
-    FileUtils.expects(:mkdir_p).with(File.expand_path("~/foo"))
-    result_set = Linkage::ResultSets::CSV.new(opts)
   end
 
   test "custom filenames" do
     opts = {
-      :dir => File.join(@tmpdir, 'foo'),
+      :dir => 'foo',
       :scores => {:filename => 'foo-scores.csv'},
       :matches => {:filename => 'foo-matches.csv'}
     }
     result_set = Linkage::ResultSets::CSV.new(opts)
-    assert Dir.exist?(opts[:dir])
 
-    expected_score_file = File.join(@tmpdir, 'foo', 'foo-scores.csv')
     score_set = stub('score set')
-    Linkage::ScoreSets::CSV.expects(:new).with(expected_score_file, {}).returns(score_set)
+    Linkage::ScoreSets::CSV.expects(:new).with({:dir => 'foo', :filename => 'foo-scores.csv'}).returns(score_set)
     assert_same score_set, result_set.score_set
 
-    expected_match_file = File.join(@tmpdir, 'foo', 'foo-matches.csv')
     match_set = stub('match set')
-    Linkage::MatchSets::CSV.expects(:new).with(expected_match_file, {}).returns(match_set)
+    Linkage::MatchSets::CSV.expects(:new).with({:dir => 'foo', :filename => 'foo-matches.csv'}).returns(match_set)
     assert_same match_set, result_set.match_set
   end
 
   test "miscellaneous options" do
     opts = {
-      :dir => File.join(@tmpdir, 'foo'),
+      :dir => 'foo',
       :scores => {:foo => 'bar'},
       :matches => {:baz => 'qux'}
     }
     result_set = Linkage::ResultSets::CSV.new(opts)
-    assert Dir.exist?(opts[:dir])
 
-    expected_score_file = File.join(@tmpdir, 'foo', 'scores.csv')
     score_set = stub('score set')
-    Linkage::ScoreSets::CSV.expects(:new).with(expected_score_file, :foo => 'bar').returns(score_set)
+    Linkage::ScoreSets::CSV.expects(:new).with({:dir => 'foo', :foo => 'bar'}).returns(score_set)
     assert_same score_set, result_set.score_set
 
-    expected_match_file = File.join(@tmpdir, 'foo', 'matches.csv')
     match_set = stub('match set')
-    Linkage::MatchSets::CSV.expects(:new).with(expected_match_file, :baz => 'qux').returns(match_set)
+    Linkage::MatchSets::CSV.expects(:new).with({:dir => 'foo', :baz => 'qux'}).returns(match_set)
     assert_same match_set, result_set.match_set
   end
 

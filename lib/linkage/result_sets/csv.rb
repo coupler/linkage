@@ -59,38 +59,29 @@ module Linkage
             raise ArgumentError, "expected nil, a String, or a Hash, got #{dir_or_options.class}"
           end
 
-        if opts[:dir]
-          opts[:dir] = File.expand_path(opts[:dir])
-          FileUtils.mkdir_p(opts[:dir])
-        end
-
-        @score_set_args = extract_args_for(:scores, opts)
-        @match_set_args = extract_args_for(:matches, opts)
+        @score_set_options = extract_options_for(:scores, opts)
+        @match_set_options = extract_options_for(:matches, opts)
       end
 
       def score_set
-        @score_set ||= ScoreSet['csv'].new(*@score_set_args)
+        @score_set ||= ScoreSet['csv'].new(@score_set_options)
       end
 
       def match_set
-        @match_set ||= MatchSet['csv'].new(*@match_set_args)
+        @match_set ||= MatchSet['csv'].new(@match_set_options)
       end
 
       private
 
-      def extract_args_for(name, opts)
-        dir = opts[:dir] || '.'
-        opts = opts[name]
-
-        filename =
-          case opts
-          when Hash, nil
-            opts = opts ? opts.dup : {}
-            opts.delete(:filename) || "#{name}.csv"
-          when String
-            opts
-          end
-        [File.join(dir, filename), opts]
+      def extract_options_for(name, opts)
+        result = {}
+        if opts.has_key?(:dir)
+          result[:dir] = opts[:dir]
+        end
+        if opts.has_key?(name)
+          result.update(opts[name])
+        end
+        result
       end
     end
 

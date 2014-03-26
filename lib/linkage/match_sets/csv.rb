@@ -3,8 +3,13 @@ require 'csv'
 module Linkage
   module MatchSets
     class CSV < MatchSet
-      def initialize(filename, options = {})
-        @filename = filename
+      def initialize(options = {})
+        @filename = options[:filename] || "matches.csv"
+        if options[:dir]
+          dir = File.expand_path(options[:dir])
+          FileUtils.mkdir_p(dir)
+          @filename = File.join(dir, @filename)
+        end
         @overwrite = options[:overwrite]
       end
 

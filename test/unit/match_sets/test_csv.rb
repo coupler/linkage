@@ -2,15 +2,35 @@ require File.expand_path("../../test_match_sets", __FILE__)
 
 class UnitTests::TestMatchSets::TestCSV < Test::Unit::TestCase
   test "open_for_writing" do
-    match_set = Linkage::MatchSets::CSV.new('foo.csv')
+    match_set = Linkage::MatchSets::CSV.new(:filename => 'foo.csv')
     csv = stub('csv')
     CSV.expects(:open).with('foo.csv', 'wb').returns(csv)
     csv.expects(:<<).with(%w{id_1 id_2 score})
     match_set.open_for_writing
   end
 
+  test "open_for_writing with default options" do
+    match_set = Linkage::MatchSets::CSV.new
+    csv = stub('csv')
+    CSV.expects(:open).with('matches.csv', 'wb').returns(csv)
+    csv.expects(:<<).with(%w{id_1 id_2 score})
+    match_set.open_for_writing
+  end
+
+  test "open_for_writing with directory option" do
+    expected_dir = File.expand_path('foo')
+    FileUtils.expects(:mkdir_p).with(expected_dir)
+    match_set = Linkage::MatchSets::CSV.new(:dir => 'foo')
+
+    csv = stub('csv')
+    expected_filename = File.join(expected_dir, 'matches.csv')
+    CSV.expects(:open).with(expected_filename, 'wb').returns(csv)
+    csv.expects(:<<).with(%w{id_1 id_2 score})
+    match_set.open_for_writing
+  end
+
   test "open_for_writing when already open" do
-    match_set = Linkage::MatchSets::CSV.new('foo.csv')
+    match_set = Linkage::MatchSets::CSV.new(:filename => 'foo.csv')
     csv = stub('csv')
     CSV.expects(:open).once.with('foo.csv', 'wb').returns(csv)
     csv.expects(:<<).once.with(%w{id_1 id_2 score})
@@ -19,7 +39,7 @@ class UnitTests::TestMatchSets::TestCSV < Test::Unit::TestCase
   end
 
   test "open_for_writing when file exists" do
-    match_set = Linkage::MatchSets::CSV.new('foo.csv')
+    match_set = Linkage::MatchSets::CSV.new(:filename => 'foo.csv')
     File.expects(:exist?).with('foo.csv').returns(true)
     assert_raises(Linkage::ExistsError) do
       match_set.open_for_writing
@@ -27,7 +47,7 @@ class UnitTests::TestMatchSets::TestCSV < Test::Unit::TestCase
   end
 
   test "open_for_writing when file exists and forcing overwrite" do
-    match_set = Linkage::MatchSets::CSV.new('foo.csv', :overwrite => true)
+    match_set = Linkage::MatchSets::CSV.new(:filename => 'foo.csv', :overwrite => true)
     File.stubs(:exist?).with('foo.csv').returns(true)
     assert_nothing_raised do
       csv = stub('csv')
@@ -38,14 +58,14 @@ class UnitTests::TestMatchSets::TestCSV < Test::Unit::TestCase
   end
 
   test "add_match when unopened raises exception" do
-    match_set = Linkage::MatchSets::CSV.new('foo.csv')
+    match_set = Linkage::MatchSets::CSV.new(:filename => 'foo.csv')
     assert_raises { match_set.add_match(1, 2, 1) }
   end
 
   test "add_match" do
     tempfile = Tempfile.new('linkage')
     tempfile.close
-    match_set = Linkage::MatchSets::CSV.new(tempfile.path, :overwrite => true)
+    match_set = Linkage::MatchSets::CSV.new(:filename => tempfile.path, :overwrite => true)
     match_set.open_for_writing
     match_set.add_match(1, 2, 1)
     match_set.close
@@ -55,7 +75,7 @@ class UnitTests::TestMatchSets::TestCSV < Test::Unit::TestCase
   end
 
   test "add_match removes extra decimals" do
-    match_set = Linkage::MatchSets::CSV.new('foo.csv')
+    match_set = Linkage::MatchSets::CSV.new(:filename => 'foo.csv')
     csv = stub('csv')
     CSV.stubs(:open).with('foo.csv', 'wb').returns(csv)
     csv.stubs(:<<).with(%w{id_1 id_2 score})
