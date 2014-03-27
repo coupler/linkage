@@ -3,24 +3,20 @@ require 'csv'
 module Linkage
   module MatchSets
     class CSV < MatchSet
+      include Helpers::CSV
+
+      DEFAULT_OPTIONS = {
+        :filename => 'matches.csv'
+      }
+
       def initialize(options = {})
-        @filename = options[:filename] || "matches.csv"
-        if options[:dir]
-          dir = File.expand_path(options[:dir])
-          FileUtils.mkdir_p(dir)
-          @filename = File.join(dir, @filename)
-        end
-        @overwrite = options[:overwrite]
+        @options = DEFAULT_OPTIONS.merge(options.reject { |k, v| v.nil? })
       end
 
       def open_for_writing
         return if @mode == :write
 
-        if !@overwrite && File.exist?(@filename)
-          raise ExistsError, "#{@filename} exists and not in overwrite mode"
-        end
-
-        @csv = ::CSV.open(@filename, 'wb')
+        @csv = open_csv_for_writing(@options)
         @csv << %w{id_1 id_2 score}
         @mode = :write
       end

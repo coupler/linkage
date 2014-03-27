@@ -3,24 +3,21 @@ require 'csv'
 module Linkage
   module ScoreSets
     class CSV < ScoreSet
+      include Linkage::Helpers::CSV
+
+      DEFAULT_OPTIONS = {
+        :filename => 'scores.csv'
+      }
+
       def initialize(options = {})
-        @filename = options[:filename] || "scores.csv"
-        if options[:dir]
-          dir = File.expand_path(options[:dir])
-          FileUtils.mkdir_p(dir)
-          @filename = File.join(dir, @filename)
-        end
-        @overwrite = options[:overwrite]
+        @options = DEFAULT_OPTIONS.merge(options.reject { |k, v| v.nil? })
       end
 
       def open_for_reading
         raise "already open for writing, try closing first" if @mode == :write
         return if @mode == :read
 
-        if !File.exist?(@filename)
-          raise MissingError, "#{@filename} does not exist"
-        end
-        @csv = ::CSV.open(@filename, 'rb', :headers => true)
+        @csv = open_csv_for_reading(@options)
         @mode = :read
       end
 
@@ -28,11 +25,7 @@ module Linkage
         raise "already open for reading, try closing first" if @mode == :read
         return if @mode == :write
 
-        if !@overwrite && File.exist?(@filename)
-          raise ExistsError, "#{@filename} exists and not in overwrite mode"
-        end
-
-        @csv = ::CSV.open(@filename, 'wb')
+        @csv = open_csv_for_writing(@options)
         @csv << %w{comparator_id id_1 id_2 score}
         @mode = :write
       end

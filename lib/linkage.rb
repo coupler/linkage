@@ -9,6 +9,7 @@ module Linkage
 end
 
 path = Pathname.new(File.expand_path(File.dirname(__FILE__))) + 'linkage'
+require path + 'helpers'
 require path + 'comparator'
 require path + 'configuration'
 require path + 'dataset'
