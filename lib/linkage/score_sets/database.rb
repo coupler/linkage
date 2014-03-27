@@ -1,8 +1,17 @@
 module Linkage
   module ScoreSets
     class Database < ScoreSet
-      def initialize(database, options = {})
-        @database = database
+      def initialize(options = {})
+        @database = options[:database]
+        if @database.nil?
+          filename = options[:filename] || "scores.db"
+          if options[:dir]
+            dir = File.expand_path(options[:dir])
+            FileUtils.mkdir_p(dir)
+            filename = File.join(dir, filename)
+          end
+          @database = Sequel.sqlite(filename)
+        end
         @table_name = options[:table_name] || :scores
         @overwrite = options[:overwrite]
       end

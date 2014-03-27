@@ -6,8 +6,39 @@ class UnitTests::TestMatchSets::TestDatabase < Test::Unit::TestCase
     @database = stub('database', :[] => @dataset)
   end
 
+  test "open_for_writing with filename option" do
+    Sequel.expects(:sqlite).with('foo.db').returns(@database)
+    match_set = Linkage::MatchSets::Database.new(:filename => 'foo.db')
+    @database.stubs(:table_exists?).with(:matches).returns(false)
+    @database.expects(:create_table).with(:matches)
+    @database.expects(:[]).with(:matches).returns(@dataset)
+    match_set.open_for_writing
+  end
+
+  test "open_for_writing with default options" do
+    Sequel.expects(:sqlite).with('matches.db').returns(@database)
+    match_set = Linkage::MatchSets::Database.new
+    @database.stubs(:table_exists?).with(:matches).returns(false)
+    @database.expects(:create_table).with(:matches)
+    @database.expects(:[]).with(:matches).returns(@dataset)
+    match_set.open_for_writing
+  end
+
+  test "open_for_writing with directory option" do
+    expected_directory = File.expand_path('foo')
+    FileUtils.expects(:mkdir_p).with(expected_directory)
+    expected_filename = File.join(expected_directory, 'matches.db')
+    Sequel.expects(:sqlite).with(expected_filename).returns(@database)
+
+    match_set = Linkage::MatchSets::Database.new(:dir => 'foo')
+    @database.stubs(:table_exists?).with(:matches).returns(false)
+    @database.expects(:create_table).with(:matches)
+    @database.expects(:[]).with(:matches).returns(@dataset)
+    match_set.open_for_writing
+  end
+
   test "open_for_writing for database with no matches table" do
-    match_set = Linkage::MatchSets::Database.new(@database)
+    match_set = Linkage::MatchSets::Database.new(:database => @database)
     @database.stubs(:table_exists?).with(:matches).returns(false)
     @database.expects(:create_table).with(:matches)
     @database.expects(:[]).with(:matches).returns(@dataset)
@@ -15,7 +46,7 @@ class UnitTests::TestMatchSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_writing when already open" do
-    match_set = Linkage::MatchSets::Database.new(@database)
+    match_set = Linkage::MatchSets::Database.new(:database => @database)
     @database.stubs(:table_exists?).with(:matches).returns(false)
     @database.expects(:create_table).with(:matches)
     @database.expects(:[]).with(:matches).returns(@dataset)
@@ -24,7 +55,7 @@ class UnitTests::TestMatchSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_writing when matches table already exists" do
-    match_set = Linkage::MatchSets::Database.new(@database)
+    match_set = Linkage::MatchSets::Database.new(:database => @database)
     @database.expects(:table_exists?).with(:matches).returns(true)
     @database.expects(:create_table).with(:matches).never
     assert_raises(Linkage::ExistsError) do
@@ -33,7 +64,7 @@ class UnitTests::TestMatchSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_writing when matches table already exists and in overwrite mode" do
-    match_set = Linkage::MatchSets::Database.new(@database, :overwrite => true)
+    match_set = Linkage::MatchSets::Database.new(:database => @database, :overwrite => true)
     @database.expects(:drop_table?).with(:matches)
     @database.expects(:create_table).with(:matches)
     @database.expects(:[]).with(:matches).returns(@dataset)
@@ -41,12 +72,12 @@ class UnitTests::TestMatchSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "add_match when unopened raises exception" do
-    match_set = Linkage::MatchSets::Database.new(@database)
+    match_set = Linkage::MatchSets::Database.new(:database => @database)
     assert_raises { match_set.add_match(1, 2, 1) }
   end
 
   test "add_match" do
-    match_set = Linkage::MatchSets::Database.new(@database)
+    match_set = Linkage::MatchSets::Database.new(:database => @database)
     @database.stubs(:table_exists?).with(:matches).returns(false)
     @database.stubs(:create_table)
     match_set.open_for_writing

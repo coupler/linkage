@@ -67,12 +67,11 @@ module Linkage
     # @see MatchSets::Database
     class Database < ResultSet
       def initialize(database_or_options = nil)
-        @database = nil
-        @options = {}
+        opts = {}
 
         if database_or_options.kind_of?(Sequel::Database)
-          @database = database_or_options
-        else
+          opts[:database] = database_or_options
+        elsif !database_or_options.nil?
           database_opts = nil
           case database_or_options
           when String
@@ -81,7 +80,7 @@ module Linkage
             database_opts = {}
             database_or_options.each_pair do |key, value|
               if key == :scores || key == :matches
-                @options[key] = value
+                opts[key] = value
               else
                 database_opts[key] = value
               end
@@ -89,16 +88,32 @@ module Linkage
           else
             raise ArgumentError, "expected Sequel::Database, a String, or a Hash, got #{database_or_options.class}"
           end
-          @database = Sequel.connect(database_opts)
+          opts[:database] = Sequel.connect(database_opts)
         end
+
+        @score_set_options = extract_options_for(:scores, opts)
+        @match_set_options = extract_options_for(:matches, opts)
       end
 
       def score_set
-        @score_set ||= ScoreSet['database'].new(@database, @options[:scores] || {})
+        @score_set ||= ScoreSet['database'].new(@score_set_options)
       end
 
       def match_set
-        @match_set ||= MatchSet['database'].new(@database, @options[:matches] || {})
+        @match_set ||= MatchSet['database'].new(@match_set_options)
+      end
+
+      private
+
+      def extract_options_for(name, opts)
+        result = {}
+        if opts.has_key?(:database)
+          result[:database] = opts[:database]
+        end
+        if opts.has_key?(name)
+          result.update(opts[name])
+        end
+        result
       end
     end
 
