@@ -89,10 +89,6 @@ class Test::Unit::TestCase
 
   def new_result_set(&block)
     klass = Class.new(Linkage::ResultSet)
-    klass.send(:define_method, :score_set) do
-    end
-    klass.send(:define_method, :match_set) do
-    end
     if block_given?
       klass.class_eval(&block)
     end

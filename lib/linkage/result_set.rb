@@ -25,8 +25,6 @@ module Linkage
   # {ResultSet} and defines both {#score_set} that returns a {ScoreSet} and
   # {#match_set} that returns a {MatchSet}. You can then register that class via
   # {.register}.
-  #
-  # @abstract
   class ResultSet
     class << self
       # Register a new result set. Subclasses must define {#score_set} and
@@ -36,7 +34,7 @@ module Linkage
       # @param [String] name Result set name used in {.klass_for}
       # @param [Class] klass ResultSet subclass
       def register(name, klass)
-        methods = klass.instance_methods(false)
+        methods = klass.instance_methods
         missing = []
         unless methods.include?(:score_set)
           missing.push("#score_set")
@@ -62,20 +60,23 @@ module Linkage
       alias :[] :klass_for
     end
 
-    # Returns a {ScoreSet}. Subclasses must define this method.
-    #
-    # @return [ScoreSet]
-    # @abstract
-    def score_set
-      raise NotImplementedError
+    def initialize(score_set, match_set)
+      @score_set = score_set
+      @match_set = match_set
     end
 
-    # Returns a {MatchSet}. Subclasses must define this method.
+    # Returns a {ScoreSet}.
+    #
+    # @return [ScoreSet]
+    def score_set
+      @score_set
+    end
+
+    # Returns a {MatchSet}.
     #
     # @return [MatchSet]
-    # @abstract
     def match_set
-      raise NotImplementedError
+      @match_set
     end
   end
 end
