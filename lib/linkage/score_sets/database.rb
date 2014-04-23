@@ -2,7 +2,7 @@ module Linkage
   module ScoreSets
     class Database < ScoreSet
       def initialize(options = {})
-        @database = options[:database]
+        @database = options[:conn]
         if @database.nil?
           filename = options[:filename] || "scores.db"
           if options[:dir]

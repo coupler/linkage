@@ -2,7 +2,7 @@ module Linkage
   module MatchSets
     class Database < MatchSet
       def initialize(options = {})
-        @database = options[:database]
+        @database = options[:conn]
         if @database.nil?
           filename = options[:filename] || "matches.db"
           if options[:dir]

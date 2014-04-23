@@ -70,7 +70,7 @@ module Linkage
         opts = {}
 
         if database_or_options.kind_of?(Sequel::Database)
-          opts[:database] = database_or_options
+          opts[:conn] = database_or_options
         elsif !database_or_options.nil?
           database_opts = nil
           case database_or_options
@@ -88,7 +88,7 @@ module Linkage
           else
             raise ArgumentError, "expected Sequel::Database, a String, or a Hash, got #{database_or_options.class}"
           end
-          opts[:database] = Sequel.connect(database_opts)
+          opts[:conn] = Sequel.connect(database_opts)
         end
 
         @score_set_options = extract_options_for(:scores, opts)
@@ -107,8 +107,8 @@ module Linkage
 
       def extract_options_for(name, opts)
         result = {}
-        if opts.has_key?(:database)
-          result[:database] = opts[:database]
+        if opts.has_key?(:conn)
+          result[:conn] = opts[:conn]
         end
         if opts.has_key?(name)
           result.update(opts[name])

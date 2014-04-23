@@ -38,7 +38,7 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_writing for database with no scores table" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.stubs(:table_exists?).with(:scores).returns(false)
     @database.expects(:create_table).with(:scores)
     @database.expects(:[]).with(:scores).returns(@dataset)
@@ -46,7 +46,7 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_writing when already open" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.stubs(:table_exists?).with(:scores).returns(false)
     @database.expects(:create_table).with(:scores)
     @database.expects(:[]).with(:scores).returns(@dataset)
@@ -55,7 +55,7 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_writing when scores table already exists" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.expects(:table_exists?).with(:scores).returns(true)
     @database.expects(:create_table).with(:scores).never
     assert_raises(Linkage::ExistsError) do
@@ -64,7 +64,7 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_writing when scores table already exists and in overwrite mode" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database, :overwrite => true)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database, :overwrite => true)
     @database.expects(:drop_table?).with(:scores)
     @database.expects(:create_table).with(:scores)
     @database.expects(:[]).with(:scores).returns(@dataset)
@@ -72,14 +72,14 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_reading" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.stubs(:table_exists?).with(:scores).returns(true)
     @database.expects(:[]).with(:scores).returns(@dataset)
     score_set.open_for_reading
   end
 
   test "open_for_reading when already open" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.stubs(:table_exists?).with(:scores).returns(true)
     @database.expects(:[]).with(:scores).returns(@dataset)
     score_set.open_for_reading
@@ -87,7 +87,7 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_reading when table is missing" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.expects(:table_exists?).with(:scores).returns(false)
     @database.expects(:[]).with(:scores).returns(@dataset).never
     assert_raises(Linkage::MissingError) do
@@ -96,14 +96,14 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_writing when in read mode raises exception" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.stubs(:table_exists?).with(:scores).returns(true)
     score_set.open_for_reading
     assert_raises(RuntimeError) { score_set.open_for_writing }
   end
 
   test "open_for_reading when in write mode raises exception" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.stubs(:table_exists?).with(:scores).returns(false)
     @database.stubs(:create_table)
     score_set.open_for_writing
@@ -111,19 +111,19 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "add_score when unopened raises exception" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     assert_raises { score_set.add_score(1, 1, 2, 1) }
   end
 
   test "add_score when in read mode raises exception" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.stubs(:table_exists?).with(:scores).returns(true)
     score_set.open_for_reading
     assert_raises { score_set.add_score(1, 1, 2, 1) }
   end
 
   test "add_score" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.stubs(:table_exists?).with(:scores).returns(false)
     @database.stubs(:create_table)
     score_set.open_for_writing
@@ -135,7 +135,7 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "each_pair" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     @database.stubs(:table_exists?).with(:scores).returns(true)
 
     @dataset.expects(:order).with(:id_1, :id_2, :comparator_id).returns(@dataset)
@@ -176,7 +176,7 @@ class UnitTests::TestScoreSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "each_pair when not open for reading" do
-    score_set = Linkage::ScoreSets::Database.new(:database => @database)
+    score_set = Linkage::ScoreSets::Database.new(:conn => @database)
     assert_raise_message("not in read mode") do
       score_set.each_pair { |*args| }
     end

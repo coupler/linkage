@@ -19,11 +19,11 @@ class UnitTests::TestResultSets::TestDatabase < Test::Unit::TestCase
     result_set = Linkage::ResultSets::Database.new(database)
 
     score_set = stub('score set')
-    Linkage::ScoreSets::Database.expects(:new).with({:database => database}).returns(score_set)
+    Linkage::ScoreSets::Database.expects(:new).with({:conn => database}).returns(score_set)
     assert_same score_set, result_set.score_set
 
     match_set = stub('match set')
-    Linkage::MatchSets::Database.expects(:new).with({:database => database}).returns(match_set)
+    Linkage::MatchSets::Database.expects(:new).with({:conn => database}).returns(match_set)
     assert_same match_set, result_set.match_set
   end
 
@@ -33,11 +33,11 @@ class UnitTests::TestResultSets::TestDatabase < Test::Unit::TestCase
     result_set = Linkage::ResultSets::Database.new("foo://bar")
 
     score_set = stub('score set')
-    Linkage::ScoreSets::Database.expects(:new).with({:database => database}).returns(score_set)
+    Linkage::ScoreSets::Database.expects(:new).with({:conn => database}).returns(score_set)
     assert_same score_set, result_set.score_set
 
     match_set = stub('match set')
-    Linkage::MatchSets::Database.expects(:new).with({:database => database}).returns(match_set)
+    Linkage::MatchSets::Database.expects(:new).with({:conn => database}).returns(match_set)
     assert_same match_set, result_set.match_set
   end
 
@@ -47,11 +47,11 @@ class UnitTests::TestResultSets::TestDatabase < Test::Unit::TestCase
     result_set = Linkage::ResultSets::Database.new(:foo => 'bar')
 
     score_set = stub('score set')
-    Linkage::ScoreSets::Database.expects(:new).with({:database => database}).returns(score_set)
+    Linkage::ScoreSets::Database.expects(:new).with({:conn => database}).returns(score_set)
     assert_same score_set, result_set.score_set
 
     match_set = stub('match set')
-    Linkage::MatchSets::Database.expects(:new).with({:database => database}).returns(match_set)
+    Linkage::MatchSets::Database.expects(:new).with({:conn => database}).returns(match_set)
     assert_same match_set, result_set.match_set
   end
 
@@ -66,11 +66,11 @@ class UnitTests::TestResultSets::TestDatabase < Test::Unit::TestCase
     result_set = Linkage::ResultSets::Database.new(opts)
 
     score_set = stub('score set')
-    Linkage::ScoreSets::Database.expects(:new).with(opts[:scores].merge(:database => database)).returns(score_set)
+    Linkage::ScoreSets::Database.expects(:new).with(opts[:scores].merge(:conn => database)).returns(score_set)
     assert_same score_set, result_set.score_set
 
     match_set = stub('match set')
-    Linkage::MatchSets::Database.expects(:new).with(opts[:matches].merge(:database => database)).returns(match_set)
+    Linkage::MatchSets::Database.expects(:new).with(opts[:matches].merge(:conn => database)).returns(match_set)
     assert_same match_set, result_set.match_set
   end
 
