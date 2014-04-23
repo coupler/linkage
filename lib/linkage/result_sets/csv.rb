@@ -19,35 +19,32 @@ module Linkage
     # that gets overridden (by a plugin, for example), the result of
     # `Linkage::ResultSet['csv']` will be whatever was registered.
     #
-    # {CSV#initialize ResultSets::CSV.new} takes either a directory name or a
-    # Hash of options.  If you use a directory name, it will set up a
-    # {ScoreSets::CSV} and {MatchSets::CSV} to use files within the directory
-    # you specified. For example:
+    # {CSV#initialize ResultSets::CSV.new} takes either a directory name as its
+    # argument or a Hash of options. Passing in a directory name is equivalent to
+    # passing in a Hash with the `:dir` key. For example:
     #
     # ```ruby
     # result_set = Linkage::ResultSet['csv'].new("/some/path")
     # ```
     #
-    # This will create the following files:
+    # is the same as:
+    #
+    # ```ruby
+    # result_set = Linkage::ResultSet['csv'].new({:dir => "/some/path"})
+    # ```
+    #
+    # Any options you pass to {CSV#initialize} will be passed directly to
+    # {ScoreSets::CSV#initialize} and {MatchSets::CSV#initialize}. In the above
+    # example, the following files will be created:
     #
     # * `/some/path/scores.csv`  (for scores)
     # * `/some/path/matches.csv` (for matches)
-    #
-    # If you use a Hash of options, you can choose each filename individually
-    # like so:
-    #
-    # ```ruby
-    # result_set = Linkage::ResultSet['csv'].new({
-    #   :scores  => { :filename => "/some/path/foo-scores.csv" },
-    #   :matches => { :filename => "/some/other/path/foo-matches.csv" }
-    # })
-    # ```
     #
     # @see ScoreSets::CSV
     # @see MatchSets::CSV
     class CSV < ResultSet
       def initialize(dir_or_options = nil)
-        opts =
+        @options =
           case dir_or_options
           when nil
             {}
@@ -58,30 +55,14 @@ module Linkage
           else
             raise ArgumentError, "expected nil, a String, or a Hash, got #{dir_or_options.class}"
           end
-
-        @score_set_options = extract_options_for(:scores, opts)
-        @match_set_options = extract_options_for(:matches, opts)
       end
 
       def score_set
-        @score_set ||= ScoreSet['csv'].new(@score_set_options)
+        @score_set ||= ScoreSet['csv'].new(@options)
       end
 
       def match_set
-        @match_set ||= MatchSet['csv'].new(@match_set_options)
-      end
-
-      private
-
-      def extract_options_for(name, opts)
-        result = {}
-        if opts.has_key?(:dir)
-          result[:dir] = opts[:dir]
-        end
-        if opts.has_key?(name)
-          result.update(opts[name])
-        end
-        result
+        @match_set ||= MatchSet['csv'].new(@options)
       end
     end
 
