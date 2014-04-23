@@ -60,16 +60,53 @@ module Linkage
     attr_reader :dataset_1, :dataset_2, :result_set, :comparators
     attr_accessor :algorithm, :threshold
 
+    # Create a new instance of {Configuration}.
+    #
+    # @overload initialize(dataset_1, dataset_2, result_set)
+    #   Create a linkage configuration for two datasets.
+    #   @param [Linkage::Dataset] dataset_1
+    #   @param [Linkage::Dataset] dataset_2
+    #   @param [Linkage::ResultSet] result_set
+    # @overload initialize(dataset, result_set)
+    #   Create a linkage configuration for one dataset.
+    #   @param [Linkage::Dataset] dataset
+    #   @param [Linkage::ResultSet] result_set
+    # @overload initialize(dataset_1, dataset_2, score_set, match_set)
+    #   Create a linkage configuration for two datasets.
+    #   @param [Linkage::Dataset] dataset_1
+    #   @param [Linkage::Dataset] dataset_2
+    #   @param [Linkage::ScoreSet] score_set
+    #   @param [Linkage::MatchSet] match_set
+    # @overload initialize(dataset, score_set, match_set)
+    #   Create a linkage configuration for one dataset.
+    #   @param [Linkage::Dataset] dataset
+    #   @param [Linkage::ScoreSet] score_set
+    #   @param [Linkage::MatchSet] match_set
     def initialize(*args)
-      if args.length < 2 || args.length > 3
-        raise ArgumentError, "wrong number of arguments (#{args.length} for 3..4)"
+      if args.length < 2 || args.length > 4
+        raise ArgumentError, "wrong number of arguments (#{args.length} for 2..4)"
       end
 
       @dataset_1 = args[0]
-      if args.length > 2 && args[1]
+      case args.length
+      when 2
+        # dataset and result set
+        @result_set = args[1]
+      when 3
+        # dataset 1, dataset 2, and result set
+        # dataset, score set, and match set
+        case args[1]
+        when Dataset, nil
+          @dataset_2 = args[1]
+          @result_set = args[2]
+        when ScoreSet
+          @result_set = ResultSet.new(args[1], args[2])
+        end
+      when 4
+        # dataset 1, dataset 2, score set, and match set
         @dataset_2 = args[1]
+        @result_set = ResultSet.new(args[2], args[3])
       end
-      @result_set = args[-1]
 
       @comparators = []
       @algorithm = :mean

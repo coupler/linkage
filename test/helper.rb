@@ -38,13 +38,8 @@ class Test::Unit::TestCase
     @@database_config
   end
 
-  def stub_field(name, options = {}, &block)
-    f = Linkage::Field.allocate
-    f.stubs({:static? => false}.merge(options))
-    if block
-      f.send(:instance_eval, &block)
-    end
-    f
+  def stub_dataset(options = {}, &block)
+    stub_instance(Linkage::Dataset, options, &block)
   end
 
   def stub_instance(klass, options = {}, &block)

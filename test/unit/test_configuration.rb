@@ -5,12 +5,12 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @pk_1 = stub('primary key 1', :name => :id)
     @field_1 = stub('field 1')
     @field_set_1 = stub('field set 1', :primary_key => @pk_1, :[] => @field_1)
-    @dataset_1 = stub('dataset 1', :field_set => @field_set_1)
+    @dataset_1 = stub_dataset(:field_set => @field_set_1)
     @pk_2 = stub('primary key 2', :name => :id)
     @field_2 = stub('field 2')
     @field_set_2 = stub('field set 2', :primary_key => @pk_2, :[] => @field_2)
-    @dataset_2 = stub('dataset 2', :field_set => @field_set_2)
-    @score_set = stub('score set')
+    @dataset_2 = stub_dataset(:field_set => @field_set_2)
+    @score_set = stub_instance(Linkage::ScoreSet)
     @match_set = stub('match set')
     @result_set = stub('result set', :score_set => @score_set, :match_set => @match_set)
     @compare = stub('compare')
@@ -24,8 +24,24 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     assert_equal @result_set, config.result_set
   end
 
+  test "init with single dataset, score set, and match set" do
+    Linkage::ResultSet.expects(:new).with(@score_set, @match_set).returns(@result_set)
+    config = Linkage::Configuration.new(@dataset_1, @score_set, @match_set)
+    assert_equal @dataset_1, config.dataset_1
+    assert_nil config.dataset_2
+    assert_equal @result_set, config.result_set
+  end
+
   test "init with two datasets and result set" do
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
+    assert_equal @dataset_1, config.dataset_1
+    assert_equal @dataset_2, config.dataset_2
+    assert_equal @result_set, config.result_set
+  end
+
+  test "init with two datasets, score set, and match set" do
+    Linkage::ResultSet.expects(:new).with(@score_set, @match_set).returns(@result_set)
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @score_set, @match_set)
     assert_equal @dataset_1, config.dataset_1
     assert_equal @dataset_2, config.dataset_2
     assert_equal @result_set, config.result_set
