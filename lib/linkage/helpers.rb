@@ -4,3 +4,4 @@ module Linkage
 end
 
 require 'linkage/helpers/csv'
+require 'linkage/helpers/database'

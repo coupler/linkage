@@ -1,17 +1,29 @@
 module Linkage
   module MatchSets
     class Database < MatchSet
-      def initialize(options = {})
-        @database = options[:conn]
-        if @database.nil?
-          filename = options[:filename] || "matches.db"
-          if options[:dir]
-            dir = File.expand_path(options[:dir])
-            FileUtils.mkdir_p(dir)
-            filename = File.join(dir, filename)
+      include Helpers::Database
+
+      DEFAULT_OPTIONS = {
+        :filename => 'matches.db'
+      }
+
+      # @override initialize(options = {})
+      #   @param [Hash] options
+      # @override initialize(uri, options = {})
+      #   @param [String] uri
+      #   @param [Hash] options
+      def initialize(*args)
+        connection_options = args.shift
+        @database = database_connection(connection_options, DEFAULT_OPTIONS)
+
+        options =
+          if connection_options.is_a?(String)
+            args.shift
+          else
+            connection_options
           end
-          @database = Sequel.sqlite(filename)
-        end
+        options ||= {}
+
         @table_name = options[:table_name] || :matches
         @overwrite = options[:overwrite]
       end

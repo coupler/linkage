@@ -6,8 +6,17 @@ class UnitTests::TestMatchSets::TestDatabase < Test::Unit::TestCase
     @database = stub('database', :[] => @dataset)
   end
 
+  test "open_for_writing with uri string" do
+    Sequel.expects(:connect).with('foo://bar').returns(@database)
+    match_set = Linkage::MatchSets::Database.new('foo://bar')
+    @database.stubs(:table_exists?).with(:matches).returns(false)
+    @database.expects(:create_table).with(:matches)
+    @database.expects(:[]).with(:matches).returns(@dataset)
+    match_set.open_for_writing
+  end
+
   test "open_for_writing with filename option" do
-    Sequel.expects(:sqlite).with('foo.db').returns(@database)
+    Sequel.expects(:connect).with(:adapter => :sqlite, :database => 'foo.db').returns(@database)
     match_set = Linkage::MatchSets::Database.new(:filename => 'foo.db')
     @database.stubs(:table_exists?).with(:matches).returns(false)
     @database.expects(:create_table).with(:matches)
@@ -16,7 +25,7 @@ class UnitTests::TestMatchSets::TestDatabase < Test::Unit::TestCase
   end
 
   test "open_for_writing with default options" do
-    Sequel.expects(:sqlite).with('matches.db').returns(@database)
+    Sequel.expects(:connect).with(:adapter => :sqlite, :database => 'matches.db').returns(@database)
     match_set = Linkage::MatchSets::Database.new
     @database.stubs(:table_exists?).with(:matches).returns(false)
     @database.expects(:create_table).with(:matches)
@@ -28,7 +37,7 @@ class UnitTests::TestMatchSets::TestDatabase < Test::Unit::TestCase
     expected_directory = File.expand_path('foo')
     FileUtils.expects(:mkdir_p).with(expected_directory)
     expected_filename = File.join(expected_directory, 'matches.db')
-    Sequel.expects(:sqlite).with(expected_filename).returns(@database)
+    Sequel.expects(:connect).with(:adapter => :sqlite, :database => expected_filename).returns(@database)
 
     match_set = Linkage::MatchSets::Database.new(:dir => 'foo')
     @database.stubs(:table_exists?).with(:matches).returns(false)
