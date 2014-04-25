@@ -84,4 +84,12 @@ class UnitTests::TestComparator < Test::Unit::TestCase
     observer.expects(:update).with(instance, record_1, record_2, 1)
     instance.score_and_notify(record_1, record_2)
   end
+
+  test "weigh requires numeric types" do
+    comparator = Linkage::Comparator.new
+    weight = stub('weight', :name => :foo, :ruby_type => { :type => String })
+    assert_raises do
+      comparator.weigh(weight)
+    end
+  end
 end

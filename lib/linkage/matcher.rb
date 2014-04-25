@@ -26,5 +26,17 @@ module Linkage
       end
       @score_set.close
     end
+
+    def sum
+      @score_set.open_for_reading
+      @score_set.each_pair do |id_1, id_2, scores|
+        sum = scores.values.inject(:+)
+        if sum >= @threshold
+          changed
+          notify_observers(id_1, id_2, sum)
+        end
+      end
+      @score_set.close
+    end
   end
 end

@@ -155,6 +155,7 @@ module Linkage
 
       comparator = klass.new(*args, &block)
       @comparators << comparator
+      return comparator
     end
 
     protected

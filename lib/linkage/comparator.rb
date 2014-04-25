@@ -22,6 +22,16 @@ module Linkage
   class Comparator
     include Observable
 
+    attr_reader :weight
+
+    def weigh(weight)
+      return if weight.nil?
+      if not weight.is_a?(Numeric)
+        raise "weight must be numeric type"
+      end
+      @weight = weight
+    end
+
     class << self
       # Register a new comparator. Subclasses must define at least {#score} for
       # simple comparators, or {#score_dataset} and {#score_datasets} for

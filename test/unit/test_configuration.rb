@@ -53,8 +53,9 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_1.expects(:[]).with(:foo).returns(@field_1)
     @field_set_2.expects(:[]).with(:foo).returns(@field_2)
     Linkage::Comparators::Compare.expects(:new).with([@field_1], [@field_2], :equal).returns(@compare)
-    config.compare([:foo], [:foo], :equal)
+    comp = config.compare([:foo], [:foo], :equal)
     assert_equal @compare, config.comparators[0]
+    assert_equal config.comparators[0], comp
   end
 
   test "adding comparator with set arguments and one datasets" do
@@ -63,8 +64,9 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_1.expects(:[]).with(:foo).returns(@field_1)
     @field_set_1.expects(:[]).with(:bar).returns(@field_2)
     Linkage::Comparators::Compare.expects(:new).with([@field_1], [@field_2], :equal).returns(@compare)
-    config.compare([:foo], [:bar], :equal)
+    comp = config.compare([:foo], [:bar], :equal)
     assert_equal @compare, config.comparators[0]
+    assert_equal config.comparators[0], comp
   end
 
   test "adding comparator with scalar arguments and two datasets" do
@@ -74,8 +76,9 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     @field_set_2.expects(:[]).with(:foo).returns(@field_2)
     within = stub('within')
     Linkage::Comparators::Within.expects(:new).with(@field_1, @field_2, 5).returns(within)
-    config.within(:foo, :foo, 5)
+    comp = config.within(:foo, :foo, 5)
     assert_equal within, config.comparators[0]
+    assert_equal config.comparators[0], comp
   end
 
   test "score_recorder with two datasets" do

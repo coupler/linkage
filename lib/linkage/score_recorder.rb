@@ -17,6 +17,8 @@ module Linkage
       index = @comparators.index(comparator)
       primary_key_1 = record_1[@primary_keys[0]]
       primary_key_2 = record_2[@primary_keys[1]]
+      # weight score if necessary
+      score *= comparator.weight unless comparator.weight.nil?
       @score_set.add_score(index + 1, primary_key_1, primary_key_2, score)
     end
 
