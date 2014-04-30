@@ -57,9 +57,15 @@ module Linkage
   # @see Matcher
   # @see Runner
   class Configuration
-    attr_reader :dataset_1, :dataset_2, :result_set, :comparators
-    attr_accessor :algorithm, :threshold
+    attr_reader :dataset_1, :dataset_2, :result_set, :comparators, :threshold
+    attr_accessor :algorithm
 
+    def threshold=(threshold)
+      if not threshold.is_a?(Numeric)
+        raise "threshold must be numeric type"
+      end
+      @threshold = threshold
+    end
     # Create a new instance of {Configuration}.
     #
     # @overload initialize(dataset_1, dataset_2, result_set)

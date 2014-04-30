@@ -134,6 +134,14 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     assert_equal matcher, config.matcher
   end
 
+  test "threshold requires numeric types" do
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
+    config.compare([:foo], [:bar], :equal)
+    assert_raises do
+      config.threshold = 'dog'
+    end
+  end
+
   test "match_recorder" do
     config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
 
