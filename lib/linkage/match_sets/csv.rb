@@ -2,6 +2,31 @@ require 'csv'
 
 module Linkage
   module MatchSets
+    # {CSV MatchSets::CSV} is an implementation of {MatchSet} for saving
+    # matches in a CSV file.
+    #
+    # There are three options available:
+    #
+    #  * `:filename` - which file to store matches in; can be an absolute path
+    #     or relative path
+    #  * `:dir` - which directory to put the file in; used if `:filename` is a
+    #     relative path
+    #  * `:overwrite` - indicate whether or not to overwrite an existing file
+    #
+    # By default, `:filename` is `'matches.csv'`, and the other options are
+    # blank. This means that it will write matches to the `'matches.csv'` file
+    # in the current working directory and will raise an error if the file
+    # already exists.
+    #
+    # If you specify `:dir`, that path will be created if it doesn't exist yet.
+    #
+    # The resulting file looks like this:
+    #
+    #     id_1,id_2,score
+    #     123,456,0.75
+    #     124,457,1
+    #
+    # @see Helpers::CSV
     class CSV < MatchSet
       include Helpers::CSV
 

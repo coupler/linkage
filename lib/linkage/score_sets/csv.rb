@@ -2,6 +2,32 @@ require 'csv'
 
 module Linkage
   module ScoreSets
+    # {CSV ScoreSets::CSV} is an implementation of {ScoreSet} for saving scores
+    # in a CSV file.
+    #
+    # There are three options available:
+    #
+    #  * `:filename` - which file to store scores in; can be an absolute path
+    #     or relative path
+    #  * `:dir` - which directory to put the file in; used if `:filename` is a
+    #     relative path
+    #  * `:overwrite` - indicate whether or not to overwrite an existing file
+    #
+    # By default, `:filename` is `'scores.csv'`, and the other options are
+    # blank. This means that it will write scores to the `'scores.csv'` file in
+    # the current working directory and will raise an error if the file already
+    # exists.
+    #
+    # If you specify `:dir`, that path will be created if it doesn't exist yet.
+    #
+    # The resulting file looks like this:
+    #
+    #     comparator_id,id_1,id_2,score
+    #     0,123,456,1
+    #     0,124,457,0.5
+    #     1,123,456,0
+    #
+    # @see Helpers::CSV
     class CSV < ScoreSet
       include Linkage::Helpers::CSV
 
@@ -9,6 +35,10 @@ module Linkage
         :filename => 'scores.csv'
       }
 
+      # @param [Hash] options
+      # @option options [String] :filename
+      # @option options [String] :dir
+      # @option options [Boolean] :overwrite
       def initialize(options = {})
         @options = DEFAULT_OPTIONS.merge(options.reject { |k, v| v.nil? })
       end
