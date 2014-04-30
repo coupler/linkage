@@ -1,5 +1,15 @@
 module Linkage
   # Use this class to run a configuration created by {Dataset#link_with}.
+  #
+  # During a record linkage, one or more {Comparator}s generate scores. Each
+  # score is recorded by a {ScoreRecorder}, which uses a {ScoreSet} to actually
+  # save the score. After the scoring is complete, a {Matcher} combines the
+  # scores to create matches. Each match is recorded by a {MatchRecorder}, which
+  # uses a {MatchSet} to actually save the match information.
+  #
+  # So to save scores and matches, we need both a {ScoreSet} and a {MatchSet}.
+  # To make this easier, a {ResultSet} can be used to configure both {ScoreSet}s
+  # and {MatchSet}s.
   class Runner
     attr_reader :config
 
