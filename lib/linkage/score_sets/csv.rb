@@ -23,9 +23,9 @@ module Linkage
     # The resulting file looks like this:
     #
     #     comparator_id,id_1,id_2,score
-    #     0,123,456,1
-    #     0,124,457,0.5
-    #     1,123,456,0
+    #     1,123,456,1
+    #     1,124,457,0.5
+    #     2,123,456,0
     #
     # @see Helpers::CSV
     class CSV < ScoreSet
