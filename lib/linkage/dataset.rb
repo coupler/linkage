@@ -52,6 +52,13 @@ module Linkage
   # config.compare([:foo], [:bar], :equal_to)
   # ```
   #
+  # You can pass in a {ScoreSet} and {MatchSet} instead of a {ResultSet} if you
+  # wish:
+  #
+  # ```ruby
+  # config = dataset.link_with(other_dataset, score_set, match_set)
+  # ```
+  #
   # Note that a dataset can be linked with itself the same way, like so:
   #
   # ```ruby

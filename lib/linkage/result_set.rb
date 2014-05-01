@@ -1,30 +1,21 @@
 module Linkage
-  # A {ResultSet} contains a {ScoreSet} and a {MatchSet}. To understand the
-  # purpose of a {ResultSet}, it helps to understand the recording process
-  # first.
+  # A {ResultSet} is a convenience class for wrapping a {ScoreSet} and a
+  # {MatchSet}. Most of the time, you'll want to use the same storage format for
+  # both scores and matches. {ResultSet} provides a way to group both sets
+  # together.
   #
-  # During a record linkage, one or more {Comparator}s generate scores. Each
-  # score is recorded by a {ScoreRecorder}, which uses a {ScoreSet} to actually
-  # save the score. After the scoring is complete, a {Matcher} combines the
-  # scores to create matches. Each match is recorded by a {MatchRecorder}, which
-  # uses a {MatchSet} to actually save the match information.
-  #
-  # So to save scores and matches, we need both a {ScoreSet} and a {MatchSet}.
-  # To make this easier, a {ResultSet} configures both.
-  #
-  # {ResultSet} is the superclass of implementations for different formats.
-  # Currently there are two formats for storing scores and matches:
+  # The default implementation of {ResultSet} merely returns whatever {ScoreSet}
+  # and {MatchSet} you pass to it during creation (see {#initialize}). However,
+  # {ResultSet} can be subclassed to provide easy initialization of sets of the
+  # same format. Currently there are two subclasses:
   #
   # * CSV ({ResultSets::CSV})
   # * Database ({ResultSets::Database})
   #
-  # See the documentation for result set you're interested in for more
-  # information.
-  #
   # If you want to implement a custom {ResultSet}, create a class that inherits
-  # {ResultSet} and defines both {#score_set} that returns a {ScoreSet} and
-  # {#match_set} that returns a {MatchSet}. You can then register that class via
-  # {.register}.
+  # {ResultSet} and defines both {#score_set} and {#match_set} to return a
+  # {ScoreSet} and {MatchSet} respectively. You can then register that class via
+  # {.register} to make it easier to use.
   class ResultSet
     class << self
       # Register a new result set. Subclasses must define {#score_set} and
@@ -60,6 +51,8 @@ module Linkage
       alias :[] :klass_for
     end
 
+    # @param [ScoreSet] score_set
+    # @param [MatchSet] match_set
     def initialize(score_set, match_set)
       @score_set = score_set
       @match_set = match_set

@@ -69,22 +69,24 @@ module Linkage
     # Create a new instance of {Configuration}.
     #
     # @overload initialize(dataset_1, dataset_2, result_set)
-    #   Create a linkage configuration for two datasets.
+    #   Create a linkage configuration for two datasets and a result set.
     #   @param [Linkage::Dataset] dataset_1
     #   @param [Linkage::Dataset] dataset_2
     #   @param [Linkage::ResultSet] result_set
     # @overload initialize(dataset, result_set)
-    #   Create a linkage configuration for one dataset.
+    #   Create a linkage configuration for one dataset and a result set.
     #   @param [Linkage::Dataset] dataset
     #   @param [Linkage::ResultSet] result_set
     # @overload initialize(dataset_1, dataset_2, score_set, match_set)
-    #   Create a linkage configuration for two datasets.
+    #   Create a linkage configuration for two datasets, a score set, and a
+    #   match set.
     #   @param [Linkage::Dataset] dataset_1
     #   @param [Linkage::Dataset] dataset_2
     #   @param [Linkage::ScoreSet] score_set
     #   @param [Linkage::MatchSet] match_set
     # @overload initialize(dataset, score_set, match_set)
-    #   Create a linkage configuration for one dataset.
+    #   Create a linkage configuration for one dataset, a score set, and a
+    #   match set.
     #   @param [Linkage::Dataset] dataset
     #   @param [Linkage::ScoreSet] score_set
     #   @param [Linkage::MatchSet] match_set
