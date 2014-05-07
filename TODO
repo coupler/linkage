@@ -2,3 +2,5 @@ Features
 - add matcher algorithms
 - change comparator_id to more than just an index; need to get comparator ids
   from result set instead of configuration
+- serialize configuration into different formats
+- disallow bad options in result sets
