@@ -54,14 +54,14 @@ module Linkage
       alias :[] :klass_for
     end
 
-    # This is called during {Matcher#run}, before any scores are read via
+    # This is called by {Matcher#run}, before any scores are read via
     # {#each_pair}. Subclasses can redefine this to perform any setup needed
     # for reading scores.
     def open_for_reading
     end
 
-    # This is called during {ScoreRecorder#start}, before any scores are added
-    # via {#add_score}. Subclasses can redefine this to perform any setup needed
+    # This is called by {ScoreRecorder#start}, before any scores are added via
+    # {#add_score}. Subclasses can redefine this to perform any setup needed
     # for saving scores.
     def open_for_writing
     end
@@ -96,6 +96,8 @@ module Linkage
       raise NotImplementedError
     end
 
+    # This is called by {ScoreRecorder#stop}, after all scores have been added.
+    # Subclasses can redefine this to perform any teardown needed.
     def close
     end
   end
