@@ -41,14 +41,16 @@ class IntegrationTests::TestDatabaseResultSet < Test::Unit::TestCase
       db[:scores].order(:id_1, :id_2).each do |row|
         assert_equal row[:id_1], row[:id_2]
         assert_equal 1, row[:comparator_id]
-        assert_same 1.0, row[:score]
+        assert_kind_of Float, row[:score]
+        assert_equal 1.0, row[:score]
       end
 
       assert db.table_exists?(:matches)
       assert_equal 10, db[:matches].count
       db[:matches].order(:id_1, :id_2).each do |row|
         assert_equal row[:id_1], row[:id_2]
-        assert_same 1.0, row[:score]
+        assert_kind_of Float, row[:score]
+        assert_equal 1.0, row[:score]
       end
     end
   end

@@ -48,7 +48,8 @@ module Linkage
 
       def add_match(id_1, id_2, score)
         raise "not in write mode" if @mode != :write
-        if score.equal?(1.0) || score.equal?(0.0)
+
+        if score.floor.equal?(score.ceil)
           score = score.floor
         end
         @csv << [id_1, id_2, score]
