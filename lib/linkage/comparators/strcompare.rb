@@ -56,6 +56,7 @@ module Linkage
         ba = b.split('')
         al = a.length
         bl = b.length
+        return 0 if al == 0 || bl == 0
         l = 0
         for i in Range.new(0, [[al, bl].min, 4].min-1)
           break if aa[i] != ba[i]
@@ -66,12 +67,12 @@ module Linkage
         badb = []
         # simplify to matching characters
         for i in Range.new(0, al-1)
-          fi = [i - md, 0].max
+          fi = [[i - md, 0].max, bl-1].min
           li = [i + md, bl].min
           bada << i if ba[fi, li-fi].index(aa[i]).nil?
         end
         for i in Range.new(0, bl-1)
-          fi = [i - md, 0].max
+          fi = [[i - md, 0].max, al-1].min
           li = [i + md, al].min
           badb << i if aa[fi, li-fi].index(ba[i]).nil?
         end
