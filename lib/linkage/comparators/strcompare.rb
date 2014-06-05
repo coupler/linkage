@@ -61,25 +61,29 @@ module Linkage
           break if aa[i] != ba[i]
           l += 1
         end
-        aj = aa - (aa - ba)
-        bj = ba - (ba - aa)
-        nm = 0
-        nt = 0
         md = [[al, bl].max/2 - 1, 0].max
+        bada = []
+        badb = []
+        # simplify to matching characters
         for i in Range.new(0, al-1)
-          bi = ba.index(aa[i])
-          aji = aj.index(aa[i])
-          bji = bj.index(aa[i])
-          if !bi.nil? && (bi + nm - i).abs <= md
-            nm += 1
-            nt += 1 if !bji.nil? && aji != bji
-          end
-          ba.delete_at(bi) if !bi.nil?
-          aj.delete_at(aji) if !aji.nil?
-          bj.delete_at(bji) if !bji.nil?
+          fi = [i - md, 0].max
+          li = [i + md, bl].min
+          bada << i if ba[fi, li-fi].index(aa[i]).nil?
         end
+        for i in Range.new(0, bl-1)
+          fi = [i - md, 0].max
+          li = [i + md, al].min
+          badb << i if aa[fi, li-fi].index(ba[i]).nil?
+        end
+        bada.reverse.each { |x| aa.delete_at(x) }
+        badb.reverse.each { |x| ba.delete_at(x) }
+        nm = aa.length
         return 0 if nm == 0
-        d = (nm/al.to_f + nm/bl.to_f + (nm-nt)/nm.to_f)/3.0
+        nt = 0
+        for i in Range.new(0, nm-1)
+          nt +=1 if aa[i] != ba[i]
+        end
+        d = (nm/al.to_f + nm/bl.to_f + (nm-nt/2)/nm.to_f)/3.0
         w = (d + l * 0.1 * (1 - d)).round(3)
         w
       end
