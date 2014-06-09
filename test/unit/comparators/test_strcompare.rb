@@ -36,6 +36,9 @@ class UnitTests::TestComparators::TestStrcompare < Test::Unit::TestCase
     assert_equal 0.961, comp.score({:foo => 'martha'}, {:bar => 'marhta'})
     assert_equal 0.840, comp.score({:foo => 'dwayne'}, {:bar => 'duane'})
     assert_equal 0.813, comp.score({:foo => 'dixon'}, {:bar => 'dicksonx'})
+    assert_equal 0.783, comp.score({:foo => 'erin'}, {:bar => 'afrin'})
+    assert_equal 0.939, comp.score({:foo => 'KEICHENBERG'}, {:bar => 'REICHENBERG'})
+    assert_equal 0.823, comp.score({:foo => 'KEICHENBERG'}, {:bar => 'EEICHENBERG'})
     assert_equal 0, comp.score({:foo => 'cat'}, {:bar => 'dog'})
   end
 

@@ -65,26 +65,45 @@ module Linkage
         md = [[al, bl].max/2 - 1, 0].max
         bada = []
         badb = []
+        usea = [false] * al
+        useb = [false] * bl
         # simplify to matching characters
         for i in Range.new(0, al-1)
           fi = [[i - md, 0].max, bl-1].min
-          li = [i + md, bl].min
-          bada << i if ba[fi, li-fi].index(aa[i]).nil?
+          li = [i + md, bl-1].min
+          good = false
+          for j in Range.new(fi, li)
+            if aa[i] == ba[j] and not useb[j]
+              useb[j] = true
+              good = true
+              break
+            end
+          end
+          bada << i if not good
         end
         for i in Range.new(0, bl-1)
           fi = [[i - md, 0].max, al-1].min
-          li = [i + md, al].min
-          badb << i if aa[fi, li-fi].index(ba[i]).nil?
+          li = [i + md, al-1].min
+          good = false
+          for j in Range.new(fi, li)
+            if ba[i] == aa[j] and not usea[j]
+              usea[j] = true
+              good = true
+              break
+            end
+          end
+          badb << i if not good
         end
         bada.reverse.each { |x| aa.delete_at(x) }
         badb.reverse.each { |x| ba.delete_at(x) }
         nm = aa.length
         return 0 if nm == 0
+        # count transpositions
         nt = 0
         for i in Range.new(0, nm-1)
           nt +=1 if aa[i] != ba[i]
         end
-        d = (nm/al.to_f + nm/bl.to_f + (nm-nt/2)/nm.to_f)/3.0
+        d = (nm/al.to_f + nm/bl.to_f + (nm-nt/2.0)/nm.to_f)/3.0
         w = (d + l * 0.1 * (1 - d)).round(3)
         w
       end
