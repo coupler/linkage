@@ -22,7 +22,7 @@ module Linkage
     # Damerau-Levenshtein is a modified Levenshtein that allows for transpositions
     # It has additionally been modified to make costs of additions or deletions only 0.5
     class Strcompare < Comparator
-      VALID_OPERATIONS = [:jarowinkler, :damerau_levenshtein]
+      VALID_OPERATIONS = [:jarowinkler, :reverse_jarowinkler, :damerau_levenshtein]
 
       def initialize(field_1, field_2, operation)
         if field_1.ruby_type[:type] != String || field_2.ruby_type[:type] != String
@@ -42,6 +42,8 @@ module Linkage
           case @operation
           when :jarowinkler
             jarowinkler(record_1[@name_1], record_2[@name_2])
+          when :reverse_jarowinkler
+            reverse_jarowinkler(record_1[@name_1], record_2[@name_2])
           when :damerau_levenshtein
             damerau_levenshtein(record_1[@name_1], record_2[@name_2])
           end
@@ -62,38 +64,23 @@ module Linkage
           break if aa[i] != ba[i]
           l += 1
         end
-        md = [[al, bl].max/2 - 1, 0].max
-        bada = []
-        badb = []
-        usea = [false] * al
-        useb = [false] * bl
+        md = [[al, bl].max/2 - 1, 1].max
+        usea = []
+        useb = []
         # simplify to matching characters
         for i in Range.new(0, al-1)
           fi = [[i - md, 0].max, bl-1].min
           li = [i + md, bl-1].min
-          good = false
           for j in Range.new(fi, li)
-            if aa[i] == ba[j] and not useb[j]
-              useb[j] = true
-              good = true
+            if aa[i] == ba[j] and not useb.include?(j)
+              usea << i
+              useb << j
               break
             end
           end
-          bada << i if not good
         end
-        for i in Range.new(0, bl-1)
-          fi = [[i - md, 0].max, al-1].min
-          li = [i + md, al-1].min
-          good = false
-          for j in Range.new(fi, li)
-            if ba[i] == aa[j] and not usea[j]
-              usea[j] = true
-              good = true
-              break
-            end
-          end
-          badb << i if not good
-        end
+        bada = Range.new(0, al-1).to_a - usea
+        badb = Range.new(0, bl-1).to_a - useb
         bada.reverse.each { |x| aa.delete_at(x) }
         badb.reverse.each { |x| ba.delete_at(x) }
         nm = aa.length
@@ -106,6 +93,10 @@ module Linkage
         d = (nm/al.to_f + nm/bl.to_f + (nm-nt/2.0)/nm.to_f)/3.0
         w = (d + l * 0.1 * (1 - d)).round(3)
         w
+      end
+
+      def reverse_jarowinkler(w1, w2)
+        jarowinkler(w1.reverse, w2.reverse)
       end
 
       def damerau_levenshtein(w1, w2)

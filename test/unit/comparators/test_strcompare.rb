@@ -39,6 +39,21 @@ class UnitTests::TestComparators::TestStrcompare < Test::Unit::TestCase
     assert_equal 0.783, comp.score({:foo => 'erin'}, {:bar => 'afrin'})
     assert_equal 0.939, comp.score({:foo => 'KEICHENBERG'}, {:bar => 'REICHENBERG'})
     assert_equal 0.823, comp.score({:foo => 'KEICHENBERG'}, {:bar => 'EEICHENBERG'})
+    assert_equal 0.775, comp.score({:foo => 'airplane'}, {:bar => 'plane'})
+    assert_equal 0, comp.score({:foo => 'cat'}, {:bar => 'dog'})
+  end
+
+  test "score for reverse-jarowinkler" do
+    field_1 = stub('field 1', :name => :foo, :ruby_type => { :type => String })
+    field_2 = stub('field 2', :name => :bar, :ruby_type => { :type => String })
+    comp = Strcompare.new(field_1, field_2, :reverse_jarowinkler)
+    assert_equal 0.950, comp.score({:foo => 'martha'}, {:bar => 'marhta'})
+    assert_equal 0.858, comp.score({:foo => 'dwayne'}, {:bar => 'duane'})
+    assert_equal 0.775, comp.score({:foo => 'dixon'}, {:bar => 'dicksonx'})
+    assert_equal 0.848, comp.score({:foo => 'erin'}, {:bar => 'afrin'})
+    assert_equal 0.964, comp.score({:foo => 'KEICHENBERG'}, {:bar => 'REICHENBERG'})
+    assert_equal 0.964, comp.score({:foo => 'KEICHENBERG'}, {:bar => 'EEICHENBERG'})
+    assert_equal 0.925, comp.score({:foo => 'airplane'}, {:bar => 'plane'})
     assert_equal 0, comp.score({:foo => 'cat'}, {:bar => 'dog'})
   end
 
