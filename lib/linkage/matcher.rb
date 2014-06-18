@@ -14,7 +14,7 @@ module Linkage
   #
   # Whenever {Matcher} finds a match, it uses the observer pattern to notify
   # other objects that a match has been found. Usually the only observer is a
-  # {MatchSet}, which is responsible for actually saving match information.
+  # {MatchRecorder}.
   class Matcher
     include Observable
 
