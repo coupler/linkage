@@ -1,6 +1,16 @@
 module Linkage
   module Helpers
     module Database
+      # Returns a `Sequel::Database`.
+      #
+      # @overload database_connection(connection_options = {}, default_options = {})
+      #   @param connection_options [Hash] Options to establish a connection. Any
+      #     options not explicitly listed below are passed directly to `Sequel.connect`.
+      #   @option connection_options [Sequel::Database] :conn Overrides all other options
+      #   @option connection_options [String] :dir Parent directory to use for SQLite database
+      #   @option connection_options [String] :filename SQLite database filename
+      # @overload database_connection(url)
+      #   @param url [String] Sequel-style connection url
       def database_connection(connection_options = {}, default_options = {})
         sequel_options = nil
         connection_options ||= default_options
