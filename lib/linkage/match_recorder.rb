@@ -1,5 +1,9 @@
 module Linkage
+  # {MatchRecorder} is responsible for observing {Matcher} for changes and
+  # saving matches to a {MatchSet} via {MatchSet#add_match}.
   class MatchRecorder
+    # @param matcher [Matcher]
+    # @param match_set [MatchSet]
     def initialize(matcher, match_set)
       @matcher = matcher
       @match_set = match_set
