@@ -1,5 +1,10 @@
 module Linkage
+  # {ScoreRecorder} is responsible for observing a set of {Comparator} for
+  # changes and saving matches to a {ScoreSet} via {ScoreSet#add_score}.
   class ScoreRecorder
+    # @param comparators [Array<Comparator>]
+    # @param score_set [ScoreSet]
+    # @param primary_keys [Array<Symbol>]
     def initialize(comparators, score_set, primary_keys)
       @comparators = comparators
       @score_set = score_set
