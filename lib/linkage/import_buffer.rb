@@ -1,8 +1,8 @@
 module Linkage
   class ImportBuffer
-    # @param [Sequel::Dataset] dataset
-    # @param [Array<Symbol>] headers List of fields you want to insert
-    # @param [Fixnum] limit Number of records to insert at a time
+    # @param dataset [Sequel::Dataset]
+    # @param headers [Array<Symbol>] List of fields you want to insert
+    # @param limit [Fixnum] Number of records to insert at a time
     def initialize(dataset, headers, limit = 1000)
       @dataset = dataset
       @headers = headers
