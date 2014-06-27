@@ -1,5 +1,31 @@
 module Linkage
   module MatchSets
+    # {Database MatchSets::Database} is an implementation of {MatchSet} for saving
+    # matches in a relational database.
+    #
+    # Matches are saved in a database table with the following columns:
+    # - id_1 (string)
+    # - id_2 (string)
+    # - score (float)
+    #
+    # You can setup a database connection in a few different ways. By default, a
+    # SQLite database with the filename of `matches.db` will be created in the
+    # current working directory. If you want something different, you can either
+    # specify a Sequel-style URI, provide connection options for
+    # `Sequel.connect`, or you can just specify a `Sequel::Database` object to
+    # use.
+    #
+    # There are a couple of non-Sequel connection options:
+    #  * `:filename` - specify filename to use for a SQLite database
+    #  * `:dir` - specify the parent directory for a SQLite database
+    #
+    # In addition to connection options, there are behavioral options you can
+    # set. By default, the table name used is called `matches`, but you change
+    # that by setting the `:table_name` option in the second options hash. If
+    # the table already exists, an {ExistsError} will be raised unless you set
+    # the `:overwrite` option to a truthy value in the second options hash.
+    #
+    # @see Helpers::Database
     class Database < MatchSet
       include Helpers::Database
 
@@ -7,23 +33,17 @@ module Linkage
         :filename => 'matches.db'
       }
 
-      # @override initialize(options = {})
-      #   @param [Hash] options
+      # @override initialize(connection_options = {}, options = {})
+      #   @param connection_options [Hash]
+      #   @param options [Hash]
       # @override initialize(uri, options = {})
-      #   @param [String] uri
-      #   @param [Hash] options
-      def initialize(*args)
-        connection_options = args.shift
+      #   @param uri [String]
+      #   @param options [Hash]
+      # @override initialize(database, options = {})
+      #   @param database [Sequel::Database]
+      #   @param options [Hash]
+      def initialize(connection_options = {}, options = {})
         @database = database_connection(connection_options, DEFAULT_OPTIONS)
-
-        options =
-          if connection_options.is_a?(String)
-            args.shift
-          else
-            connection_options
-          end
-        options ||= {}
-
         @table_name = options[:table_name] || :matches
         @overwrite = options[:overwrite]
       end

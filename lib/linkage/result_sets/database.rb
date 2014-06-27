@@ -5,84 +5,53 @@ module Linkage
     # so:
     #
     # ```ruby
-    # result_set = Linkage::ResultSets::Database.new(my_options)
+    # result_set = Linkage::ResultSets::Database.new(connection_options, options)
     # ```
     #
     # Or by using {ResultSet.[] ResultSet.[]}:
     #
     # ```ruby
-    # result_set = Linkage::ResultSet['database'].new(my_options)
+    # result_set = Linkage::ResultSet['database'].new(connection_options, options)
     # ```
     #
-    # There is a slight difference between these two ways, however. The latter
-    # looks up the {ResultSet} class that is registered under the name
-    # `'database'`.  By default, the registered class is {Database
-    # Linkage::ResultSets::Database}, but if that gets overridden (by a plugin,
-    # for example), the result of `Linkage::ResultSet['database']` will be
-    # whatever was registered.
+    # You can setup a database connection in a few different ways. By default, a
+    # SQLite database with the filename of `results.db` will be created in the
+    # current working directory. If you want something different, you can either
+    # specify a Sequel-style URI, provide connection options for
+    # `Sequel.connect`, or you can just specify a
+    # {http://sequel.jeremyevans.net/rdoc/classes/Sequel/Database.html Sequel::Database}
+    # object to use.
     #
-    # {Database#initialize ResultSets::Database.new} takes either a
-    # {http://sequel.jeremyevans.net/rdoc/classes/Sequel/Database.html Sequel::Database},
-    # a String, or a Hash of options. If you pass in a
-    # {http://sequel.jeremyevans.net/rdoc/classes/Sequel/Database.html Sequel::Database},
-    # {Database ResultSets::Database} passes that database to both
-    # {ScoreSets::Database} and {MatchSets::Database}:
+    # There are a couple of non-Sequel connection options:
+    #  * `:filename` - specify filename to use for a SQLite database
+    #  * `:dir` - specify the parent directory for a SQLite database
     #
-    # ```ruby
-    # db = Sequel.connect("mysql2://example.com")
-    # result_set = Linkage::ResultSet['database'].new(db)
-    # ```
-    #
-    # In this case, default options are used in the score set and match set.
-    #
-    # If you pass in a String,
-    # {http://sequel.jeremyevans.net/rdoc/classes/Sequel.html#method-c-connect Sequel.connect}
-    # will be called with the string:
-    #
-    # ```ruby
-    # result_set = Linkage::ResultSet['database'].new("mysql2://example.com")
-    # ```
-    #
-    # In this case, default options are also used in the score set and match
-    # set.
-    #
-    # If you pass in a Hash of options, all values in the Hash except `:scores`
-    # and `:matches` will be passed to
-    # {http://sequel.jeremyevans.net/rdoc/classes/Sequel.html#method-c-connect Sequel.connect}.
-    # The value of `:scores` will be passed to
-    # {ScoreSets::Database#initialize}, and the value of `:matches` will be
-    # passed to {MatchSets::Database#initialize}.
-    #
-    # ```ruby
-    # result_set = Linkage::ResultSet['database'].new({
-    #   :adapter => 'mysql2',
-    #   :username => 'foo',
-    #   :password => 'secret',
-    #   :scores  => { :table_name => 'foo_scores'  },
-    #   :matches => { :table_name => 'foo_matches' },
-    # })
-    # ```
+    # This result set creates a {ScoreSets::Database database-backed score set}
+    # and a {Matchsets::Database database-backed match set} with their default
+    # table names (`scores` and `matches` respectively.  If either table already
+    # exists, an {ExistsError} will be raised unless you set the `:overwrite`
+    # option to a truthy value in the second options hash.
     #
     # @see ScoreSets::Database
     # @see MatchSets::Database
     class Database < ResultSet
       include Helpers::Database
 
-      def initialize(options = {})
-        @options = {
-          :conn => database_connection(options)
-        }
-        if options.is_a?(Hash) && options.has_key?(:overwrite)
-          @options[:overwrite] = options[:overwrite]
-        end
+      DEFAULT_OPTIONS = {
+        :filename => 'results.db'
+      }
+
+      def initialize(connection_options = {}, options = {})
+        @database = database_connection(connection_options, DEFAULT_OPTIONS)
+        @options = options
       end
 
       def score_set
-        @score_set ||= ScoreSet['database'].new(@options)
+        @score_set ||= ScoreSet['database'].new(@database, @options)
       end
 
       def match_set
-        @match_set ||= MatchSet['database'].new(@options)
+        @match_set ||= MatchSet['database'].new(@database, @options)
       end
     end
 
