@@ -3,7 +3,7 @@ require File.expand_path("../../test_result_sets", __FILE__)
 class UnitTests::TestResultSets::TestDatabase < Test::Unit::TestCase
   test "with default options" do
     database = stub('database')
-    Sequel.expects(:connect).with(:adapter => :sqlite, :database => 'linkage.db').returns(database)
+    Sequel.expects(:connect).with(:adapter => :sqlite, :database => 'results.db').returns(database)
     result_set = Linkage::ResultSets::Database.new
 
     score_set = stub('score set')
