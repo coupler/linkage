@@ -3,8 +3,8 @@ require 'helper'
 class IntegrationTests::TestDatabaseResultSet < Test::Unit::TestCase
   def setup
     @dir = Dir.mktmpdir('linkage')
-    @data_uri = "sqlite://" + File.join(@dir, "foo")
-    @results_uri = "sqlite://" + File.join(@dir, "bar")
+    @data_uri = database_options_for('sqlite', 'foo')
+    @results_uri = database_options_for('sqlite', 'bar')
   end
 
   def teardown

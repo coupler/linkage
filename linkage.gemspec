@@ -24,12 +24,18 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "test-unit"
   gem.add_development_dependency "mocha"
   gem.add_development_dependency "versionomy"
-  gem.add_development_dependency "sqlite3"
-  gem.add_development_dependency "mysql2"
   gem.add_development_dependency "guard-test"
-  gem.add_development_dependency "guard-yard"
-  gem.add_development_dependency "redcarpet"
-  gem.add_development_dependency "yard-redcarpet-ext"
+
+  if RUBY_PLATFORM =~ /java/
+    gem.add_development_dependency "jdbc-mysql"
+    gem.add_development_dependency "jdbc-sqlite3"
+  else
+    gem.add_development_dependency "mysql2"
+    gem.add_development_dependency "sqlite3"
+    gem.add_development_dependency "redcarpet"
+    gem.add_development_dependency "yard-redcarpet-ext"
+    gem.add_development_dependency "guard-yard"
+  end
 
   gem.required_ruby_version = '>= 1.9'
 end

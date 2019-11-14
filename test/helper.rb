@@ -94,19 +94,24 @@ class Test::Unit::TestCase
     self.class.database_config
   end
 
-  def database_options_for(adapter)
+  def database_options_for(adapter, database_name = "test")
     config =
       if adapter == 'sqlite'
         @tmpdir ||= Dir.mktmpdir('linkage')
-        { 'adapter' => 'sqlite', 'database' => File.join(@tmpdir, "foo") }
+        database = File.join(@tmpdir, database_name)
+        if RUBY_PLATFORM =~ /java/
+          "jdbc:sqlite:#{database}"
+        else
+          { 'adapter' => 'sqlite', 'database' => database }
+        end
       else
-        database_config[adapter]
+        database_config[adapter][database_name]
       end
 
     if config
       return config
     else
-      omit("Couldn't find configuration for adapter '#{adapter}'")
+      omit("Couldn't find configuration for adapter '#{adapter}' with database '#{database_name}'")
     end
   end
 

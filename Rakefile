@@ -5,6 +5,7 @@ Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
   test.verbose = true
+  test.warning = false
 end
 task :default => :test
 
@@ -13,18 +14,22 @@ namespace :test do
     test.libs << 'lib' << 'test'
     test.pattern = 'test/unit/**/test_*.rb'
     test.verbose = true
+    test.warning = false
   end
 
   Rake::TestTask.new(:integration) do |test|
     test.libs << 'lib' << 'test'
     test.pattern = 'test/integration/**/test_*.rb'
     test.verbose = true
+    test.warning = false
   end
 end
 
-require 'yard'
-YARD::Rake::YardocTask.new do |t|
-  t.files = ['lib/**/*.rb']
+if RUBY_PLATFORM !~ /java/
+  require 'yard'
+  YARD::Rake::YardocTask.new do |t|
+    t.files = ['lib/**/*.rb']
+  end
 end
 
 # Yoinked from https://github.com/rails/rails/blob/master/railties/lib/rails/tasks/annotations.rake

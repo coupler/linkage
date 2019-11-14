@@ -3,7 +3,7 @@ require 'helper'
 class IntegrationTests::TestSelfLinkage < Test::Unit::TestCase
   def setup
     @tmpdir = Dir.mktmpdir('linkage')
-    @tmpuri = "sqlite://" + File.join(@tmpdir, "foo")
+    @tmpuri = database_options_for('sqlite')
   end
 
   def database(&block)
