@@ -8,7 +8,7 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 require 'test/unit'
-require 'mocha/setup'
+require 'mocha/test_unit'
 require 'tmpdir'
 require 'logger'
 require 'pp'
