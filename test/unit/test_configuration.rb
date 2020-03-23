@@ -58,6 +58,15 @@ class UnitTests::TestConfiguration < Test::Unit::TestCase
     assert_equal config.comparators[0], comp
   end
 
+  test "adding comparator with invalid fields raises exception" do
+    config = Linkage::Configuration.new(@dataset_1, @dataset_2, @result_set)
+
+    @field_set_1.expects(:[]).with(:foo).returns(nil)
+    assert_raises do
+      config.compare([:foo], [:foo], :equal)
+    end
+  end
+
   test "adding comparator with set arguments and one datasets" do
     config = Linkage::Configuration.new(@dataset_1, @result_set)
 

@@ -170,7 +170,13 @@ module Linkage
 
     def fields_for(dataset, *args)
       field_set = dataset.field_set
-      args.collect { |name| field_set[name] }
+      args.collect do |name|
+        field = field_set[name]
+        if field.nil?
+          raise "unknown field name: #{name.inspect} (valid fields: #{field_set.keys.inspect})"
+        end
+        field
+      end
     end
   end
 end
