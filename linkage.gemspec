@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "sequel"
   gem.add_dependency "hashery"
 
-  gem.add_development_dependency "bundler", "~> 1.3"
+  gem.add_development_dependency "bundler"
   gem.add_development_dependency "rake"
   gem.add_development_dependency "test-unit"
   gem.add_development_dependency "mocha"
@@ -32,8 +32,6 @@ Gem::Specification.new do |gem|
   else
     gem.add_development_dependency "mysql2"
     gem.add_development_dependency "sqlite3"
-    gem.add_development_dependency "redcarpet"
-    gem.add_development_dependency "yard-redcarpet-ext"
     gem.add_development_dependency "guard-yard"
   end
 
